@@ -1,0 +1,6 @@
+*.pwb
+*.PWB
+*.raw
+*.RAW
+*.txt
+/chunks/*

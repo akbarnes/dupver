@@ -22,12 +22,11 @@ func check(e error) {
 func main() {
 	// chunky =  Chunker(rd io.Reader, pol Pol) 
 	fmt.Println("Welcome to the playground!")
-	f, err := os.Open("scoop_apps.txt")
-	check(err)
+	f, _ := os.Open("ACTIVSg70k.RAW")
 
     b1 := make([]byte, 24)
-    n1, err := f.Read(b1)
-    check(err)
+    n1, _ := f.Read(b1)
+
 	fmt.Printf("%d bytes: %s\n", n1, string(b1[:n1]))
 	
 	// generate 32MiB of deterministic pseudo-random data
@@ -49,6 +48,13 @@ func main() {
 			panic(err)
 		}
 
-		fmt.Printf("%d %02x\n", chunk.Length, sha256.Sum256(chunk.Data))
+		myHash := sha256.Sum256(chunk.Data)
+		fmt.Printf("%d %02x\n", chunk.Length, myHash)
+		chunkPath := fmt.Sprintf("chunks/%d-%02x.dat", i, myHash[0:5])
+		g, _ := os.Create(chunkPath)
+		g.Write(chunk.Data)
+		g.Close()
 	}
+
+	f.Close()
 }
