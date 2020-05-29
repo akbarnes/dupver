@@ -37,7 +37,7 @@ func main() {
 	backupPtr := flag.Bool("backup", false, "Back up specified file")
 	restorePtr := flag.Bool("restore", false, "Restore specified file")
 	listPtr := flag.Bool("list", false, "List revisions")
-	revisionPtr := flag.Int("revision", -1, "Restore specified revision (default is last)")
+	revisionPtr := flag.Int("revision", 0, "Restore specified revision (default is last)")
 	msgPtr := flag.String("message", "", "commit message")
 	
 	flag.Parse()
@@ -55,7 +55,7 @@ func main() {
 		// os.MkdirAll("data/tree")
 		os.Mkdir("./data", 0777)
 		treePath := fmt.Sprintf("data/versions.toml")
-		h, _ := os.Create(treePath)
+		h, _ := os.OpenFile(treePath, os.O_APPEND|os.O_WRONLY, 0600)
 		fmt.Fprintf(h, "[[commits]]\n")
 		// fmt.Fprintf(h, "key=\"2020-05-29\"\n")
 		fmt.Fprintf(h, "message=\"%s\"\n", msg)
@@ -74,11 +74,11 @@ func main() {
 			if err != nil {
 				log.Fatal(err)
 			}
-			fmt.Printf("%s\n,", hdr.Name)
+			fmt.Printf("%s\n", hdr.Name)
 			fmt.Fprintf(h, "  \"%s\",\n", hdr.Name)
 		}
 
-		fmt.Fprint(h, "]\n")
+		fmt.Fprint(h, "]\n\n")
 
 		f.Close()
 		f0.Close()
@@ -130,7 +130,8 @@ func main() {
 	} else if *restorePtr == true {
 		fmt.Printf("Restoring\n")
 		var history commitHistory
-		f, _ := os.Open("data/versions.toml")
+		treePath := "data/versions.toml"
+		f, _ := os.Open(treePath)
 
 		if _, err := toml.DecodeReader(f, &history); err != nil {
 			log.Fatal(err)
@@ -140,11 +141,16 @@ func main() {
 
 
 		fmt.Printf("Number of commits %d\n", len(history.Commits))
-		rev := len(history.Commits) - 1
+		nc := len(history.Commits) 
+		rev := nc - 1
 
-		if *revisionPtr >= 0 {
-			rev = *revisionPtr
+		if *revisionPtr > 0 {
+			rev = *revisionPtr - 1
+		} else if *revisionPtr < 0 {
+			rev = nc + *revisionPtr
 		}
+
+		fmt.Printf("Restoring commit %d\n", rev)
 		
 		if (true || len(filePath) == 0) {
 			filePath = fmt.Sprintf("snapshot%d.tgz", rev + 1)
@@ -191,8 +197,16 @@ func main() {
 		f.Close()
 
 		// print a specific revision
-		if *revisionPtr >= 0 {
-			rev := *revisionPtr - 1
+		if *revisionPtr != 0 {
+			nc := len(history.Commits) 
+			rev := nc - 1
+	
+			if *revisionPtr > 0 {
+				rev = *revisionPtr - 1
+			} else if *revisionPtr < 0 {
+				rev = nc + *revisionPtr
+			}
+
 			commit := history.Commits[rev]
 			
 			fmt.Printf("Revision %d\n", rev + 1)
@@ -206,12 +220,12 @@ func main() {
 			for j, file := range commit.Files {
 				fmt.Printf("  %d: %s\n", j + 1, file)
 			}
-			fmt.Printf("Chunks: \n")
+			// fmt.Printf("Chunks: \n")
 
-			for j, hash := range history.Commits[rev].Chunks {
-				chunkPath := fmt.Sprintf("data/%s/%s.gz", hash[0:2], hash)
-				fmt.Printf("  Chunk %d: %s\n", j + 1, chunkPath)
-			}
+			// for j, hash := range history.Commits[rev].Chunks {
+			// 	chunkPath := fmt.Sprintf("data/%s/%s.gz", hash[0:2], hash)
+			// 	fmt.Printf("  Chunk %d: %s\n", j + 1, chunkPath)
+			// }
 		} else {
 			fmt.Printf("Commit History\n")
 

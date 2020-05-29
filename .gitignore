@@ -3,4 +3,9 @@
 *.raw
 *.RAW
 *.txt
+*.tgz
+*.tar
+
 /chunks/*
+/data/*
+/SyntheticUSA/*
