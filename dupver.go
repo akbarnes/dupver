@@ -11,8 +11,20 @@ import (
 	"compress/gzip"
 	"archive/tar"
 	"log"
+	"github.com/BurntSushi/toml"
 )
- 	
+
+type commit struct {
+	Message string
+	Key string
+	Time string
+	Files []string
+	Chunks []string
+}
+
+type commitHistory struct {
+	Commits []commit
+}
 
 func check(e error) {
     if e != nil {
@@ -22,9 +34,9 @@ func check(e error) {
 
 
 func main() {
-	filePtr := flag.String("file", "ACTIVSg70k.RAW", "an int")
+	filePtr := flag.String("file", "", "an int")
 	backupPtr := flag.Bool("backup", false, "Back up specified file")
-	// restorePtr := flag.Bool("restore", false, "Restore specified file")
+	restorePtr := flag.Bool("restore", false, "Restore specified file")
 	msgPtr := flag.String("message", "", "commit message")
 	
 	flag.Parse()
@@ -43,9 +55,11 @@ func main() {
 		os.Mkdir("./data", 0777)
 		treePath := fmt.Sprintf("data/versions.toml")
 		h, _ := os.Create(treePath)
-		fmt.Fprintf(h, "[versions.2020-05-29]\n")
+		fmt.Fprintf(h, "[[versions]]")
+		fmt.Fprintf(h, "key=\"2020-05-29\"\n")
 		fmt.Fprintf(h, "message=\"%s\"\n", msg)
-		fmt.Fprintf(h, "archive=\"%s\"\n", filePath)
+		fmt.Fprintf(h, "time=\"2020-05-29 5:32pm\"")
+		// fmt.Fprintf(h, "archive=\"%s\"\n", filePath)
 		fmt.Fprintf(h, "files = [\n")
 
 
@@ -112,5 +126,25 @@ func main() {
 		f0.Close()
 		fmt.Fprintf(h, "]\n")
 		h.Close()
+	} else if(*restorePtr == true) {
+		fmt.Printf("Restoring\n")
+		var history commitHistory
+		f, _ := os.Open("data/versions.toml")
+
+		if _, err := toml.DecodeReader(f, &history); err != nil {
+			log.Fatal(err)
+		}
+
+		f.Close()
+
+
+		fmt.Printf("Number of commits %d\n", len(history.Commits))
+		
+		if (true || len(filePath) == 0) {
+			filePath = "snapshot-" + history.Commits[0].Key + ".tgz"
+		}
+
+		fmt.Printf("Writing to %s\n", filePath)
+
 	}
 }
