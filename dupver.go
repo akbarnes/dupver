@@ -2,11 +2,10 @@ package main
 
 
 import (
-    // "bufio"
+	"flag"
     "fmt"
 	"io"
 	"crypto/sha256"
-    // "io/ioutil"
 	"os"
 	"github.com/restic/chunker"
 )
@@ -20,41 +19,69 @@ func check(e error) {
 
 
 func main() {
-	// chunky =  Chunker(rd io.Reader, pol Pol) 
-	fmt.Println("Welcome to the playground!")
-	f, _ := os.Open("ACTIVSg70k.RAW")
-
-    b1 := make([]byte, 24)
-    n1, _ := f.Read(b1)
-
-	fmt.Printf("%d bytes: %s\n", n1, string(b1[:n1]))
+	filePtr := flag.String("file", "ACTIVSg70k.RAW", "an int")
+	backupPtr := flag.Bool("backup", false, "Back up specified file")
+	msgPtr := flag.String("message", "", "commit message")
 	
-	// generate 32MiB of deterministic pseudo-random data
-	// data := getRandom(23, 32*1024*1024)
+	flag.Parse()
+	
+	filePath := *filePtr
+	msg := *msgPtr
+	// filePath = "ACTIVSg70k.RAW"	
 
-	// create a chunker
-	mychunker := chunker.New(f, chunker.Pol(0x3DA3358B4DC173))
+	if (*backupPtr == true) {
+		fmt.Println("Backing up ", filePath)
 
-	// reuse this buffer
-	buf := make([]byte, 8*1024*1024)
+		// chunky =  Chunker(rd io.Reader, pol Pol) 
+		f, _ := os.Open(filePath)
+		
+		// generate 32MiB of deterministic pseudo-random data
+		// data := getRandom(23, 32*1024*1024)
+		os.Mkdir("./data", 0777)
 
-	for i := 0; i < 5; i++ {
-		chunk, err := mychunker.Next(buf)
-		if err == io.EOF {
-			break
+		// create a chunker
+		mychunker := chunker.New(f, chunker.Pol(0x3DA3358B4DC173))
+
+		// reuse this buffer
+		buf := make([]byte, 8*1024*1024)
+
+		// os.MkdirAll("data/tree")
+		treePath := fmt.Sprintf("data/versions.toml")
+		h, _ := os.Create(treePath)
+
+		fmt.Fprintf(h, "[versions.2020-05-29]\n")
+		fmt.Fprintf(h, "message=\"%s\"\n", msg)
+		fmt.Fprintf(h, "file=\"%s\"\n", filePath)
+		fmt.Fprintf(h, "chunks = [\n")
+
+		i := 0
+
+		for {
+			chunk, err := mychunker.Next(buf)
+			if err == io.EOF {
+				break
+			}
+
+			if err != nil {
+				panic(err)
+			}
+			
+			i += 1
+			myHash := sha256.Sum256(chunk.Data)
+			fmt.Printf("Chunk %d: %d kB, %02x\n", i, chunk.Length/1024, myHash)
+			fmt.Fprintf(h, "  \"%02x\",\n", myHash)
+
+			chunkFolder := fmt.Sprintf("data/%02x", myHash[0:1])
+			os.MkdirAll(chunkFolder, 0777)
+
+			chunkPath := fmt.Sprintf("%s/%02x", chunkFolder, myHash)
+			g, _ := os.Create(chunkPath)
+			g.Write(chunk.Data)
+			g.Close()
 		}
 
-		if err != nil {
-			panic(err)
-		}
-
-		myHash := sha256.Sum256(chunk.Data)
-		fmt.Printf("%d %02x\n", chunk.Length, myHash)
-		chunkPath := fmt.Sprintf("chunks/%d-%02x.dat", i, myHash[0:5])
-		g, _ := os.Create(chunkPath)
-		g.Write(chunk.Data)
-		g.Close()
+		f.Close()
+		fmt.Fprintf(h, "]\n")
+		h.Close()
 	}
-
-	f.Close()
 }
