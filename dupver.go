@@ -8,6 +8,8 @@ import (
 	"crypto/sha256"
 	"os"
 	"github.com/restic/chunker"
+	"compress/gzip"
+	"archive/zip"
 )
  	
 
@@ -21,6 +23,7 @@ func check(e error) {
 func main() {
 	filePtr := flag.String("file", "ACTIVSg70k.RAW", "an int")
 	backupPtr := flag.Bool("backup", false, "Back up specified file")
+	// restorePtr := flag.Bool("restore", false, "Restore specified file")
 	msgPtr := flag.String("message", "", "commit message")
 	
 	flag.Parse()
@@ -74,10 +77,12 @@ func main() {
 			chunkFolder := fmt.Sprintf("data/%02x", myHash[0:1])
 			os.MkdirAll(chunkFolder, 0777)
 
-			chunkPath := fmt.Sprintf("%s/%02x", chunkFolder, myHash)
-			g, _ := os.Create(chunkPath)
+			chunkPath := fmt.Sprintf("%s/%02x.gz", chunkFolder, myHash)
+			g0, _ := os.Create(chunkPath)
+			g := gzip.NewWriter(g0)
 			g.Write(chunk.Data)
 			g.Close()
+			g0.Close()
 		}
 
 		f.Close()
