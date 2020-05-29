@@ -16,7 +16,6 @@ import (
 
 type commit struct {
 	Message string
-	Key string
 	Time string
 	Files []string
 	Chunks []string
@@ -37,6 +36,7 @@ func main() {
 	filePtr := flag.String("file", "", "an int")
 	backupPtr := flag.Bool("backup", false, "Back up specified file")
 	restorePtr := flag.Bool("restore", false, "Restore specified file")
+	revisionPtr := flag.Int("revision", -1, "Restore specified revision (default is last)")
 	msgPtr := flag.String("message", "", "commit message")
 	
 	flag.Parse()
@@ -55,10 +55,10 @@ func main() {
 		os.Mkdir("./data", 0777)
 		treePath := fmt.Sprintf("data/versions.toml")
 		h, _ := os.Create(treePath)
-		fmt.Fprintf(h, "[[versions]]")
-		fmt.Fprintf(h, "key=\"2020-05-29\"\n")
+		fmt.Fprintf(h, "[[commits]]\n")
+		// fmt.Fprintf(h, "key=\"2020-05-29\"\n")
 		fmt.Fprintf(h, "message=\"%s\"\n", msg)
-		fmt.Fprintf(h, "time=\"2020-05-29 5:32pm\"")
+		fmt.Fprintf(h, "time=\"2020-05-29 5:32pm\"\n")
 		// fmt.Fprintf(h, "archive=\"%s\"\n", filePath)
 		fmt.Fprintf(h, "files = [\n")
 
@@ -114,7 +114,7 @@ func main() {
 			chunkFolder := fmt.Sprintf("data/%02x", myHash[0:1])
 			os.MkdirAll(chunkFolder, 0777)
 
-			chunkPath := fmt.Sprintf("%s/%02x", chunkFolder, myHash)
+			chunkPath := fmt.Sprintf("%s/%02x.gz", chunkFolder, myHash)
 			g0, _ := os.Create(chunkPath)
 			g := gzip.NewWriter(g0)
 			g.Write(chunk.Data)
@@ -127,6 +127,9 @@ func main() {
 		fmt.Fprintf(h, "]\n")
 		h.Close()
 	} else if(*restorePtr == true) {
+
+		
+
 		fmt.Printf("Restoring\n")
 		var history commitHistory
 		f, _ := os.Open("data/versions.toml")
@@ -139,10 +142,44 @@ func main() {
 
 
 		fmt.Printf("Number of commits %d\n", len(history.Commits))
+		rev := len(history.Commits) - 1
+
+		if *revisionPtr >= 0 {
+			rev = *revisionPtr
+		}
 		
 		if (true || len(filePath) == 0) {
-			filePath = "snapshot-" + history.Commits[0].Key + ".tgz"
+			filePath = fmt.Sprintf("snapshot%d.tgz", rev + 1)
 		}
+
+		g0, _ := os.Create(filePath)
+		g := gzip.NewWriter(g0)
+
+		b := make([]byte, 1024)
+
+		for i, hash := range history.Commits[rev].Chunks {
+			chunkPath := fmt.Sprintf("data/%s/%s.gz", hash[0:2], hash)
+			fmt.Printf("Reading %d %s\n", i, chunkPath)
+
+			f0, err := os.Open(chunkPath)
+			check(err)
+			f, _ := gzip.NewReader(f0)
+
+			for {
+				n, _ := f.Read(b)
+				g.Write(b[0:n])
+
+				if n == 0 {
+					break
+				}
+			}
+
+			f.Close()
+			f0.Close()			
+		}
+
+		g.Close()
+		g0.Close()
 
 		fmt.Printf("Writing to %s\n", filePath)
 
