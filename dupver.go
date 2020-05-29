@@ -9,7 +9,8 @@ import (
 	"os"
 	"github.com/restic/chunker"
 	"compress/gzip"
-	"archive/zip"
+	"archive/tar"
+	"log"
 )
  	
 
@@ -19,61 +20,6 @@ func check(e error) {
     }
 }
 
-func Unzip(src string, dest string) ([]string, error) {
-
-    var filenames []string
-
-    r, err := zip.OpenReader(src)
-    if err != nil {
-        return filenames, err
-    }
-    defer r.Close()
-
-    for _, f := range r.File {
-
-        // Store filename/path for returning and using later on
-        fpath := filepath.Join(dest, f.Name)
-
-        // Check for ZipSlip. More Info: http://bit.ly/2MsjAWE
-        if !strings.HasPrefix(fpath, filepath.Clean(dest)+string(os.PathSeparator)) {
-            return filenames, fmt.Errorf("%s: illegal file path", fpath)
-        }
-
-        filenames = append(filenames, fpath)
-
-        if f.FileInfo().IsDir() {
-            // Make Folder
-            os.MkdirAll(fpath, os.ModePerm)
-            continue
-        }
-
-        // Make File
-        if err = os.MkdirAll(filepath.Dir(fpath), os.ModePerm); err != nil {
-            return filenames, err
-        }
-
-        outFile, err := os.OpenFile(fpath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
-        if err != nil {
-            return filenames, err
-        }
-
-        rc, err := f.Open()
-        if err != nil {
-            return filenames, err
-        }
-
-        _, err = io.Copy(outFile, rc)
-
-        // Close the file without defer to close before next iteration of loop
-        outFile.Close()
-        rc.Close()
-
-        if err != nil {
-            return filenames, err
-        }
-    }
-    return filenames, nil
-}
 
 func main() {
 	filePtr := flag.String("file", "ACTIVSg70k.RAW", "an int")
@@ -90,81 +36,48 @@ func main() {
 	if (*backupPtr == true) {
 		fmt.Println("Backing up ", filePath)
 
+		f0, _ := os.Open(filePath)
+		f, _ := gzip.NewReader(f0)
 
-		var filenames []string
-
-		r, err := zip.OpenReader(filePath)
-		if err != nil {
-			return filenames, err
-		}
-		defer r.Close()
-	
-		for _, f := range r.File {
-	
-			// Store filename/path for returning and using later on
-			fpath := filepath.Join(dest, f.Name)
-	
-			// Check for ZipSlip. More Info: http://bit.ly/2MsjAWE
-			if !strings.HasPrefix(fpath, filepath.Clean(dest)+string(os.PathSeparator)) {
-				return filenames, fmt.Errorf("%s: illegal file path", fpath)
-			}
-	
-			filenames = append(filenames, fpath)
-	
-			if f.FileInfo().IsDir() {
-				// Make Folder
-				os.MkdirAll(fpath, os.ModePerm)
-				continue
-			}
-	
-			// Make File
-			if err = os.MkdirAll(filepath.Dir(fpath), os.ModePerm); err != nil {
-				return filenames, err
-			}
-	
-			outFile, err := os.OpenFile(fpath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
-			if err != nil {
-				return filenames, err
-			}
-	
-			rc, err := f.Open()
-			if err != nil {
-				return filenames, err
-			}
-	
-			_, err = io.Copy(outFile, rc)
-	
-			// Close the file without defer to close before next iteration of loop
-			outFile.Close()
-			rc.Close()
-	
-			if err != nil {
-				return filenames, err
-			}
-		}
-		return filenames, nil
-	
-
-		// chunky =  Chunker(rd io.Reader, pol Pol) 
-		f, _ := os.Open(filePath)
-		
-		// generate 32MiB of deterministic pseudo-random data
-		// data := getRandom(23, 32*1024*1024)
+		// os.MkdirAll("data/tree")
 		os.Mkdir("./data", 0777)
+		treePath := fmt.Sprintf("data/versions.toml")
+		h, _ := os.Create(treePath)
+		fmt.Fprintf(h, "[versions.2020-05-29]\n")
+		fmt.Fprintf(h, "message=\"%s\"\n", msg)
+		fmt.Fprintf(h, "archive=\"%s\"\n", filePath)
+		fmt.Fprintf(h, "files = [\n")
 
+
+		// Open and iterate through the files in the archive.
+		tr := tar.NewReader(f)
+		for {
+			hdr, err := tr.Next()
+			if err == io.EOF {
+				break // End of archive
+			}
+			if err != nil {
+				log.Fatal(err)
+			}
+			fmt.Printf("%s\n,", hdr.Name)
+			fmt.Fprintf(h, "  \"%s\",\n", hdr.Name)
+		}
+
+		fmt.Fprint(h, "]\n")
+
+		f.Close()
+		f0.Close()
+		f0, _ = os.Open(filePath)
+		f, _ = gzip.NewReader(f0)
+		
 		// create a chunker
 		mychunker := chunker.New(f, chunker.Pol(0x3DA3358B4DC173))
 
 		// reuse this buffer
 		buf := make([]byte, 8*1024*1024)
 
-		// os.MkdirAll("data/tree")
-		treePath := fmt.Sprintf("data/versions.toml")
-		h, _ := os.Create(treePath)
 
-		fmt.Fprintf(h, "[versions.2020-05-29]\n")
-		fmt.Fprintf(h, "message=\"%s\"\n", msg)
-		fmt.Fprintf(h, "file=\"%s\"\n", filePath)
+
 		fmt.Fprintf(h, "chunks = [\n")
 
 		i := 0
@@ -187,7 +100,7 @@ func main() {
 			chunkFolder := fmt.Sprintf("data/%02x", myHash[0:1])
 			os.MkdirAll(chunkFolder, 0777)
 
-			chunkPath := fmt.Sprintf("%s/%02x.gz", chunkFolder, myHash)
+			chunkPath := fmt.Sprintf("%s/%02x", chunkFolder, myHash)
 			g0, _ := os.Create(chunkPath)
 			g := gzip.NewWriter(g0)
 			g.Write(chunk.Data)
@@ -196,6 +109,7 @@ func main() {
 		}
 
 		f.Close()
+		f0.Close()
 		fmt.Fprintf(h, "]\n")
 		h.Close()
 	}
