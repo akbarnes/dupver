@@ -36,6 +36,7 @@ func main() {
 	filePtr := flag.String("file", "", "an int")
 	backupPtr := flag.Bool("backup", false, "Back up specified file")
 	restorePtr := flag.Bool("restore", false, "Restore specified file")
+	listPtr := flag.Bool("list", false, "List revisions")
 	revisionPtr := flag.Int("revision", -1, "Restore specified revision (default is last)")
 	msgPtr := flag.String("message", "", "commit message")
 	
@@ -126,10 +127,7 @@ func main() {
 		f0.Close()
 		fmt.Fprintf(h, "]\n")
 		h.Close()
-	} else if(*restorePtr == true) {
-
-		
-
+	} else if *restorePtr == true {
 		fmt.Printf("Restoring\n")
 		var history commitHistory
 		f, _ := os.Open("data/versions.toml")
@@ -182,6 +180,55 @@ func main() {
 		g0.Close()
 
 		fmt.Printf("Writing to %s\n", filePath)
+	} else if *listPtr == true {
+		var history commitHistory
+		f, _ := os.Open("data/versions.toml")
 
+		if _, err := toml.DecodeReader(f, &history); err != nil {
+			log.Fatal(err)
+		}
+
+		f.Close()
+
+		// print a specific revision
+		if *revisionPtr >= 0 {
+			rev := *revisionPtr - 1
+			commit := history.Commits[rev]
+			
+			fmt.Printf("Revision %d\n", rev + 1)
+			fmt.Printf("Time: %s\n", commit.Time)
+
+			if len(commit.Message) > 0 {
+				fmt.Printf("Message: %s\n", commit.Message)
+			}
+
+			fmt.Printf("Files:\n")
+			for j, file := range commit.Files {
+				fmt.Printf("  %d: %s\n", j + 1, file)
+			}
+			fmt.Printf("Chunks: \n")
+
+			for j, hash := range history.Commits[rev].Chunks {
+				chunkPath := fmt.Sprintf("data/%s/%s.gz", hash[0:2], hash)
+				fmt.Printf("  Chunk %d: %s\n", j + 1, chunkPath)
+			}
+		} else {
+			fmt.Printf("Commit History\n")
+
+			for i, commit := range history.Commits {
+				fmt.Printf("Revision %d\n", i + 1)
+				fmt.Printf("Time: %s\n", commit.Time)
+
+				if len(commit.Message) > 0 {
+					fmt.Printf("Message: %s\n", commit.Message)
+				}
+
+				fmt.Printf("Files:\n")
+				for j, file := range commit.Files {
+					fmt.Printf("  %d: %s\n", j + 1, file)
+				}
+				fmt.Printf("\n")
+			}
+		}
 	}
 }
