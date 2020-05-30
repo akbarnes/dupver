@@ -36,7 +36,9 @@ Copy the executable somewhere in your path. Build scripts for
 Windows/*nix are included, see
 
 * Install-Dupver.ps1 (Windows)
-* install.ps1 (*nix)
+* install.sh (*nix)
+
+You will need to edit them to set your desired install folder.
 
 ## Usage
 

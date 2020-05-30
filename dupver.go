@@ -34,18 +34,30 @@ func check(e error) {
 
 
 func main() {
-	filePtr := flag.String("file", "", "an int")
 	initPtr := flag.Bool("init", false, "Initialize the repository")
 	backupPtr := flag.Bool("backup", false, "Back up specified file")
 	restorePtr := flag.Bool("restore", false, "Restore specified file")
 	listPtr := flag.Bool("list", false, "List revisions")
-	revisionPtr := flag.Int("revision", 0, "Restore specified revision (default is last)")
-	msgPtr := flag.String("message", "", "commit message")
+
+	var filePath string
+	var msg string
+	var revision int
+
+	flag.StringVar(&filePath, "input", "", "Input archive path")
+	flag.StringVar(&filePath, "i", "", "Input archive path (shorthand)")
+	flag.StringVar(&filePath, "output", "", "Output archive path")
+	flag.StringVar(&filePath, "o", "", "Output archive path (shorthand)")
+
+	flag.IntVar(&revision, "revision", 0, "Specify revision (default is last)")
+	flag.IntVar(&revision, "r", 0, "Specify revision (shorthand)")
+
+
+	flag.StringVar(&msg, "message", "", "Commit message")
+	flag.StringVar(&msg, "m", "", "Commit message (shorthand)")
+
 	
 	flag.Parse()
 	
-	filePath := *filePtr
-	msg := *msgPtr
 	treePath := fmt.Sprintf(".dupver/versions.toml")
 
 	if *initPtr {
@@ -146,10 +158,10 @@ func main() {
 		nc := len(history.Commits) 
 		rev := nc - 1
 
-		if *revisionPtr > 0 {
-			rev = *revisionPtr - 1
-		} else if *revisionPtr < 0 {
-			rev = nc + *revisionPtr
+		if revision > 0 {
+			rev = revision - 1
+		} else if revision < 0 {
+			rev = nc + revision
 		}
 
 		fmt.Printf("Restoring commit %d\n", rev)
@@ -199,14 +211,14 @@ func main() {
 		f.Close()
 
 		// print a specific revision
-		if *revisionPtr != 0 {
+		if revision != 0 {
 			nc := len(history.Commits) 
 			rev := nc - 1
 	
-			if *revisionPtr > 0 {
-				rev = *revisionPtr - 1
-			} else if *revisionPtr < 0 {
-				rev = nc + *revisionPtr
+			if revision > 0 {
+				rev = revision - 1
+			} else if revision < 0 {
+				rev = nc + revision
 			}
 
 			commit := history.Commits[rev]
@@ -247,10 +259,7 @@ func main() {
 			}
 		}
 	} else {
-		fmt.Println("Usage:")
-		fmt.Println("-init: Initialize the repo")
-		fmt.Println("-backup -file filename.tgz: backup filename.tgz")
-		fmt.Println("-restore -revision r [-file filename.tgz]: restore revision r. Use negative r to specify rth from last")
-		fmt.Println("-list [-revision r]: list revisions or chunks in revision")
+		fmt.Println("No command specified, exiting")
+		fmt.Println("For available commands run: dupver -help")
 	}
 }
