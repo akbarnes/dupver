@@ -5,6 +5,7 @@
 *.txt
 *.tgz
 *.tar
+*.exe
 
 /chunks/*
 /data/*

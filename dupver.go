@@ -12,6 +12,7 @@ import (
 	"archive/tar"
 	"log"
 	"github.com/BurntSushi/toml"
+	"time"
 )
 
 type commit struct {
@@ -34,6 +35,7 @@ func check(e error) {
 
 func main() {
 	filePtr := flag.String("file", "", "an int")
+	initPtr := flag.Bool("init", false, "Initialize the repository")
 	backupPtr := flag.Bool("backup", false, "Back up specified file")
 	restorePtr := flag.Bool("restore", false, "Restore specified file")
 	listPtr := flag.Bool("list", false, "List revisions")
@@ -44,23 +46,23 @@ func main() {
 	
 	filePath := *filePtr
 	msg := *msgPtr
-	// filePath = "ACTIVSg70k.RAW"	
+	treePath := fmt.Sprintf(".dupver/versions.toml")
 
-	if (*backupPtr == true) {
+	if *initPtr {
+		os.Mkdir("./.dupver", 0777)
+		f, _ := os.Create(treePath)
+		f.Close()
+	} else if *backupPtr {
 		fmt.Println("Backing up ", filePath)
 
 		f0, _ := os.Open(filePath)
 		f, _ := gzip.NewReader(f0)
 
-		// os.MkdirAll("data/tree")
-		os.Mkdir("./data", 0777)
-		treePath := fmt.Sprintf("data/versions.toml")
 		h, _ := os.OpenFile(treePath, os.O_APPEND|os.O_WRONLY, 0600)
 		fmt.Fprintf(h, "[[commits]]\n")
-		// fmt.Fprintf(h, "key=\"2020-05-29\"\n")
 		fmt.Fprintf(h, "message=\"%s\"\n", msg)
-		fmt.Fprintf(h, "time=\"2020-05-29 5:32pm\"\n")
-		// fmt.Fprintf(h, "archive=\"%s\"\n", filePath)
+		t := time.Now()
+		fmt.Fprintf(h, "time=\"%s\"\n", t.Format("2006-01-02 15:04:05"))
 		fmt.Fprintf(h, "files = [\n")
 
 
@@ -112,7 +114,7 @@ func main() {
 			fmt.Printf("Chunk %d: %d kB, %02x\n", i, chunk.Length/1024, myHash)
 			fmt.Fprintf(h, "  \"%02x\",\n", myHash)
 
-			chunkFolder := fmt.Sprintf("data/%02x", myHash[0:1])
+			chunkFolder := fmt.Sprintf(".dupver/%02x", myHash[0:1])
 			os.MkdirAll(chunkFolder, 0777)
 
 			chunkPath := fmt.Sprintf("%s/%02x.gz", chunkFolder, myHash)
@@ -127,10 +129,10 @@ func main() {
 		f0.Close()
 		fmt.Fprintf(h, "]\n")
 		h.Close()
-	} else if *restorePtr == true {
+	} else if *restorePtr {
 		fmt.Printf("Restoring\n")
 		var history commitHistory
-		treePath := "data/versions.toml"
+		treePath := ".dupver/versions.toml"
 		f, _ := os.Open(treePath)
 
 		if _, err := toml.DecodeReader(f, &history); err != nil {
@@ -162,7 +164,7 @@ func main() {
 		b := make([]byte, 1024)
 
 		for i, hash := range history.Commits[rev].Chunks {
-			chunkPath := fmt.Sprintf("data/%s/%s.gz", hash[0:2], hash)
+			chunkPath := fmt.Sprintf(".dupver/%s/%s.gz", hash[0:2], hash)
 			fmt.Printf("Reading %d %s\n", i, chunkPath)
 
 			f0, err := os.Open(chunkPath)
@@ -186,9 +188,9 @@ func main() {
 		g0.Close()
 
 		fmt.Printf("Writing to %s\n", filePath)
-	} else if *listPtr == true {
+	} else if *listPtr {
 		var history commitHistory
-		f, _ := os.Open("data/versions.toml")
+		f, _ := os.Open(".dupver/versions.toml")
 
 		if _, err := toml.DecodeReader(f, &history); err != nil {
 			log.Fatal(err)
@@ -223,7 +225,7 @@ func main() {
 			// fmt.Printf("Chunks: \n")
 
 			// for j, hash := range history.Commits[rev].Chunks {
-			// 	chunkPath := fmt.Sprintf("data/%s/%s.gz", hash[0:2], hash)
+			// 	chunkPath := fmt.Sprintf(".dupver/%s/%s.gz", hash[0:2], hash)
 			// 	fmt.Printf("  Chunk %d: %s\n", j + 1, chunkPath)
 			// }
 		} else {
@@ -244,5 +246,11 @@ func main() {
 				fmt.Printf("\n")
 			}
 		}
+	} else {
+		fmt.Println("Usage:")
+		fmt.Println("-init: Initialize the repo")
+		fmt.Println("-backup -file filename.tgz: backup filename.tgz")
+		fmt.Println("-restore -revision r [-file filename.tgz]: restore revision r. Use negative r to specify rth from last")
+		fmt.Println("-list [-revision r]: list revisions or chunks in revision")
 	}
 }
