@@ -1,5 +1,5 @@
 # Dupver
-A minimalist deduplicating version control system in Go based on 
+Dupver is a minimalist deduplicating version control system in Go based on 
 the Restic chunking library.
 Dupver does not track files, rather it stores snapshots more like
 a backup program. Rather than traverse directories itself, Dupver
@@ -65,7 +65,7 @@ List the last commit
 List the 2nd to last commit
 `dupver -list -revision -2`
 
-# Restore
+### Restore
 Restore the last commit to snapshot<n>.tgz
 `dupver -restore`
 
