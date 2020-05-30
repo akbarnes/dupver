@@ -71,7 +71,7 @@ func PrintFileList(f *gzip.Reader, commitFile *os.File) {
 			log.Fatal(err)
 		}
 
-		i += 1
+		i++
 		fmt.Printf("File %d: %s\n", i, hdr.Name)
 		fmt.Fprintf(commitFile, "  \"%s\",\n", hdr.Name)
 	}
@@ -110,7 +110,7 @@ func WritePacks(f *gzip.Reader, commitFile *os.File, poly int) {
 			panic(err)
 		}
 		
-		i += 1
+		i++
 		myHash := sha256.Sum256(chunk.Data)
 		fmt.Printf("Chunk %d: %d kB, %02x\n", i, chunk.Length/1024, myHash)
 		fmt.Fprintf(commitFile, "  \"%02x\",\n", myHash)
@@ -165,6 +165,7 @@ func WriteChunks(g *gzip.Writer, chunks []string) {
 	}
 }
 
+
 func GetRevIndex(revision int, numCommits int) int {
 	revIndex := numCommits - 1
 	
@@ -176,6 +177,28 @@ func GetRevIndex(revision int, numCommits int) int {
 
 	return revIndex
 }
+
+func PrintRevision(history commitHistory, revIndex int, maxFiles int) {
+	commit := history.Commits[revIndex]
+				
+	fmt.Printf("Revision %d\n", revIndex + 1)
+	fmt.Printf("Time: %s\n", commit.Time)
+
+	if len(commit.Message) > 0 {
+		fmt.Printf("Message: %s\n", commit.Message)
+	}
+
+	fmt.Printf("Files:\n")
+	for j, file := range commit.Files {
+		fmt.Printf("  %d: %s\n", j + 1, file)
+
+		if j > maxFiles && maxFiles > 0 {
+			fmt.Printf("  ...\n  Skipping %d more files\n", len(commit.Files) - maxFiles)
+			break
+		}
+	}
+}
+
 
 func main() {
 	// constants
@@ -250,40 +273,12 @@ func main() {
 		// print a specific revision
 		if revision != 0 {
 			revIndex := GetRevIndex(revision, len(history.Commits))
-			commit := history.Commits[revIndex]
-			
-			fmt.Printf("Revision %d\n", revIndex + 1)
-			fmt.Printf("Time: %s\n", commit.Time)
-
-			if len(commit.Message) > 0 {
-				fmt.Printf("Message: %s\n", commit.Message)
-			}
-
-			fmt.Printf("Files:\n")
-			for j, file := range commit.Files {
-				fmt.Printf("  %d: %s\n", j + 1, file)
-			}
+			PrintRevision(history, revIndex, 0)
 		} else {
 			fmt.Printf("Commit History\n")
 
-			for i, commit := range history.Commits {
-				fmt.Printf("Revision %d\n", i + 1)
-				fmt.Printf("Time: %s\n", commit.Time)
-
-				if len(commit.Message) > 0 {
-					fmt.Printf("Message: %s\n", commit.Message)
-				}
-
-				fmt.Printf("Files:\n")
-				for j, file := range commit.Files {
-					fmt.Printf("  %d: %s\n", j + 1, file)
-
-					if j > 9 {
-						fmt.Printf("  ...\n  Skipping %d more files\n", len(commit.Files) - 10)
-						break
-					}
-				}
-				fmt.Printf("\n")
+			for i:=0; i < len(history.Commits); i++ {
+				PrintRevision(history, i, 10)
 			}
 		}
 	} else {
