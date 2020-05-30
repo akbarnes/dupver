@@ -33,6 +33,30 @@ func check(e error) {
     }
 }
 
+func printFileList(f *File, h *File) {
+	fmt.Fprintf(h, "files = [\n")
+
+
+	// Open and iterate through the files in the archive.
+	tr := tar.NewReader(f)
+	i := 0
+	for {
+		hdr, err := tr.Next()
+		if err == io.EOF {
+			break // End of archive
+		}
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		i += 1
+		fmt.Printf("File %d: %s\n", i, hdr.Name)
+		fmt.Fprintf(h, "  \"%s\",\n", hdr.Name)
+	}
+
+	fmt.Fprint(h, "]\n")
+}
+
 func writePacks(f *File, h *File, poly int) {
 	// create a chunker
 	mychunker := chunker.New(f, chunker.Pol(poly))
@@ -74,6 +98,17 @@ func writePacks(f *File, h *File, poly int) {
 	fmt.Fprintf(h, "]\n\n")
 }
 
+func getRevIndex(revision int, numCommits int) {
+	revIndex := numCommits - 1
+	
+	if revision > 0 {
+		revIndex = revision - 1
+	} else if revision < 0 {
+		revIndex = numCommits + revision
+	}
+
+	return revIndex
+}
 
 func main() {
 	// constants
@@ -123,37 +158,16 @@ func main() {
 		fmt.Fprintf(h, "message=\"%s\"\n", msg)
 		t := time.Now()
 		fmt.Fprintf(h, "time=\"%s\"\n", t.Format("2006-01-02 15:04:05"))
-		fmt.Fprintf(h, "files = [\n")
-
-
-		// Open and iterate through the files in the archive.
-		tr := tar.NewReader(f)
-		i := 0
-		for {
-			hdr, err := tr.Next()
-			if err == io.EOF {
-				break // End of archive
-			}
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			i += 1
-			fmt.Printf("File %d: %s\n", i, hdr.Name)
-			fmt.Fprintf(h, "  \"%s\",\n", hdr.Name)
-		}
-
-		fmt.Fprint(h, "]\n")
-
+		printFileList(f, h)
 		f.Close()
 		f0.Close()
+
 		f0, _ = os.Open(filePath)
 		f, _ = gzip.NewReader(f0)
-		
 		writePacks(f, h, mypoly)
-
 		f.Close()
 		f0.Close()
+		
 		h.Close()
 	} else if *restorePtr {
 		fmt.Printf("Restoring\n")
@@ -167,21 +181,12 @@ func main() {
 
 		f.Close()
 
-
 		fmt.Printf("Number of commits %d\n", len(history.Commits))
-		nc := len(history.Commits) 
-		rev := nc - 1
-
-		if revision > 0 {
-			rev = revision - 1
-		} else if revision < 0 {
-			rev = nc + revision
-		}
-
-		fmt.Printf("Restoring commit %d\n", rev)
+		revIndex := getRevIndex(revision, len(history.Commits))
+		fmt.Printf("Restoring commit %d\n", revIndex)
 		
 		if (true || len(filePath) == 0) {
-			filePath = fmt.Sprintf("snapshot%d.tgz", rev + 1)
+			filePath = fmt.Sprintf("snapshot%d.tgz", revIndex + 1)
 		}
 
 		g0, _ := os.Create(filePath)
@@ -189,7 +194,7 @@ func main() {
 
 		b := make([]byte, 1024)
 
-		for i, hash := range history.Commits[rev].Chunks {
+		for i, hash := range history.Commits[revIndex].Chunks {
 			chunkPath := fmt.Sprintf(".dupver/%s/%s.gz", hash[0:2], hash)
 			fmt.Printf("Reading %d %s\n", i, chunkPath)
 
@@ -226,18 +231,10 @@ func main() {
 
 		// print a specific revision
 		if revision != 0 {
-			nc := len(history.Commits) 
-			rev := nc - 1
-	
-			if revision > 0 {
-				rev = revision - 1
-			} else if revision < 0 {
-				rev = nc + revision
-			}
-
-			commit := history.Commits[rev]
+			revIndex := getRevIndex(revision, len(history.Commits))
+			commit := history.Commits[revIndex]
 			
-			fmt.Printf("Revision %d\n", rev + 1)
+			fmt.Printf("Revision %d\n", revIndex + 1)
 			fmt.Printf("Time: %s\n", commit.Time)
 
 			if len(commit.Message) > 0 {
@@ -248,12 +245,6 @@ func main() {
 			for j, file := range commit.Files {
 				fmt.Printf("  %d: %s\n", j + 1, file)
 			}
-			// fmt.Printf("Chunks: \n")
-
-			// for j, hash := range history.Commits[rev].Chunks {
-			// 	chunkPath := fmt.Sprintf(".dupver/%s/%s.gz", hash[0:2], hash)
-			// 	fmt.Printf("  Chunk %d: %s\n", j + 1, chunkPath)
-			// }
 		} else {
 			fmt.Printf("Commit History\n")
 
@@ -268,6 +259,11 @@ func main() {
 				fmt.Printf("Files:\n")
 				for j, file := range commit.Files {
 					fmt.Printf("  %d: %s\n", j + 1, file)
+
+					if j > 9 {
+						fmt.Printf("...\nSkipping %d more files\n", len(commit.Files) - 10)
+						break
+					}
 				}
 				fmt.Printf("\n")
 			}
