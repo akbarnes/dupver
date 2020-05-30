@@ -33,8 +33,30 @@ func check(e error) {
     }
 }
 
-func printFileList(f *File, h *File) {
-	fmt.Fprintf(h, "files = [\n")
+func PrintCommitHeader(commitFile *os.File, msg string, filePath string) {
+	fmt.Fprintf(commitFile, "[[commits]]\n")
+
+	if len(msg) == 0 {
+		msg =  strings.Replace(filePath[0:len(filePath)-4], ".\\", "", -1)
+	}
+
+	fmt.Fprintf(commitFile, "message=\"%s\"\n", msg)
+	t := time.Now()
+	fmt.Fprintf(commitFile, "time=\"%s\"\n", t.Format("2006-01-02 15:04:05"))
+}
+
+
+func PrintTarIndex(filePath string, commitFile *os.File) {
+	f0, _ := os.Open(filePath)
+	f, _ := gzip.NewReader(f0)		
+	PrintFileList(f, commitFile)
+	f.Close()
+	f0.Close()
+}
+
+
+func PrintFileList(f *gzip.Reader, commitFile *os.File) {
+	fmt.Fprintf(commitFile, "files = [\n")
 
 
 	// Open and iterate through the files in the archive.
@@ -51,22 +73,32 @@ func printFileList(f *File, h *File) {
 
 		i += 1
 		fmt.Printf("File %d: %s\n", i, hdr.Name)
-		fmt.Fprintf(h, "  \"%s\",\n", hdr.Name)
+		fmt.Fprintf(commitFile, "  \"%s\",\n", hdr.Name)
 	}
 
-	fmt.Fprint(h, "]\n")
+	fmt.Fprint(commitFile, "]\n")
 }
 
-func writePacks(f *File, h *File, poly int) {
+
+func PackFile(filePath string, commitFile *os.File, mypoly int) {
+	f0, _ := os.Open(filePath)
+	f, _ := gzip.NewReader(f0)
+	WritePacks(f, commitFile, mypoly)
+	f.Close()
+	f0.Close()
+}
+
+
+func WritePacks(f *gzip.Reader, commitFile *os.File, poly int) {
 	// create a chunker
 	mychunker := chunker.New(f, chunker.Pol(poly))
 
 	// reuse this buffer
 	buf := make([]byte, 8*1024*1024)
 	
-	fmt.Fprintf(h, "chunks = [\n")
+	fmt.Fprintf(commitFile, "chunks = [\n")
 
-	i = 0
+	i := 0
 
 	for {
 		chunk, err := mychunker.Next(buf)
@@ -81,7 +113,7 @@ func writePacks(f *File, h *File, poly int) {
 		i += 1
 		myHash := sha256.Sum256(chunk.Data)
 		fmt.Printf("Chunk %d: %d kB, %02x\n", i, chunk.Length/1024, myHash)
-		fmt.Fprintf(h, "  \"%02x\",\n", myHash)
+		fmt.Fprintf(commitFile, "  \"%02x\",\n", myHash)
 
 		chunkFolder := fmt.Sprintf(".dupver/%02x", myHash[0:1])
 		os.MkdirAll(chunkFolder, 0777)
@@ -95,10 +127,45 @@ func writePacks(f *File, h *File, poly int) {
 	}
 
 
-	fmt.Fprintf(h, "]\n\n")
+	fmt.Fprintf(commitFile, "]\n\n")
 }
 
-func getRevIndex(revision int, numCommits int) {
+
+func UnpackFile(filePath string, chunks []string) {
+	g0, _ := os.Create(filePath)
+	g := gzip.NewWriter(g0)
+	WriteChunks(g, chunks)
+	g.Close()
+	g0.Close()
+}
+
+
+func WriteChunks(g *gzip.Writer, chunks []string) {
+	b := make([]byte, 1024)
+
+	for i, hash := range chunks {
+		chunkPath := fmt.Sprintf(".dupver/%s/%s.gz", hash[0:2], hash)
+		fmt.Printf("Reading %d %s\n", i, chunkPath)
+
+		f0, err := os.Open(chunkPath)
+		check(err)
+		f, _ := gzip.NewReader(f0)
+
+		for {
+			n, _ := f.Read(b)
+			g.Write(b[0:n])
+
+			if n == 0 {
+				break
+			}
+		}
+
+		f.Close()
+		f0.Close()			
+	}
+}
+
+func GetRevIndex(revision int, numCommits int) int {
 	revIndex := numCommits - 1
 	
 	if revision > 0 {
@@ -113,6 +180,7 @@ func getRevIndex(revision int, numCommits int) {
 func main() {
 	// constants
 	mypoly := 0x3DA3358B4DC173
+	commitLogPath := fmt.Sprintf(".dupver/versions.toml")
 
 	initPtr := flag.Bool("init", false, "Initialize the repository")
 	backupPtr := flag.Bool("backup", false, "Back up specified file")
@@ -136,44 +204,22 @@ func main() {
 	
 	flag.Parse()
 	
-	treePath := fmt.Sprintf(".dupver/versions.toml")
 
 	if *initPtr {
 		os.Mkdir("./.dupver", 0777)
-		f, _ := os.Create(treePath)
+		f, _ := os.Create(commitLogPath)
 		f.Close()
 	} else if *backupPtr {
 		fmt.Println("Backing up ", filePath)
-
-		f0, _ := os.Open(filePath)
-		f, _ := gzip.NewReader(f0)
-
-		h, _ := os.OpenFile(treePath, os.O_APPEND|os.O_WRONLY, 0600)
-		fmt.Fprintf(h, "[[commits]]\n")
-
-		if len(msg) == 0 {
-			msg =  strings.Replace(filePath[0:len(filePath)-4],".\\","",-1)
-		}
-
-		fmt.Fprintf(h, "message=\"%s\"\n", msg)
-		t := time.Now()
-		fmt.Fprintf(h, "time=\"%s\"\n", t.Format("2006-01-02 15:04:05"))
-		printFileList(f, h)
-		f.Close()
-		f0.Close()
-
-		f0, _ = os.Open(filePath)
-		f, _ = gzip.NewReader(f0)
-		writePacks(f, h, mypoly)
-		f.Close()
-		f0.Close()
-		
-		h.Close()
+		commitFile, _ := os.OpenFile(commitLogPath, os.O_APPEND|os.O_WRONLY, 0600)
+		PrintCommitHeader(commitFile, msg, filePath)
+		PrintTarIndex(filePath, commitFile)
+		PackFile(filePath, commitFile, mypoly)
+		commitFile.Close()
 	} else if *restorePtr {
 		fmt.Printf("Restoring\n")
 		var history commitHistory
-		treePath := ".dupver/versions.toml"
-		f, _ := os.Open(treePath)
+		f, _ := os.Open(commitLogPath)
 
 		if _, err := toml.DecodeReader(f, &history); err != nil {
 			log.Fatal(err)
@@ -182,43 +228,15 @@ func main() {
 		f.Close()
 
 		fmt.Printf("Number of commits %d\n", len(history.Commits))
-		revIndex := getRevIndex(revision, len(history.Commits))
+		revIndex := GetRevIndex(revision, len(history.Commits))
 		fmt.Printf("Restoring commit %d\n", revIndex)
 		
 		if (true || len(filePath) == 0) {
 			filePath = fmt.Sprintf("snapshot%d.tgz", revIndex + 1)
 		}
 
-		g0, _ := os.Create(filePath)
-		g := gzip.NewWriter(g0)
-
-		b := make([]byte, 1024)
-
-		for i, hash := range history.Commits[revIndex].Chunks {
-			chunkPath := fmt.Sprintf(".dupver/%s/%s.gz", hash[0:2], hash)
-			fmt.Printf("Reading %d %s\n", i, chunkPath)
-
-			f0, err := os.Open(chunkPath)
-			check(err)
-			f, _ := gzip.NewReader(f0)
-
-			for {
-				n, _ := f.Read(b)
-				g.Write(b[0:n])
-
-				if n == 0 {
-					break
-				}
-			}
-
-			f.Close()
-			f0.Close()			
-		}
-
-		g.Close()
-		g0.Close()
-
 		fmt.Printf("Writing to %s\n", filePath)
+		UnpackFile(filePath, history.Commits[revIndex].Chunks) 
 	} else if *listPtr {
 		var history commitHistory
 		f, _ := os.Open(".dupver/versions.toml")
@@ -231,7 +249,7 @@ func main() {
 
 		// print a specific revision
 		if revision != 0 {
-			revIndex := getRevIndex(revision, len(history.Commits))
+			revIndex := GetRevIndex(revision, len(history.Commits))
 			commit := history.Commits[revIndex]
 			
 			fmt.Printf("Revision %d\n", revIndex + 1)
@@ -261,7 +279,7 @@ func main() {
 					fmt.Printf("  %d: %s\n", j + 1, file)
 
 					if j > 9 {
-						fmt.Printf("...\nSkipping %d more files\n", len(commit.Files) - 10)
+						fmt.Printf("  ...\n  Skipping %d more files\n", len(commit.Files) - 10)
 						break
 					}
 				}
