@@ -33,8 +33,52 @@ func check(e error) {
     }
 }
 
+func writePacks(f *File, h *File, poly int) {
+	// create a chunker
+	mychunker := chunker.New(f, chunker.Pol(poly))
+
+	// reuse this buffer
+	buf := make([]byte, 8*1024*1024)
+	
+	fmt.Fprintf(h, "chunks = [\n")
+
+	i = 0
+
+	for {
+		chunk, err := mychunker.Next(buf)
+		if err == io.EOF {
+			break
+		}
+
+		if err != nil {
+			panic(err)
+		}
+		
+		i += 1
+		myHash := sha256.Sum256(chunk.Data)
+		fmt.Printf("Chunk %d: %d kB, %02x\n", i, chunk.Length/1024, myHash)
+		fmt.Fprintf(h, "  \"%02x\",\n", myHash)
+
+		chunkFolder := fmt.Sprintf(".dupver/%02x", myHash[0:1])
+		os.MkdirAll(chunkFolder, 0777)
+
+		chunkPath := fmt.Sprintf("%s/%02x.gz", chunkFolder, myHash)
+		g0, _ := os.Create(chunkPath)
+		g := gzip.NewWriter(g0)
+		g.Write(chunk.Data)
+		g.Close()
+		g0.Close()
+	}
+
+
+	fmt.Fprintf(h, "]\n\n")
+}
+
 
 func main() {
+	// constants
+	mypoly := 0x3DA3358B4DC173
+
 	initPtr := flag.Bool("init", false, "Initialize the repository")
 	backupPtr := flag.Bool("backup", false, "Back up specified file")
 	restorePtr := flag.Bool("restore", false, "Restore specified file")
@@ -99,54 +143,17 @@ func main() {
 			fmt.Fprintf(h, "  \"%s\",\n", hdr.Name)
 		}
 
-		fmt.Fprint(h, "]\n\n")
+		fmt.Fprint(h, "]\n")
 
 		f.Close()
 		f0.Close()
 		f0, _ = os.Open(filePath)
 		f, _ = gzip.NewReader(f0)
 		
-		// create a chunker
-		mychunker := chunker.New(f, chunker.Pol(0x3DA3358B4DC173))
-
-		// reuse this buffer
-		buf := make([]byte, 8*1024*1024)
-
-
-
-		fmt.Fprintf(h, "chunks = [\n")
-
-		i = 0
-
-		for {
-			chunk, err := mychunker.Next(buf)
-			if err == io.EOF {
-				break
-			}
-
-			if err != nil {
-				panic(err)
-			}
-			
-			i += 1
-			myHash := sha256.Sum256(chunk.Data)
-			fmt.Printf("Chunk %d: %d kB, %02x\n", i, chunk.Length/1024, myHash)
-			fmt.Fprintf(h, "  \"%02x\",\n", myHash)
-
-			chunkFolder := fmt.Sprintf(".dupver/%02x", myHash[0:1])
-			os.MkdirAll(chunkFolder, 0777)
-
-			chunkPath := fmt.Sprintf("%s/%02x.gz", chunkFolder, myHash)
-			g0, _ := os.Create(chunkPath)
-			g := gzip.NewWriter(g0)
-			g.Write(chunk.Data)
-			g.Close()
-			g0.Close()
-		}
+		writePacks(f, h, mypoly)
 
 		f.Close()
 		f0.Close()
-		fmt.Fprintf(h, "]\n")
 		h.Close()
 	} else if *restorePtr {
 		fmt.Printf("Restoring\n")

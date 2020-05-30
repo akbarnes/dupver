@@ -17,6 +17,7 @@ is stored as a plaintext .toml file also under .dupver.
 * [x] restore
 * [ ] store revisions in a sqlite database
 * [ ] combine small chunks into single files like restic
+* [ ] store chunks in HDF5 or similar container?
 * [ ] decompress archives before deduplicating
 * [ ] use buffered file io for speed
 * [ ] print when deduplication occurs
@@ -35,8 +36,8 @@ go build dupver.go
 Copy the executable somewhere in your path. Build scripts for 
 Windows/*nix are included, see
 
+* setup.sh (*nix)
 * Install-Dupver.ps1 (Windows)
-* install.sh (*nix)
 
 You will need to edit them to set your desired install folder.
 
