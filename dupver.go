@@ -13,6 +13,7 @@ import (
 	"log"
 	"github.com/BurntSushi/toml"
 	"time"
+	"strings"
 )
 
 type commit struct {
@@ -43,10 +44,8 @@ func main() {
 	var msg string
 	var revision int
 
-	flag.StringVar(&filePath, "input", "", "Input archive path")
-	flag.StringVar(&filePath, "i", "", "Input archive path (shorthand)")
-	flag.StringVar(&filePath, "output", "", "Output archive path")
-	flag.StringVar(&filePath, "o", "", "Output archive path (shorthand)")
+	flag.StringVar(&filePath, "file", "", "Archive path")
+	flag.StringVar(&filePath, "f", "", "Archive path (shorthand)")
 
 	flag.IntVar(&revision, "revision", 0, "Specify revision (default is last)")
 	flag.IntVar(&revision, "r", 0, "Specify revision (shorthand)")
@@ -72,6 +71,11 @@ func main() {
 
 		h, _ := os.OpenFile(treePath, os.O_APPEND|os.O_WRONLY, 0600)
 		fmt.Fprintf(h, "[[commits]]\n")
+
+		if len(msg) == 0 {
+			msg =  strings.Replace(filePath[0:len(filePath)-4],".\\","",-1)
+		}
+
 		fmt.Fprintf(h, "message=\"%s\"\n", msg)
 		t := time.Now()
 		fmt.Fprintf(h, "time=\"%s\"\n", t.Format("2006-01-02 15:04:05"))
@@ -80,6 +84,7 @@ func main() {
 
 		// Open and iterate through the files in the archive.
 		tr := tar.NewReader(f)
+		i := 0
 		for {
 			hdr, err := tr.Next()
 			if err == io.EOF {
@@ -88,7 +93,9 @@ func main() {
 			if err != nil {
 				log.Fatal(err)
 			}
-			fmt.Printf("%s\n", hdr.Name)
+
+			i += 1
+			fmt.Printf("File %d: %s\n", i, hdr.Name)
 			fmt.Fprintf(h, "  \"%s\",\n", hdr.Name)
 		}
 
@@ -109,7 +116,7 @@ func main() {
 
 		fmt.Fprintf(h, "chunks = [\n")
 
-		i := 0
+		i = 0
 
 		for {
 			chunk, err := mychunker.Next(buf)

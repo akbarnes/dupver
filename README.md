@@ -52,27 +52,27 @@ Stage your files by adding them to a gzipped tar file
 `tar cfvz tarfile.tgz file1 file2 file`
 
 Commit the tarfile with
-`dupver -backup -file tarfile.tgz -mesage "commit message"`
+`dupver -backup -f tarfile.tgz -m "commit message"`
 
 ### List commits
 List all commits
 `dupver -list`
 
 List a specific commit
-`dupver -list -revision 1`
+`dupver -list -r 1`
 
 List the last commit
-`dupver -list -revision -1`
+`dupver -list -r -1`
 
 List the 2nd to last commit
-`dupver -list -revision -2`
+`dupver -list -r -2`
 
 ### Restore
 Restore the last commit to snapshot<n>.tgz
 `dupver -restore`
 
 Restore another commit
-`dupver -restore -revision 1`
+`dupver -restore -r 1`
 
 Restore to a particular file
-`dupver -restore -file filename.tgz`
+`dupver -restore -f filename.tgz`
