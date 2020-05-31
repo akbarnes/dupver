@@ -271,15 +271,15 @@ func main() {
 		f.Close()
 
 		// print a specific revision
-		if revision != 0 {
-			revIndex := GetRevIndex(revision, len(history.Commits))
-			PrintRevision(history, revIndex, 0)
-		} else {
+		if revision == 0 {
 			fmt.Printf("Commit History\n")
 
 			for i:=0; i < len(history.Commits); i++ {
 				PrintRevision(history, i, 10)
-			}
+			}			
+		} else {
+			revIndex := GetRevIndex(revision, len(history.Commits))
+			PrintRevision(history, revIndex, 0)
 		}
 	} else {
 		fmt.Println("No command specified, exiting")

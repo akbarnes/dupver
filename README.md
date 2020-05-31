@@ -23,6 +23,8 @@ is stored as a plaintext .toml file also under .dupver.
 * [ ] print when deduplication occurs
 * [ ] identify revisions with hashes rather than integers so repositories can be merged
 * [ ] support deletions of snapshots
+* [ ] support `status` and `diff` commands
+* [ ] move repository out of working directory
 
 
 ## Setup
