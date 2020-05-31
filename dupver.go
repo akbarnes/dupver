@@ -6,7 +6,26 @@ import (
     "fmt"
 	"os"
 	// "log"
+	"github.com/BurntSushi/toml"
 )
+
+
+type workDirConfig struct {
+	RepositoryPath string
+}
+
+
+func SaveWorkDirConfig(myWorkDirConfig workDirConfig) {
+	f, _ := os.Create(".dupver/config.toml")
+	WriteWorkDirConfig(f, myWorkDirConfig)
+}
+
+
+func WriteWorkDirConfig(f *os.File, myWorkDirConfig workDirConfig) {
+	myEncoder := toml.NewEncoder(f)
+	myEncoder.Encode(myWorkDirConfig)
+}
+
 
 func check(e error) {
     if e != nil {
@@ -39,25 +58,30 @@ func main() {
 	var filePath string
 	var msg string
 	var revision int
-	var repo string
+	var repoPath string
 
 	flag.StringVar(&filePath, "file", "", "Archive path")
 	flag.StringVar(&filePath, "f", "", "Archive path (shorthand)")
 
-	flag.IntVar(&revision, "revision", 0, "Specify revision (default is last)")
-	flag.IntVar(&revision, "r", 0, "Specify revision (shorthand)")
+	flag.IntVar(&revision, "revision", 0, "Specify revision number (default is last)")
+	flag.IntVar(&revision, "n", 0, "Specify revision number(shorthand)")
 
 	flag.StringVar(&msg, "message", "", "Commit message")
 	flag.StringVar(&msg, "m", "", "Commit message (shorthand)")
 
-	flag.StringVar(&repo, "repository", "", "Commit message")
-	flag.StringVar(&repo, "repo", "", "Commit message")
-	
+	flag.StringVar(&repoPath, "repository", "", "Repository path")
+	flag.StringVar(&repoPath, "r", "", "Repository path (shorthand)")
+
 	flag.Parse()
 	
 
 	if initFlag {
 		os.Mkdir("./.dupver", 0777)
+		// Assume that repoPath is already created
+		// os.Mkdir(repoPath, 0777) 
+		var myWorkDirConfig workDirConfig
+		myWorkDirConfig.RepositoryPath = repoPath
+		SaveWorkDirConfig(myWorkDirConfig)
 		f, _ := os.Create(commitLogPath)
 		f.Close()
 	} else if checkinFlag {
