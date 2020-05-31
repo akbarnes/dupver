@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 	"strings"
+	"github.com/BurntSushi/toml"
 	"archive/tar"
 	"compress/gzip"
 )
@@ -99,6 +100,18 @@ func PrintGZFileList(f *gzip.Reader, commitFile *os.File) {
 	}
 
 	fmt.Fprint(commitFile, "]\n")
+}
+
+func ReadHistory(commitLogPath string) (commitHistory) {
+	var history commitHistory
+	f, _ := os.Open(commitLogPath)
+
+	if _, err := toml.DecodeReader(f, &history); err != nil {
+		log.Fatal(err)
+	}
+
+	f.Close()
+	return history
 }
 
 
