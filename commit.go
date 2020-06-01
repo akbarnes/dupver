@@ -37,23 +37,14 @@ func PrintCommitHeader(commitFile *os.File, msg string, filePath string) {
 }
 
 
-func PrintTarIndex(filePath string, commitFile *os.File) {
+func PrintTarFileIndex(filePath string, commitFile *os.File) {
 	tarFile, _ := os.Open(filePath)
-	PrintFileList(tarFile, commitFile)
+	PrintTarIndex(tarFile, commitFile)
 	tarFile.Close()
 }
 
 
-func PrintTGZIndex(filePath string, commitFile *os.File) {
-	f0, _ := os.Open(filePath)
-	f, _ := gzip.NewReader(f0)		
-	PrintGZFileList(f, commitFile)
-	f.Close()
-	f0.Close()
-}
-
-
-func PrintFileList(tarFile *os.File, commitFile *os.File) {
+func PrintTarIndex(tarFile *os.File, commitFile *os.File) {
 	fmt.Fprintf(commitFile, "files = [\n")
 
 
@@ -77,30 +68,6 @@ func PrintFileList(tarFile *os.File, commitFile *os.File) {
 	fmt.Fprint(commitFile, "]\n")
 }
 
-
-func PrintGZFileList(f *gzip.Reader, commitFile *os.File) {
-	fmt.Fprintf(commitFile, "files = [\n")
-
-
-	// Open and iterate through the files in the archive.
-	tr := tar.NewReader(f)
-	i := 0
-	for {
-		hdr, err := tr.Next()
-		if err == io.EOF {
-			break // End of archive
-		}
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		i++
-		fmt.Printf("File %d: %s\n", i, hdr.Name)
-		fmt.Fprintf(commitFile, "  \"%s\",\n", hdr.Name)
-	}
-
-	fmt.Fprint(commitFile, "]\n")
-}
 
 func ReadHistory(commitLogPath string) (commitHistory) {
 	var history commitHistory
@@ -148,3 +115,4 @@ func PrintRevision(history commitHistory, revIndex int, maxFiles int) {
 		}
 	}
 }
+

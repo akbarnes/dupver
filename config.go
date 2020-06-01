@@ -1,7 +1,11 @@
 package main
 
 import (
+    "fmt"
+    "log"
+    "io"
 	"os"
+    "archive/tar"
 	"github.com/BurntSushi/toml"
 )
 
@@ -43,7 +47,6 @@ func ReadConfigFile(filePath string) (workDirConfig) {
 		fmt.Printf("File %d: %s\n", i, hdr.Name)
 	}
 
-	fmt.Fprint(commitFile, "]\n")
 	tarFile.Close()
 
 	myConfig.RepositoryPath = "C:\\Users\\305232\\DupVerRepo"

@@ -5,6 +5,7 @@ import (
 	"flag"
     "fmt"
 	"os"
+    "path"
 )
 
 
@@ -18,7 +19,6 @@ func check(e error) {
 func main() {
 	// constants
 	mypoly := 0x3DA3358B4DC173
-	commitHistoryPath := fmt.Sprintf(".dupver/versions.toml")
 	ALL_REVISIONS := 0
 
 	var initRepoFlag bool
@@ -27,7 +27,7 @@ func main() {
 	var checkoutFlag bool
 	var listFlag bool
 
-	flag.BoolVar(&initRepoFlag, "initrepo", false, "Initialize the repository")
+	flag.BoolVar(&initRepoFlag, "init-repo", false, "Initialize the repository")
 	flag.BoolVar(&initWorkDirFlag, "init", false, "Initialize the working directory")
 	flag.BoolVar(&checkinFlag, "checkin", false, "Check in specified file")
 	flag.BoolVar(&checkinFlag, "ci", false, "Check in specified file")
@@ -57,26 +57,30 @@ func main() {
 
 	flag.Parse()
 	
+	commitHistoryPath := path.Join(repoPath, "commits.toml")
 
 	if initRepoFlag {
+        if len(repoPath) == 0 { 
+            repoPath = "$HOME/.dupver_repo"
+        }
+
+	    commitHistoryPath = path.Join(repoPath, "commits.toml")
+        fmt.Printf("Creating folder %s\n", repoPath)
 		os.Mkdir(repoPath, 0777)
+        fmt.Printf("Creating commit history %s\n", commitHistoryPath)
 		f, _ := os.Create(commitHistoryPath)
 		f.Close()
 	} else if initWorkDirFlag {
 		os.Mkdir("./.dupver", 0777)
-		// Assume that repoPath is already created
-		// os.Mkdir(repoPath, 0777) 
-		var myWorkDirConfig workDirConfig
-		myWorkDirConfig.RepositoryPath = repoPath
-		SaveWorkDirConfig(myWorkDirConfig)
-		f, _ := os.Create(commitHistoryPath)
-		f.Close()
+		var myConfig workDirConfig
+		myConfig.RepositoryPath = repoPath
+		SaveWorkDirConfig(myConfig)
 	} else if checkinFlag {
 		fmt.Println("Backing up ", filePath)
 		commitFile, _ := os.OpenFile(commitHistoryPath, os.O_APPEND|os.O_WRONLY, 0600)
 		PrintCommitHeader(commitFile, msg, filePath)
-		PrintTarIndex(filePath, commitFile)
-		PackTar(filePath, commitFile, mypoly)
+		PrintTarFileIndex(filePath, commitFile)
+		PackFile(filePath, commitFile, mypoly)
 		commitFile.Close()
 	} else if checkoutFlag {
 		history := ReadHistory(commitHistoryPath)
