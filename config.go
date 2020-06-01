@@ -5,6 +5,7 @@ import (
     "log"
     "io"
 	"os"
+	"path"
     "archive/tar"
 	"github.com/BurntSushi/toml"
 )
@@ -13,20 +14,31 @@ type workDirConfig struct {
 	RepositoryPath string
 }
 
+type repoConfig struct {
+	Version int
+	ChunkerPolynomial int
+}
 
-func SaveWorkDirConfig(myWorkDirConfig workDirConfig) {
+func SaveWorkDirConfig(myConfig workDirConfig) {
 	f, _ := os.Create(".dupver/config.toml")
-	WriteWorkDirConfig(f, myWorkDirConfig)
-}
-
-
-func WriteWorkDirConfig(f *os.File, myWorkDirConfig workDirConfig) {
 	myEncoder := toml.NewEncoder(f)
-	myEncoder.Encode(myWorkDirConfig)
+	myEncoder.Encode(myConfig)
+	f.Close()
 }
 
 
-func ReadConfigFile(filePath string) (workDirConfig) {
+
+func SaveRepoConfig(repoPath string, myConfig repoConfig) {
+	// TODO: add a check to make sure I don't overwrite existing
+	configPath := path.Join(repoPath, "config.toml")
+	f, _ := os.Create(configPath)
+	myEncoder := toml.NewEncoder(f)
+	myEncoder.Encode(myConfig)
+	f.Close()
+}
+
+
+func ReadWorkDirConfig(filePath string) (workDirConfig) {
 	var myConfig workDirConfig
 	tarFile, _ := os.Open(filePath)
 

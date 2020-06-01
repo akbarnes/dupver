@@ -16,9 +16,14 @@ func check(e error) {
 }
 
 
+func set_default(s *string, d string) {
+	if len(s) == 0 {
+		*s = d
+	}
+}
+
 func main() {
 	// constants
-	mypoly := 0x3DA3358B4DC173
 	ALL_REVISIONS := 0
 
 	var initRepoFlag bool
@@ -38,53 +43,74 @@ func main() {
 
 	flag.BoolVar(&listFlag, "list", false, "List revisions")
 
-	var filePath string
-	var msg string
-	var revision int
-	var repoPath string
 
+	var filePath string
 	flag.StringVar(&filePath, "file", "", "Archive path")
 	flag.StringVar(&filePath, "f", "", "Archive path (shorthand)")
 
+	var revision int
 	flag.IntVar(&revision, "revision", 0, "Specify revision number (default is last)")
 	flag.IntVar(&revision, "n", 0, "Specify revision number(shorthand)")
 
+	var msg string
 	flag.StringVar(&msg, "message", "", "Commit message")
 	flag.StringVar(&msg, "m", "", "Commit message (shorthand)")
 
+	var repoPath string
 	flag.StringVar(&repoPath, "repository", "", "Repository path")
 	flag.StringVar(&repoPath, "r", "", "Repository path (shorthand)")
 
+	var workDirPath string
+	flag.StringVar(&workDirPath, "workdir", "", "Working directory path")
+	flag.StringVar(&workDirPath, "w", "", "Working directory path (shorthand)")
+
 	flag.Parse()
 	
-	commitHistoryPath := path.Join(repoPath, "commits.toml")
 
 	if initRepoFlag {
-        if len(repoPath) == 0 { 
-            repoPath = "$HOME/.dupver_repo"
-        }
-
-	    commitHistoryPath = path.Join(repoPath, "commits.toml")
+        set_default(&repoPath, "$HOME/.dupver_repo")
+	    snapshotPath := path.Join(repoPath, "snapshots")
         fmt.Printf("Creating folder %s\n", repoPath)
 		os.Mkdir(repoPath, 0777)
-        fmt.Printf("Creating commit history %s\n", commitHistoryPath)
-		f, _ := os.Create(commitHistoryPath)
-		f.Close()
+
+		packPath := path.Join(repoPath, "packs")
+        fmt.Printf("Creating folder %s\n", packPath)
+		os.Mkdir(packPath, 0777)
+
+		var myConfig repoConfig
+		myConfig.Version = 1
+		myConfig.ChunkerPolynomial = 0x3DA3358B4DC173
+		SaveRepoConfig(repoPath, myConfig)
 	} else if initWorkDirFlag {
+        set_default(&repoPath, "$HOME/.dupver_repo")
 		os.Mkdir("./.dupver", 0777)
 		var myConfig workDirConfig
 		myConfig.RepositoryPath = repoPath
 		SaveWorkDirConfig(myConfig)
 	} else if checkinFlag {
-		fmt.Println("Backing up ", filePath)
-		commitFile, _ := os.OpenFile(commitHistoryPath, os.O_APPEND|os.O_WRONLY, 0600)
-		PrintCommitHeader(commitFile, msg, filePath)
-		PrintTarFileIndex(filePath, commitFile)
-		PackFile(filePath, commitFile, mypoly)
-		commitFile.Close()
-	} else if checkoutFlag {
-		history := ReadHistory(commitHistoryPath)
+        set_default(&repoPath, "$HOME/.dupver_repo")
 
+        if len(workDirPath) == 0 {
+        	workDirPath = "."
+        }
+        snapshotBasename := RandHexString(65)
+		snapshotPath := path.Join(repoPath, "snapshots", workDirName, snapshotBasename + ".toml")
+		mypoly := 0x3DA3358B4DC173
+
+		fmt.Println("Backing up ", filePath)
+		snapshotFile, _ := os.Create(snapshotPath)
+		PrintCommitHeader(snapshotFile, msg, filePath)
+		// also save hashes for tar file to check which files are modified
+		PrintTarFileIndex(filePath, snapshotFile)
+		PackFile(filePath, repoPath, snapshotFile, mypoly)
+		snapshotFile.Close()
+	} else if checkoutFlag {
+		if len(repoPath) == 0 { 
+            repoPath = "$HOME/.dupver_repo"
+        }
+
+		commitHistoryPath := path.Join(repoPath, "commits.toml")
+		history := ReadHistory(commitHistoryPath)
 		fmt.Printf("Number of commits %d\n", len(history.Commits))
 		revIndex := GetRevIndex(revision, len(history.Commits))
 		fmt.Printf("Restoring commit %d\n", revIndex)
@@ -96,6 +122,11 @@ func main() {
 		fmt.Printf("Writing to %s\n", filePath)
 		UnpackTar(filePath, history.Commits[revIndex].Chunks) 
 	} else if listFlag {
+		if len(repoPath) == 0 { 
+            repoPath = "$HOME/.dupver_repo"
+        }
+
+		commitHistoryPath := path.Join(repoPath, "commits.toml")
 		history := ReadHistory(commitHistoryPath)
 
 		// print a specific revision

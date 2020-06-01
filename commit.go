@@ -9,7 +9,6 @@ import (
 	"strings"
 	"github.com/BurntSushi/toml"
 	"archive/tar"
-	"compress/gzip"
 )
 
 type commit struct {

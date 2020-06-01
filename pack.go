@@ -11,7 +11,7 @@ import (
 
 func PackFile(filePath string, repoPath string, commitFile *os.File, mypoly int) {
 	f, _ := os.Open(filePath)
-	WritePacks(tarFile, repoPath, commitFile, mypoly)
+	WritePacks(f, repoPath, commitFile, mypoly)
 	f.Close()
 }
 
