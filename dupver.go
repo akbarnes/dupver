@@ -5,26 +5,7 @@ import (
 	"flag"
     "fmt"
 	"os"
-	// "log"
-	"github.com/BurntSushi/toml"
 )
-
-
-type workDirConfig struct {
-	RepositoryPath string
-}
-
-
-func SaveWorkDirConfig(myWorkDirConfig workDirConfig) {
-	f, _ := os.Create(".dupver/config.toml")
-	WriteWorkDirConfig(f, myWorkDirConfig)
-}
-
-
-func WriteWorkDirConfig(f *os.File, myWorkDirConfig workDirConfig) {
-	myEncoder := toml.NewEncoder(f)
-	myEncoder.Encode(myWorkDirConfig)
-}
 
 
 func check(e error) {
@@ -37,15 +18,17 @@ func check(e error) {
 func main() {
 	// constants
 	mypoly := 0x3DA3358B4DC173
-	commitLogPath := fmt.Sprintf(".dupver/versions.toml")
+	commitHistoryPath := fmt.Sprintf(".dupver/versions.toml")
 	ALL_REVISIONS := 0
 
-	var initFlag bool
+	var initRepoFlag bool
+	var initWorkDirFlag bool
 	var checkinFlag bool 
 	var checkoutFlag bool
 	var listFlag bool
 
-	flag.BoolVar(&initFlag, "init", false, "Initialize the repository")
+	flag.BoolVar(&initRepoFlag, "initrepo", false, "Initialize the repository")
+	flag.BoolVar(&initWorkDirFlag, "init", false, "Initialize the working directory")
 	flag.BoolVar(&checkinFlag, "checkin", false, "Check in specified file")
 	flag.BoolVar(&checkinFlag, "ci", false, "Check in specified file")
 
@@ -75,24 +58,28 @@ func main() {
 	flag.Parse()
 	
 
-	if initFlag {
+	if initRepoFlag {
+		os.Mkdir(repoPath, 0777)
+		f, _ := os.Create(commitHistoryPath)
+		f.Close()
+	} else if initWorkDirFlag {
 		os.Mkdir("./.dupver", 0777)
 		// Assume that repoPath is already created
 		// os.Mkdir(repoPath, 0777) 
 		var myWorkDirConfig workDirConfig
 		myWorkDirConfig.RepositoryPath = repoPath
 		SaveWorkDirConfig(myWorkDirConfig)
-		f, _ := os.Create(commitLogPath)
+		f, _ := os.Create(commitHistoryPath)
 		f.Close()
 	} else if checkinFlag {
 		fmt.Println("Backing up ", filePath)
-		commitFile, _ := os.OpenFile(commitLogPath, os.O_APPEND|os.O_WRONLY, 0600)
+		commitFile, _ := os.OpenFile(commitHistoryPath, os.O_APPEND|os.O_WRONLY, 0600)
 		PrintCommitHeader(commitFile, msg, filePath)
 		PrintTarIndex(filePath, commitFile)
 		PackTar(filePath, commitFile, mypoly)
 		commitFile.Close()
 	} else if checkoutFlag {
-		history := ReadHistory(commitLogPath)
+		history := ReadHistory(commitHistoryPath)
 
 		fmt.Printf("Number of commits %d\n", len(history.Commits))
 		revIndex := GetRevIndex(revision, len(history.Commits))
@@ -105,7 +92,7 @@ func main() {
 		fmt.Printf("Writing to %s\n", filePath)
 		UnpackTar(filePath, history.Commits[revIndex].Chunks) 
 	} else if listFlag {
-		history := ReadHistory(commitLogPath)
+		history := ReadHistory(commitHistoryPath)
 
 		// print a specific revision
 		if revision == ALL_REVISIONS {
