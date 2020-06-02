@@ -5,8 +5,7 @@ import (
 	"flag"
     "fmt"
 	"os"
-    "path"
-)
+    "path")
 
 
 func check(e error) {
@@ -48,9 +47,9 @@ func main() {
 	flag.StringVar(&filePath, "file", "", "Archive path")
 	flag.StringVar(&filePath, "f", "", "Archive path (shorthand)")
 
-	var revision int
-	flag.IntVar(&revision, "revision", 0, "Specify revision number (default is last)")
-	flag.IntVar(&revision, "n", 0, "Specify revision number(shorthand)")
+	var snapshot string
+	flag.StringVar(&snapshot, "snapshot", "", "Specify snapshot id (default is last)")
+	flag.StringVar(&snapshot, "s", "", "Specify snapshot id (shorthand)")
 
 	var msg string
 	flag.StringVar(&msg, "message", "", "Commit message")
@@ -116,38 +115,41 @@ func main() {
 		if len(repoPath) == 0 { 
             repoPath = "$HOME/.dupver_repo"
         }
+		snapshotPath = path.Join(repoPath, "snapshots", workDirName, snapshot + ".toml")
 
-		commitHistoryPath := path.Join(repoPath, "commits.toml")
-		history := ReadHistory(commitHistoryPath)
-		fmt.Printf("Number of commits %d\n", len(history.Commits))
-		revIndex := GetRevIndex(revision, len(history.Commits))
-		fmt.Printf("Restoring commit %d\n", revIndex)
+		// commitHistoryPath := path.Join(repoPath, "commits.toml")
+		// history := ReadHistory(commitHistoryPath)
+		// fmt.Printf("Number of commits %d\n", len(history.Commits))
+		// revIndex := GetRevIndex(revision, len(history.Commits))
+		// fmt.Printf("Restoring commit %d\n", revIndex)
 		
-		if (true || len(filePath) == 0) {
-			filePath = fmt.Sprintf("snapshot%d.tar", revIndex + 1)
-		}
+		// if (true || len(filePath) == 0) {
+		// 	filePath = fmt.Sprintf("snapshot%d.tar", revIndex + 1)
+		// }
 
-		fmt.Printf("Writing to %s\n", filePath)
-		UnpackTar(filePath, history.Commits[revIndex].Chunks) 
+		// fmt.Printf("Writing to %s\n", filePath)
+		// UnpackTar(filePath, history.Commits[revIndex].Chunks) 
 	} else if listFlag {
 		if len(repoPath) == 0 { 
             repoPath = "$HOME/.dupver_repo"
         }
 
-		commitHistoryPath := path.Join(repoPath, "commits.toml")
-		history := ReadHistory(commitHistoryPath)
+		snapshotGlob := path.Join(repoPath, "snapshots", workDirName, "*.toml")
+		fmt.Println(snapshotGlob)
+		snapshotFiles, _ := path.Glob(snapshotGlob)
 
 		// print a specific revision
-		if revision == ALL_REVISIONS {
+		if len(snapshot) == 0 {
 			fmt.Printf("Commit History\n")
 
-			for i:=0; i < len(history.Commits); i++ {
-				PrintRevision(history, i, 10)
+			for _, snapshotFile := range snapshotFiles {
+				fmt.Println(snapshotFile)
 			}			
-		} else {
-			revIndex := GetRevIndex(revision, len(history.Commits))
-			PrintRevision(history, revIndex, 0)
-		}
+        }   
+		// } else {
+		// 	revIndex := GetRevIndex(snapshot, len(history.Commits))
+		// 	PrintRevision(history, revIndex, 0)
+		// }
 	} else {
 		fmt.Println("No command specified, exiting")
 		fmt.Println("For available commands run: dupver -help")
