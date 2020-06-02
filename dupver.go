@@ -5,7 +5,9 @@ import (
 	"flag"
     "fmt"
 	"os"
-    "path")
+	"path"
+	"path/filepath"
+)
 
 
 func check(e error) {
@@ -23,7 +25,6 @@ func set_default(s *string, d string) {
 
 func main() {
 	// constants
-	ALL_REVISIONS := 0
 
 	var initRepoFlag bool
 	var initWorkDirFlag bool
@@ -115,11 +116,12 @@ func main() {
 		if len(repoPath) == 0 { 
             repoPath = "$HOME/.dupver_repo"
         }
-		snapshotPath = path.Join(repoPath, "snapshots", workDirName, snapshot + ".toml")
+
+		snapshotPath := path.Join(repoPath, "snapshots", workDirName, snapshot + ".toml")
 
 		// commitHistoryPath := path.Join(repoPath, "commits.toml")
-		// history := ReadHistory(commitHistoryPath)
-		// fmt.Printf("Number of commits %d\n", len(history.Commits))
+		mySnapshot := ReadSnapshot(snapshotPath)
+		fmt.Printf("Number of files %d\n", len(mySnapshot.Files))
 		// revIndex := GetRevIndex(revision, len(history.Commits))
 		// fmt.Printf("Restoring commit %d\n", revIndex)
 		
@@ -136,20 +138,21 @@ func main() {
 
 		snapshotGlob := path.Join(repoPath, "snapshots", workDirName, "*.toml")
 		fmt.Println(snapshotGlob)
-		snapshotFiles, _ := path.Glob(snapshotGlob)
+		snapshotFiles, _ := filepath.Glob(snapshotGlob)
 
 		// print a specific revision
 		if len(snapshot) == 0 {
-			fmt.Printf("Commit History\n")
+			fmt.Printf("Snapshot History\n")
 
 			for _, snapshotFile := range snapshotFiles {
 				fmt.Println(snapshotFile)
 			}			
-        }   
-		// } else {
-		// 	revIndex := GetRevIndex(snapshot, len(history.Commits))
-		// 	PrintRevision(history, revIndex, 0)
-		// }
+		} else {
+			fmt.Println("Snapshot")
+		    snapshotPath := path.Join(repoPath, "snapshots", workDirName, snapshot + ".toml")
+		    mySnapshot := ReadSnapshot(snapshotPath)
+			PrintSnapshot(mySnapshot, 0)
+		}
 	} else {
 		fmt.Println("No command specified, exiting")
 		fmt.Println("For available commands run: dupver -help")

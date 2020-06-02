@@ -68,16 +68,16 @@ func PrintTarIndex(tarFile *os.File, commitFile *os.File) {
 }
 
 
-func ReadHistory(commitLogPath string) (commitHistory) {
-	var history commitHistory
-	f, _ := os.Open(commitLogPath)
+func ReadSnapshot(snapshotPath string) (commit) {
+	var mySnapshot commit
+	f, _ := os.Open(snapshotPath)
 
-	if _, err := toml.DecodeReader(f, &history); err != nil {
+	if _, err := toml.DecodeReader(f, &mySnapshot); err != nil {
 		log.Fatal(err)
 	}
 
 	f.Close()
-	return history
+	return mySnapshot
 }
 
 
@@ -94,22 +94,19 @@ func GetRevIndex(revision int, numCommits int) int {
 }
 
 
-func PrintRevision(history commitHistory, revIndex int, maxFiles int) {
-	commit := history.Commits[revIndex]
-				
-	fmt.Printf("Revision %d\n", revIndex + 1)
-	fmt.Printf("Time: %s\n", commit.Time)
+func PrintSnapshot(mySnapshot commit, maxFiles int) {			
+	fmt.Printf("Time: %s\n", mySnapshot.Time)
 
-	if len(commit.Message) > 0 {
-		fmt.Printf("Message: %s\n", commit.Message)
+	if len(mySnapshot.Message) > 0 {
+		fmt.Printf("Message: %s\n", mySnapshot.Message)
 	}
 
 	fmt.Printf("Files:\n")
-	for j, file := range commit.Files {
+	for j, file := range mySnapshot.Files {
 		fmt.Printf("  %d: %s\n", j + 1, file)
 
 		if j > maxFiles && maxFiles > 0 {
-			fmt.Printf("  ...\n  Skipping %d more files\n", len(commit.Files) - maxFiles)
+			fmt.Printf("  ...\n  Skipping %d more files\n", len(mySnapshot.Files) - maxFiles)
 			break
 		}
 	}
