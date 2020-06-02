@@ -17,7 +17,7 @@ func check(e error) {
 
 
 func set_default(s *string, d string) {
-	if len(s) == 0 {
+	if len(*s) == 0 {
 		*s = d
 	}
 }
@@ -60,22 +60,25 @@ func main() {
 	flag.StringVar(&repoPath, "repository", "", "Repository path")
 	flag.StringVar(&repoPath, "r", "", "Repository path (shorthand)")
 
-	var workDirPath string
-	flag.StringVar(&workDirPath, "workdir", "", "Working directory path")
-	flag.StringVar(&workDirPath, "w", "", "Working directory path (shorthand)")
+	var workDirName string
+	flag.StringVar(&workDirName, "workdir", "", "Working directory name")
+	flag.StringVar(&workDirName, "w", "", "Working directory name (shorthand)")
 
 	flag.Parse()
 	
 
 	if initRepoFlag {
         set_default(&repoPath, "$HOME/.dupver_repo")
-	    snapshotPath := path.Join(repoPath, "snapshots")
         fmt.Printf("Creating folder %s\n", repoPath)
 		os.Mkdir(repoPath, 0777)
 
 		packPath := path.Join(repoPath, "packs")
         fmt.Printf("Creating folder %s\n", packPath)
 		os.Mkdir(packPath, 0777)
+
+	    snapshotsPath := path.Join(repoPath, "snapshots")
+        fmt.Printf("Creating folder %s\n", snapshotsPath)
+		os.Mkdir(snapshotsPath, 0777)
 
 		var myConfig repoConfig
 		myConfig.Version = 1
@@ -89,14 +92,18 @@ func main() {
 		SaveWorkDirConfig(myConfig)
 	} else if checkinFlag {
         set_default(&repoPath, "$HOME/.dupver_repo")
-
-        if len(workDirPath) == 0 {
-        	workDirPath = "."
-        }
+		snapshotsPath := path.Join(repoPath, "snapshots")
+		os.Mkdir(snapshotsPath, 0777)
         snapshotBasename := RandHexString(65)
-		snapshotPath := path.Join(repoPath, "snapshots", workDirName, snapshotBasename + ".toml")
-		mypoly := 0x3DA3358B4DC173
+        var snapshotPath string
 
+        if len(workDirName) == 0 {
+			snapshotPath = path.Join(snapshotsPath, snapshotBasename + ".toml")
+        } else {
+			snapshotPath = path.Join(snapshotsPath, workDirName, snapshotBasename + ".toml")
+        }
+
+		mypoly := 0x3DA3358B4DC173
 		fmt.Println("Backing up ", filePath)
 		snapshotFile, _ := os.Create(snapshotPath)
 		PrintCommitHeader(snapshotFile, msg, filePath)
