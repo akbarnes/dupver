@@ -11,6 +11,7 @@ import (
 )
 
 type workDirConfig struct {
+	WorkDirName string
 	RepositoryPath string
 }
 

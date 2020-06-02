@@ -28,7 +28,7 @@ func main() {
 
 	var initRepoFlag bool
 	var initWorkDirFlag bool
-	var checkinFlag bool 
+	var checkinFlag bool
 	var checkoutFlag bool
 	var listFlag bool
 
@@ -89,20 +89,21 @@ func main() {
 		os.Mkdir("./.dupver", 0777)
 		var myConfig workDirConfig
 		myConfig.RepositoryPath = repoPath
+		myConfig.WorkDirName = workDirName
 		SaveWorkDirConfig(myConfig)
 	} else if checkinFlag {
         set_default(&repoPath, "$HOME/.dupver_repo")
 		snapshotsPath := path.Join(repoPath, "snapshots")
 		os.Mkdir(snapshotsPath, 0777)
-        snapshotBasename := RandHexString(65)
+        snapshotBasename := RandHexString(64)
         var snapshotPath string
+		if len(workDirName) == 0 {
+			panic("WorkDirName not specified")
+		} 
 
-        if len(workDirName) == 0 {
-			snapshotPath = path.Join(snapshotsPath, snapshotBasename + ".toml")
-        } else {
-			snapshotPath = path.Join(snapshotsPath, workDirName, snapshotBasename + ".toml")
-        }
-
+        snapshotFolder := path.Join(repoPath, "snapshots", workDirName)
+		os.Mkdir(snapshotFolder, 0777)
+		snapshotPath = path.Join(snapshotFolder, snapshotBasename + ".toml")
 		mypoly := 0x3DA3358B4DC173
 		fmt.Println("Backing up ", filePath)
 		snapshotFile, _ := os.Create(snapshotPath)

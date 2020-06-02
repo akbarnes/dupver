@@ -4,6 +4,7 @@ import (
 	"os"
 	"io"
 	"fmt"
+    "path"
 	"crypto/sha256"
 	"github.com/restic/chunker"
 	"compress/gzip"
@@ -42,11 +43,14 @@ func WritePacks(f *os.File, repoPath string, commitFile *os.File, poly int) {
 		fmt.Printf("Chunk %d: %d kB, %02x\n", i, chunk.Length/1024, myHash)
 		fmt.Fprintf(commitFile, "  \"%02x\",\n", myHash)
 
-		chunkFolder := fmt.Sprintf(".dupver/%02x", myHash[0:1])
-		os.MkdirAll(chunkFolder, 0777)
+		chunkFolder := fmt.Sprintf("%02x", myHash[0:1])
+		chunkFolderPath := path.Join(repoPath, "packs", chunkFolder)
+		os.MkdirAll(chunkFolderPath, 0777)
 
-		chunkPath := fmt.Sprintf("%s/%02x.gz", chunkFolder, myHash)
-		g0, _ := os.Create(chunkPath)
+		chunkFilename := fmt.Sprintf("%064x.gz", myHash)
+		chunkPath := path.Join(chunkFolderPath, chunkFilename)
+		g0, chunkPathErr := os.Create(chunkPath)
+        check(chunkPathErr)
 		g := gzip.NewWriter(g0)
 		g.Write(chunk.Data)
 		g.Close()

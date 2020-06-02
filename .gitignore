@@ -6,6 +6,7 @@
 *.tgz
 *.tar
 *.exe
+*.swp
 
 /chunks/*
 /data/*
