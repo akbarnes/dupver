@@ -63,18 +63,18 @@ func WritePacks(f *os.File, repoPath string, commitFile *os.File, poly int) {
 
 
 
-func UnpackTar(filePath string, chunks []string) {
+func UnpackTar(filePath string, repoPath string, chunks []string) {
 	tarFile, _ := os.Create(filePath)
-	WriteChunks(tarFile, chunks)
+	WriteChunks(tarFile, repoPath, chunks)
 	tarFile.Close()
 }
 
 
-func WriteChunks(tarFile *os.File, chunks []string) {
+func WriteChunks(tarFile *os.File, repoPath string, chunks []string) {
 	b := make([]byte, 1024)
 
 	for i, hash := range chunks {
-		chunkPath := fmt.Sprintf(".dupver/%s/%s.gz", hash[0:2], hash)
+		chunkPath := path.Join(repoPath, "packs", hash[0:2], hash + ".gz")
 		fmt.Printf("Reading %d %s\n", i, chunkPath)
 
 		f0, err := os.Open(chunkPath)

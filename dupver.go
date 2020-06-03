@@ -27,6 +27,8 @@ func set_default(s *string, d string) {
 
 
 func main() {
+	SNAPSHOT_ID_LEN := 40 
+
 	var initRepoFlag bool
 	var initWorkDirFlag bool
 	var checkinFlag bool
@@ -98,7 +100,7 @@ func main() {
         set_default(&repoPath, "$HOME/.dupver_repo")
 		snapshotsPath := path.Join(repoPath, "snapshots")
 		os.Mkdir(snapshotsPath, 0777)
-        snapshotId := RandHexString(64)
+        snapshotId := RandHexString(SNAPSHOT_ID_LEN)
 		snapshotDate := t.Format("2006-01-02-T15-04-05")
         snapshotBasename := fmt.Sprintf("%s-%s", snapshotDate, snapshotId[0:40])
 
@@ -129,24 +131,35 @@ func main() {
 		PackFile(filePath, repoPath, snapshotFile, mypoly)
 		snapshotFile.Close()
 	} else if checkoutFlag {
-		if len(repoPath) == 0 { 
-            repoPath = "$HOME/.dupver_repo"
-        }
+        set_default(&repoPath, "$HOME/.dupver_repo")
+		snapshotGlob := path.Join(repoPath, "snapshots", workDirName, "*.toml")
+		fmt.Println(snapshotGlob)
+		snapshotPaths, _ := filepath.Glob(snapshotGlob)
 
-		snapshotPath := path.Join(repoPath, "snapshots", workDirName, snapshot + ".toml")
+		var mySnapshot commit
+		foundSnapshot := false
 
-		// commitHistoryPath := path.Join(repoPath, "commits.toml")
-		mySnapshot := ReadSnapshot(snapshotPath)
-		fmt.Printf("Number of files %d\n", len(mySnapshot.Files))
-		// revIndex := GetRevIndex(revision, len(history.Commits))
-		// fmt.Printf("Restoring commit %d\n", revIndex)
+		for _, snapshotPath := range snapshotPaths {
+			n := len(snapshotPath)
+			snapshotId := snapshotPath[n-SNAPSHOT_ID_LEN-5:n-5]
 		
-		// if (true || len(filePath) == 0) {
-		// 	filePath = fmt.Sprintf("snapshot%d.tar", revIndex + 1)
-		// }
+			if snapshotId[0:len(snapshot)] == snapshot {
+				mySnapshot = ReadSnapshot(snapshotPath)
+				foundSnapshot = true
+				break
+			}
+		}
+		
+		if !foundSnapshot {
+			panic("Could not find snapshot")
+		}
 
-		// fmt.Printf("Writing to %s\n", filePath)
-		// UnpackTar(filePath, history.Commits[revIndex].Chunks) 
+		if len(filePath) == 0 {
+			filePath = fmt.Sprintf("%s-%s.tar", workDirName, snapshot)
+		}
+
+		UnpackTar(filePath, repoPath, mySnapshot.Chunks) 
+		fmt.Printf("Wrote to %s\n", filePath)
 	} else if listFlag {
 		if len(repoPath) == 0 { 
             repoPath = "$HOME/.dupver_repo"
@@ -168,10 +181,11 @@ func main() {
 			fmt.Println("Snapshot")
 
 			for _, snapshotPath := range snapshotPaths {
-				mySnapshot := ReadSnapshot(snapshotPath)
-
-				if mySnapshot.ID[0:8] == snapshot {
-					PrintSnapshot(mySnapshot, 0)
+				n := len(snapshotPath)
+				snapshotId := snapshotPath[n-SNAPSHOT_ID_LEN-5:n-5]
+			
+				if snapshotId[0:8] == snapshot {
+					PrintSnapshot(ReadSnapshot(snapshotPath), 0)
 				}
 			}	
 
