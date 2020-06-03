@@ -5,6 +5,8 @@ import (
 	"flag"
     "fmt"
 	"os"
+	"strings"
+	"time"
 	"path"
 	"path/filepath"
 )
@@ -25,10 +27,6 @@ func set_default(s *string, d string) {
 
 
 func main() {
-	// constants
-	SNAPSHOT_ID_LEN := 40 
-
-
 	var initRepoFlag bool
 	var initWorkDirFlag bool
 	var checkinFlag bool
@@ -95,11 +93,15 @@ func main() {
 		myConfig.WorkDirName = workDirName
 		SaveWorkDirConfig(myConfig)
 	} else if checkinFlag {
+		t := time.Now()
+
         set_default(&repoPath, "$HOME/.dupver_repo")
 		snapshotsPath := path.Join(repoPath, "snapshots")
 		os.Mkdir(snapshotsPath, 0777)
         snapshotId := RandHexString(64)
-        snapshotBasename := fmt.Sprintf("%s", snapshotId[0:40])
+		snapshotDate := t.Format("2006-01-02-T15-04-05")
+        snapshotBasename := fmt.Sprintf("%s-%s", snapshotDate, snapshotId[0:40])
+
         var snapshotPath string
 		if len(workDirName) == 0 {
 			panic("WorkDirName not specified")
@@ -111,8 +113,17 @@ func main() {
 		mypoly := 0x3DA3358B4DC173
 		fmt.Println("Backing up ", filePath)
 		snapshotFile, _ := os.Create(snapshotPath)
-		fmt.Printf("id=%s\n", snapshotBasename)
-		PrintCommitHeader(snapshotFile, msg, filePath)
+
+		// print the snapshot header
+		fmt.Fprintf(snapshotFile, "id=\"%s\"\n", snapshotId)
+
+		if len(msg) == 0 {
+			msg =  strings.Replace(filePath[0:len(filePath)-4], ".\\", "", -1)
+		}
+
+		fmt.Fprintf(snapshotFile, "message=\"%s\"\n", msg)
+		fmt.Fprintf(snapshotFile, "time=\"%s\"\n", t.Format("2006-01-02 15:04:05"))
+
 		// also save hashes for tar file to check which files are modified
 		PrintTarFileIndex(filePath, snapshotFile)
 		PackFile(filePath, repoPath, snapshotFile, mypoly)
@@ -150,15 +161,20 @@ func main() {
 			fmt.Printf("Snapshot History\n")
 
 			for _, snapshotPath := range snapshotPaths {
-				n := len(snapshotPath)
-				snapshotID := snapshotPath[n-SNAPSHOT_ID_LEN-5:n-5]
-				fmt.Printf("Path: %s\nID: %s\n", snapshotPath, snapshotID[0:8])
+				fmt.Printf("Path: %s\n", snapshotPath)
 				PrintSnapshot(ReadSnapshot(snapshotPath), 10)
 			}			
 		} else {
 			fmt.Println("Snapshot")
-		    snapshotPath := path.Join(repoPath, "snapshots", workDirName, snapshot + ".toml")
-			PrintSnapshot(ReadSnapshot(snapshotPath), 0)
+
+			for _, snapshotPath := range snapshotPaths {
+				mySnapshot := ReadSnapshot(snapshotPath)
+
+				if mySnapshot.ID[0:8] == snapshot {
+					PrintSnapshot(mySnapshot, 0)
+				}
+			}	
+
 		}
 	} else {
 		fmt.Println("No command specified, exiting")

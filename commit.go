@@ -5,13 +5,14 @@ import (
 	"io"
 	"log"
 	"fmt"
-	"time"
-	"strings"
+	// "time"
+	// "strings"
 	"github.com/BurntSushi/toml"
 	"archive/tar"
 )
 
 type commit struct {
+	ID string
 	Message string
 	Time string
 	Files []string
@@ -23,15 +24,15 @@ type commitHistory struct {
 }
 
 
-func PrintCommitHeader(commitFile *os.File, msg string, filePath string) {
-	if len(msg) == 0 {
-		msg =  strings.Replace(filePath[0:len(filePath)-4], ".\\", "", -1)
-	}
+// func PrintCommitHeader(commitFile *os.File, msg string, filePath string) {
+// 	if len(msg) == 0 {
+// 		msg =  strings.Replace(filePath[0:len(filePath)-4], ".\\", "", -1)
+// 	}
 
-	fmt.Fprintf(commitFile, "message=\"%s\"\n", msg)
-	t := time.Now()
-	fmt.Fprintf(commitFile, "time=\"%s\"\n", t.Format("2006-01-02 15:04:05"))
-}
+// 	fmt.Fprintf(commitFile, "message=\"%s\"\n", msg)
+// 	t := time.Now()
+// 	fmt.Fprintf(commitFile, "time=\"%s\"\n", t.Format("2006-01-02 15:04:05"))
+// }
 
 
 func PrintTarFileIndex(filePath string, commitFile *os.File) {
@@ -94,6 +95,7 @@ func GetRevIndex(revision int, numCommits int) int {
 
 func PrintSnapshot(mySnapshot commit, maxFiles int) {			
 	fmt.Printf("Time: %s\n", mySnapshot.Time)
+	fmt.Printf("ID: %s\n", mySnapshot.ID[0:8])
 
 	if len(mySnapshot.Message) > 0 {
 		fmt.Printf("Message: %s\n", mySnapshot.Message)
