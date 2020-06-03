@@ -12,6 +12,7 @@ import (
 )
 
 type commit struct {
+	TarFileName string
 	ID string
 	Message string
 	Time string
@@ -35,16 +36,17 @@ type commitHistory struct {
 // }
 
 
-func PrintTarFileIndex(filePath string, commitFile *os.File) {
+func ReadTarFileIndex(filePath string) []string {
 	tarFile, _ := os.Open(filePath)
-	PrintTarIndex(tarFile, commitFile)
+	files := ReadTarIndex(tarFile)
 	tarFile.Close()
+
+	return files
 }
 
 
-func PrintTarIndex(tarFile *os.File, commitFile *os.File) {
-	fmt.Fprintf(commitFile, "files = [\n")
-
+func ReadTarIndex(tarFile *os.File) [] string {
+	files := []string{}
 
 	// Open and iterate through the files in the archive.
 	tr := tar.NewReader(tarFile)
@@ -60,10 +62,10 @@ func PrintTarIndex(tarFile *os.File, commitFile *os.File) {
 
 		i++
 		fmt.Printf("File %d: %s\n", i, hdr.Name)
-		fmt.Fprintf(commitFile, "  \"%s\",\n", hdr.Name)
+		files = append(files, hdr.Name)	
 	}
 
-	fmt.Fprint(commitFile, "]\n")
+	return files
 }
 
 

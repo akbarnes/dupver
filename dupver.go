@@ -9,6 +9,7 @@ import (
 	"time"
 	"path"
 	"path/filepath"
+	"github.com/BurntSushi/toml"
 )
 
 
@@ -97,11 +98,15 @@ func main() {
 	} else if checkinFlag {
 		t := time.Now()
 
+		var mySnapshot commit
+
         set_default(&repoPath, "$HOME/.dupver_repo")
 		snapshotsPath := path.Join(repoPath, "snapshots")
 		os.Mkdir(snapshotsPath, 0777)
         snapshotId := RandHexString(SNAPSHOT_ID_LEN)
+        mySnapshot.ID = snapshotId
 		snapshotDate := t.Format("2006-01-02-T15-04-05")
+		mySnapshot.Time = snapshotDate
         snapshotBasename := fmt.Sprintf("%s-%s", snapshotDate, snapshotId[0:40])
 
         var snapshotPath string
@@ -114,21 +119,21 @@ func main() {
 		snapshotPath = path.Join(snapshotFolder, snapshotBasename + ".toml")
 		mypoly := 0x3DA3358B4DC173
 		fmt.Println("Backing up ", filePath)
-		snapshotFile, _ := os.Create(snapshotPath)
-
-		// print the snapshot header
-		fmt.Fprintf(snapshotFile, "id=\"%s\"\n", snapshotId)
+		mySnapshot.TarFileName = filePath
 
 		if len(msg) == 0 {
 			msg =  strings.Replace(filePath[0:len(filePath)-4], ".\\", "", -1)
 		}
 
-		fmt.Fprintf(snapshotFile, "message=\"%s\"\n", msg)
-		fmt.Fprintf(snapshotFile, "time=\"%s\"\n", t.Format("2006-01-02 15:04:05"))
+		mySnapshot.Message = msg
 
 		// also save hashes for tar file to check which files are modified
-		PrintTarFileIndex(filePath, snapshotFile)
-		PackFile(filePath, repoPath, snapshotFile, mypoly)
+		mySnapshot.Files = ReadTarFileIndex(filePath)
+		mySnapshot.Chunks = PackFile(filePath, repoPath, mypoly)
+
+		snapshotFile, _ := os.Create(snapshotPath)
+		myEncoder := toml.NewEncoder(snapshotFile)
+		myEncoder.Encode(mySnapshot)
 		snapshotFile.Close()
 	} else if checkoutFlag {
         set_default(&repoPath, "$HOME/.dupver_repo")
