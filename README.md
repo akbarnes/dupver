@@ -26,9 +26,10 @@ is stored as a plaintext .toml file also under .dupver.
 * [x] move repository out of working directory
 * [ ] check to make sure I don't overwrite workdir config
 * [ ] use json for snapshots. compression probably isn't needed as files are about 100 kB for 1 GB data 
-* [ ] don't write TOML by hand
+* [x] don't write TOML by hand
 * [ ] don't hardcode chunker polynomial
 * [ ] read repo path & workdir name from config files
+* [ ] don't ignore errors
 
 
 ## Setup

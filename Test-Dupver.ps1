@@ -11,7 +11,8 @@ if (test-path $repo_path) { del -force -recurse $repo_path }
 dupver -init-repo -r $repo_path
 
 $workdir_name = "property"
-$workdir_path = "$HOME\Documents\Admin\Property"
+$workdir_folder = "Property"
+$workdir_path = "$HOME\Documents\Admin\${workdir_folder}"
 if (test-path $workdir_path\.dupver) { del -force -recurse $workdir_path\.dupver }
 
 cd $workdir_path
@@ -20,7 +21,7 @@ cd ..
 
 $tar_name = "${workdir_name}.tar"
 if (test-path $tar_name) { del -force $tar_name }
-tar cfv $tar_name $workdir_path
+tar cfv $tar_name $workdir_folder
 
 dupver -r $repo_path -w $workdir_name -ci -f $tar_name
 dupver -r $repo_path -w $workdir_name -list

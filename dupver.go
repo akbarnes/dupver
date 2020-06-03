@@ -128,7 +128,7 @@ func main() {
 		mySnapshot.Message = msg
 
 		// also save hashes for tar file to check which files are modified
-		mySnapshot.Files = ReadTarFileIndex(filePath)
+		mySnapshot.Files, _ = ReadTarFileIndex(filePath)
 		mySnapshot.Chunks = PackFile(filePath, repoPath, mypoly)
 
 		snapshotFile, _ := os.Create(snapshotPath)

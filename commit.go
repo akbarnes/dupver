@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"fmt"
+	"path"
 	// "time"
 	// "strings"
 	"github.com/BurntSushi/toml"
@@ -36,17 +37,21 @@ type commitHistory struct {
 // }
 
 
-func ReadTarFileIndex(filePath string) []string {
+func ReadTarFileIndex(filePath string) ([]string, workDirConfig) {
 	tarFile, _ := os.Open(filePath)
-	files := ReadTarIndex(tarFile)
+	files, myConfig := ReadTarIndex(tarFile)
 	tarFile.Close()
 
-	return files
+	return files, myConfig
 }
 
 
-func ReadTarIndex(tarFile *os.File) [] string {
+func ReadTarIndex(tarFile *os.File) ([]string, workDirConfig) {
 	files := []string{}
+	var myConfig workDirConfig
+	var baseFolder string
+	var configPath string
+
 
 	// Open and iterate through the files in the archive.
 	tr := tar.NewReader(tarFile)
@@ -60,12 +65,29 @@ func ReadTarIndex(tarFile *os.File) [] string {
 			log.Fatal(err)
 		}
 
+		if i == 0 {
+			baseFolder = hdr.Name
+			myConfig.WorkDirName = baseFolder
+			configPath = path.Join(baseFolder,".dupver","config.toml")
+			fmt.Printf("Base folder: %s\nConfig path: %s\n", baseFolder, configPath)
+		}
+
+
+		if hdr.Name == configPath {
+			fmt.Printf("Matched config path %s\n", configPath)
+			if _, err := toml.DecodeReader(tr, &myConfig); err != nil {
+				log.Fatal(err)
+			}
+
+			fmt.Printf("Read config\nworkdir name: %s\nrepo path: %s\n", myConfig.WorkDirName, myConfig.RepositoryPath)
+		}
+
 		i++
 		fmt.Printf("File %d: %s\n", i, hdr.Name)
 		files = append(files, hdr.Name)	
 	}
 
-	return files
+	return files, myConfig
 }
 
 
