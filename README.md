@@ -21,12 +21,13 @@ is stored as a plaintext .toml file also under .dupver.
 * [ ] decompress archives before deduplicating
 * [ ] use buffered file io for speed
 * [ ] print when deduplication occurs
-* [ ] identify revisions with hashes rather than integers so repositories can be merged
+* [x] identify revisions with hashes rather than integers so repositories can be merged
 * [ ] support deletions of snapshots
 * [ ] support `status` and `diff` commands
-* [ ] move repository out of working directory
+* [x] move repository out of working directory
 * [ ] check to make sure I don't overwrite workdir config
 * [ ] use json for snapshots. compression probably isn't needed as files are about 100 kB for 1 GB data 
+* [ ] use workdir config for repo path and workdir name
 
 
 ## Setup
