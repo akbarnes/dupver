@@ -24,8 +24,6 @@ type commitHistory struct {
 
 
 func PrintCommitHeader(commitFile *os.File, msg string, filePath string) {
-	fmt.Fprintf(commitFile, "[[commits]]\n")
-
 	if len(msg) == 0 {
 		msg =  strings.Replace(filePath[0:len(filePath)-4], ".\\", "", -1)
 	}

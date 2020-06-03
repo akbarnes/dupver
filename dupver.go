@@ -138,20 +138,20 @@ func main() {
 
 		snapshotGlob := path.Join(repoPath, "snapshots", workDirName, "*.toml")
 		fmt.Println(snapshotGlob)
-		snapshotFiles, _ := filepath.Glob(snapshotGlob)
+		snapshotPaths, _ := filepath.Glob(snapshotGlob)
 
 		// print a specific revision
 		if len(snapshot) == 0 {
 			fmt.Printf("Snapshot History\n")
 
-			for _, snapshotFile := range snapshotFiles {
-				fmt.Println(snapshotFile)
+			for _, snapshotPath := range snapshotPaths {
+				fmt.Println(snapshotPath)
+				PrintSnapshot(ReadSnapshot(snapshotPath), 10)
 			}			
 		} else {
 			fmt.Println("Snapshot")
 		    snapshotPath := path.Join(repoPath, "snapshots", workDirName, snapshot + ".toml")
-		    mySnapshot := ReadSnapshot(snapshotPath)
-			PrintSnapshot(mySnapshot, 0)
+			PrintSnapshot(ReadSnapshot(snapshotPath), 0)
 		}
 	} else {
 		fmt.Println("No command specified, exiting")
