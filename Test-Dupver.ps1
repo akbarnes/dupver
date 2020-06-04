@@ -23,5 +23,5 @@ $tar_name = "${workdir_name}.tar"
 if (test-path $tar_name) { del -force $tar_name }
 tar cfv $tar_name $workdir_folder
 
-dupver -r $repo_path -w $workdir_name -ci -f $tar_name
+dupver -ci -f $tar_name
 dupver -r $repo_path -w $workdir_name -list

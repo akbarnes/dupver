@@ -20,13 +20,6 @@ func check(e error) {
 }
 
 
-func set_default(s *string, d string) {
-	if len(*s) == 0 {
-		*s = d
-	}
-}
-
-
 func main() {
 	SNAPSHOT_ID_LEN := 40 
 
@@ -72,7 +65,6 @@ func main() {
 	
 
 	if initRepoFlag {
-        set_default(&repoPath, "$HOME/.dupver_repo")
         fmt.Printf("Creating folder %s\n", repoPath)
 		os.Mkdir(repoPath, 0777)
 
@@ -89,7 +81,6 @@ func main() {
 		myConfig.ChunkerPolynomial = 0x3DA3358B4DC173
 		SaveRepoConfig(repoPath, myConfig)
 	} else if initWorkDirFlag {
-        set_default(&repoPath, "$HOME/.dupver_repo")
 		os.Mkdir("./.dupver", 0777)
 		var myConfig workDirConfig
 		myConfig.RepositoryPath = repoPath
@@ -99,8 +90,8 @@ func main() {
 		t := time.Now()
 
 		var mySnapshot commit
+		var myWorkDirConfig workDirConfig
 
-        set_default(&repoPath, "$HOME/.dupver_repo")
 		snapshotsPath := path.Join(repoPath, "snapshots")
 		os.Mkdir(snapshotsPath, 0777)
         snapshotId := RandHexString(SNAPSHOT_ID_LEN)
@@ -108,11 +99,18 @@ func main() {
 		snapshotDate := t.Format("2006-01-02-T15-04-05")
 		mySnapshot.Time = snapshotDate
         snapshotBasename := fmt.Sprintf("%s-%s", snapshotDate, snapshotId[0:40])
+		mySnapshot.Files, myWorkDirConfig = ReadTarFileIndex(filePath)
 
         var snapshotPath string
 		if len(workDirName) == 0 {
-			panic("WorkDirName not specified")
+			workDirName = myWorkDirConfig.WorkDirName
 		} 
+
+		if len(repoPath) == 0 {
+			repoPath = myWorkDirConfig.RepositoryPath
+		}
+
+		fmt.Printf("Workdir name: %s\nRepo path: %s\n", workDirName, repoPath)
 
         snapshotFolder := path.Join(repoPath, "snapshots", workDirName)
 		os.Mkdir(snapshotFolder, 0777)
@@ -128,7 +126,6 @@ func main() {
 		mySnapshot.Message = msg
 
 		// also save hashes for tar file to check which files are modified
-		mySnapshot.Files, _ = ReadTarFileIndex(filePath)
 		mySnapshot.Chunks = PackFile(filePath, repoPath, mypoly)
 
 		snapshotFile, _ := os.Create(snapshotPath)
@@ -136,7 +133,6 @@ func main() {
 		myEncoder.Encode(mySnapshot)
 		snapshotFile.Close()
 	} else if checkoutFlag {
-        set_default(&repoPath, "$HOME/.dupver_repo")
 		snapshotGlob := path.Join(repoPath, "snapshots", workDirName, "*.toml")
 		fmt.Println(snapshotGlob)
 		snapshotPaths, _ := filepath.Glob(snapshotGlob)
@@ -160,7 +156,7 @@ func main() {
 		}
 
 		if len(filePath) == 0 {
-			filePath = fmt.Sprintf("%s-%s.tar", workDirName, snapshot)
+			filePath = fmt.Sprintf("%s-%s-%s.tar", workDirName, mySnapshot.Time, snapshot)
 		}
 
 		UnpackTar(filePath, repoPath, mySnapshot.Chunks) 

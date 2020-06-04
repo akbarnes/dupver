@@ -41,7 +41,7 @@ func WritePacks(f *os.File, repoPath string, poly int) []string {
 		i++
 		myHash := sha256.Sum256(chunk.Data)
 		fmt.Printf("Chunk %d: %d kB, %02x\n", i, chunk.Length/1024, myHash)
-		chunks = append(chunks, fmt.Sprintf("  \"%02x\",\n", myHash))
+		chunks = append(chunks, fmt.Sprintf("%02x", myHash))
 
 		chunkFolder := fmt.Sprintf("%02x", myHash[0:1])
 		chunkFolderPath := path.Join(repoPath, "packs", chunkFolder)

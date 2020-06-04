@@ -26,17 +26,6 @@ type commitHistory struct {
 }
 
 
-// func PrintCommitHeader(commitFile *os.File, msg string, filePath string) {
-// 	if len(msg) == 0 {
-// 		msg =  strings.Replace(filePath[0:len(filePath)-4], ".\\", "", -1)
-// 	}
-
-// 	fmt.Fprintf(commitFile, "message=\"%s\"\n", msg)
-// 	t := time.Now()
-// 	fmt.Fprintf(commitFile, "time=\"%s\"\n", t.Format("2006-01-02 15:04:05"))
-// }
-
-
 func ReadTarFileIndex(filePath string) ([]string, workDirConfig) {
 	tarFile, _ := os.Open(filePath)
 	files, myConfig := ReadTarIndex(tarFile)
@@ -69,7 +58,7 @@ func ReadTarIndex(tarFile *os.File) ([]string, workDirConfig) {
 			baseFolder = hdr.Name
 			myConfig.WorkDirName = baseFolder
 			configPath = path.Join(baseFolder,".dupver","config.toml")
-			fmt.Printf("Base folder: %s\nConfig path: %s\n", baseFolder, configPath)
+			// fmt.Printf("Base folder: %s\nConfig path: %s\n", baseFolder, configPath)
 		}
 
 
@@ -79,7 +68,7 @@ func ReadTarIndex(tarFile *os.File) ([]string, workDirConfig) {
 				log.Fatal(err)
 			}
 
-			fmt.Printf("Read config\nworkdir name: %s\nrepo path: %s\n", myConfig.WorkDirName, myConfig.RepositoryPath)
+			// fmt.Printf("Read config\nworkdir name: %s\nrepo path: %s\n", myConfig.WorkDirName, myConfig.RepositoryPath)
 		}
 
 		i++
