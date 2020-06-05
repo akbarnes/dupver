@@ -22,6 +22,9 @@ is stored as a plaintext .toml file also under .dupver.
 * [ ] print when deduplication occurs
 * [x] identify revisions with hashes rather than integers so repositories can be merged
 * [ ] support deletions of snapshots
+* [ ] support copy between repos
+* [ ] add file metadata
+* [ ] mtime, ctime, hash, permissions?
 * [ ] support `status` and `diff` commands
 * [x] move repository out of working directory
 * [ ] check to make sure I don't overwrite workdir config

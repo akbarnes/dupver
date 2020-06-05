@@ -57,8 +57,12 @@ func main() {
 	flag.StringVar(&repoPath, "repository", "", "Repository path")
 	flag.StringVar(&repoPath, "r", "", "Repository path (shorthand)")
 
+	var workDir string
+	flag.StringVar(&workDir, "workdir", "", "Working directory")
+	flag.StringVar(&workDir, "d", "", "Working directory (shorthand)")
+
 	var workDirName string
-	flag.StringVar(&workDirName, "workdir", "", "Working directory name")
+	flag.StringVar(&workDirName, "workdir-name", "", "Working directory name")
 	flag.StringVar(&workDirName, "w", "", "Working directory name (shorthand)")
 
 	flag.Parse()
@@ -81,11 +85,28 @@ func main() {
 		myConfig.ChunkerPolynomial = 0x3DA3358B4DC173
 		SaveRepoConfig(repoPath, myConfig)
 	} else if initWorkDirFlag {
-		os.Mkdir("./.dupver", 0777)
+		var configPath string
+
+		if len(workDir) == 0 {
+ 			os.Mkdir(".dupver", 0777)
+ 			configPath = path.Join(".dupver", "config.toml")
+		} else {
+ 			os.Mkdir(path.Join(workDir, ".dupver"), 0777)
+ 			configPath = path.Join(workDir, ".dupver", "config.toml")
+		}
+
+		if len(workDirName) == 0 {
+			if len(workDir) == 0 {
+				panic("Both workDir and workDirName are empty")
+			} else {
+				workDirName = strings.ToLower(workDir)
+			}
+		}
+
 		var myConfig workDirConfig
 		myConfig.RepositoryPath = repoPath
 		myConfig.WorkDirName = workDirName
-		SaveWorkDirConfig(myConfig)
+		SaveWorkDirConfig(configPath, myConfig)
 	} else if checkinFlag {
 		t := time.Now()
 
@@ -116,7 +137,7 @@ func main() {
 		os.Mkdir(snapshotFolder, 0777)
 		snapshotPath = path.Join(snapshotFolder, snapshotBasename + ".toml")
 		mypoly := 0x3DA3358B4DC173
-		fmt.Println("Backing up ", filePath)
+		fmt.Printf("Checking in %s as snapshot %s\n", filePath, snapshotId[0:8])
 		mySnapshot.TarFileName = filePath
 
 		if len(msg) == 0 {
@@ -133,6 +154,24 @@ func main() {
 		myEncoder.Encode(mySnapshot)
 		snapshotFile.Close()
 	} else if checkoutFlag {
+		var configPath string
+
+		if len(workDir) == 0 {
+			configPath = path.Join(".dupver", "config.toml")
+		} else {
+			configPath = path.Join(workDir, ".dupver", "config.toml")
+		}
+
+		myWorkDirConfig := ReadWorkDirConfig(configPath)
+
+		if len(workDirName) == 0 {
+			workDirName = myWorkDirConfig.WorkDirName
+		}
+
+		if len(repoPath) == 0 { 
+            repoPath = myWorkDirConfig.RepositoryPath
+        }
+
 		snapshotGlob := path.Join(repoPath, "snapshots", workDirName, "*.toml")
 		fmt.Println(snapshotGlob)
 		snapshotPaths, _ := filepath.Glob(snapshotGlob)
@@ -162,8 +201,22 @@ func main() {
 		UnpackTar(filePath, repoPath, mySnapshot.Chunks) 
 		fmt.Printf("Wrote to %s\n", filePath)
 	} else if listFlag {
+		var configPath string
+
+		if len(workDir) == 0 {
+			configPath = path.Join(".dupver", "config.toml")
+		} else {
+			configPath = path.Join(workDir, ".dupver", "config.toml")
+		}
+
+		myWorkDirConfig := ReadWorkDirConfig(configPath)
+
+		if len(workDirName) == 0 {
+			workDirName = myWorkDirConfig.WorkDirName
+		}
+
 		if len(repoPath) == 0 { 
-            repoPath = "$HOME/.dupver_repo"
+            repoPath = myWorkDirConfig.RepositoryPath
         }
 
 		snapshotGlob := path.Join(repoPath, "snapshots", workDirName, "*.toml")
