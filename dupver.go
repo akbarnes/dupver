@@ -99,7 +99,7 @@ func main() {
 			if len(workDir) == 0 {
 				panic("Both workDir and workDirName are empty")
 			} else {
-				workDirName = strings.ToLower(workDir)
+				workDirName = strings.ToLower(path.Base(workDir))
 			}
 		}
 
@@ -118,7 +118,7 @@ func main() {
         snapshotId := RandHexString(SNAPSHOT_ID_LEN)
         mySnapshot.ID = snapshotId
 		snapshotDate := t.Format("2006-01-02-T15-04-05")
-		mySnapshot.Time = snapshotDate
+		mySnapshot.Time = t.Format("2006/01/02 15:04:05")
         snapshotBasename := fmt.Sprintf("%s-%s", snapshotDate, snapshotId[0:40])
 		mySnapshot.Files, myWorkDirConfig = ReadTarFileIndex(filePath)
 

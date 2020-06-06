@@ -20,7 +20,7 @@ if (test-path $WorkdirPath\.dupver) { del -force -recurse $WorkdirPath\.dupver }
 
 echo "Initialize workdir $WorkdirName in $WorkdirPath"
 echo -------------------------------------
-dupver -init -d $WorkdirFolder -w $WorkdirName -r $RepoPath
+dupver -init -d $WorkdirFolder -r $RepoPath
 
 $TarName = "${WorkdirName}.tar"
 if (test-path $TarName) { del -force $TarName }
@@ -40,4 +40,4 @@ $SnapshotId = $Snapshots[0].basename.substring(21,40)
 
 echo "Check out commit $SnapshotId"
 echo -------------------------------------
-dupver -co -s $SnapshotId
+dupver -co -d Property -s $SnapshotId

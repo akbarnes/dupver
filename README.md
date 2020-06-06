@@ -23,8 +23,7 @@ is stored as a plaintext .toml file also under .dupver.
 * [x] identify revisions with hashes rather than integers so repositories can be merged
 * [ ] support deletions of snapshots
 * [ ] support copy between repos
-* [ ] add file metadata
-* [ ] mtime, ctime, hash, permissions?
+* [x] file metadata: mtime, ctime, hash, permissions?
 * [ ] support `status` and `diff` commands
 * [x] move repository out of working directory
 * [ ] check to make sure I don't overwrite workdir config
@@ -33,6 +32,8 @@ is stored as a plaintext .toml file also under .dupver.
 * [ ] don't hardcode chunker polynomial
 * [ ] read repo path & workdir name from config files
 * [ ] don't ignore errors
+* [ ] multiple repos and names for repos
+* [ ] unit tests
 
 
 ## Setup

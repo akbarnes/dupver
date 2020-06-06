@@ -3,10 +3,12 @@ package main
 import (
 	"os"
 	"io"
+	"bufio"
 	"log"
 	"fmt"
 	"path"
 	// "time"
+	"crypto/sha256"
 	// "strings"
 	"github.com/BurntSushi/toml"
 	"archive/tar"
@@ -17,7 +19,7 @@ type commit struct {
 	ID string
 	Message string
 	Time string
-	Files []string
+	Files []fileInfo
 	Chunks []string
 }
 
@@ -25,8 +27,16 @@ type commitHistory struct {
 	Commits []commit
 }
 
+type fileInfo struct {
+	Path string
+	ModTime string
+	Size int64
+	Hash string
+	Permissions int
+}
 
-func ReadTarFileIndex(filePath string) ([]string, workDirConfig) {
+
+func ReadTarFileIndex(filePath string) ([]fileInfo, workDirConfig) {
 	tarFile, _ := os.Open(filePath)
 	files, myConfig := ReadTarIndex(tarFile)
 	tarFile.Close()
@@ -35,8 +45,8 @@ func ReadTarFileIndex(filePath string) ([]string, workDirConfig) {
 }
 
 
-func ReadTarIndex(tarFile *os.File) ([]string, workDirConfig) {
-	files := []string{}
+func ReadTarIndex(tarFile *os.File) ([]fileInfo, workDirConfig) {
+	files := []fileInfo{}
 	var myConfig workDirConfig
 	var baseFolder string
 	var configPath string
@@ -71,9 +81,32 @@ func ReadTarIndex(tarFile *os.File) ([]string, workDirConfig) {
 			// fmt.Printf("Read config\nworkdir name: %s\nrepo path: %s\n", myConfig.WorkDirName, myConfig.RepositoryPath)
 		}
 
+		var myFileInfo fileInfo
+
+	    bytes := make([]byte, hdr.Size)
+
+	    bufr := bufio.NewReader(tr)
+	    _, err = bufr.Read(bytes)
+
+		// Name              |   256B | unlimited | unlimited
+		// Linkname          |   100B | unlimited | unlimited
+		// Size              | uint33 | unlimited |    uint89
+		// Mode              | uint21 |    uint21 |    uint57
+		// Uid/Gid           | uint21 | unlimited |    uint57
+		// Uname/Gname       |    32B | unlimited |       32B
+		// ModTime           | uint33 | unlimited |     int89
+		// AccessTime        |    n/a | unlimited |     int89
+		// ChangeTime        |    n/a | unlimited |     int89
+		// Devmajor/Devminor | uint21 |    uint21 |    uint57
+
+	    myFileInfo.Path = hdr.Name
+	    myFileInfo.Size = hdr.Size
+		myFileInfo.Hash = fmt.Sprintf("%02x", sha256.Sum256(bytes))
+		myFileInfo.ModTime = hdr.ModTime.Format("2006/01/02 15:04:05")
+
 		i++
 		fmt.Printf("File %d: %s\n", i, hdr.Name)
-		files = append(files, hdr.Name)	
+		files = append(files, myFileInfo)
 	}
 
 	return files, myConfig
@@ -116,7 +149,7 @@ func PrintSnapshot(mySnapshot commit, maxFiles int) {
 
 	fmt.Printf("Files:\n")
 	for j, file := range mySnapshot.Files {
-		fmt.Printf("  %d: %s\n", j + 1, file)
+		fmt.Printf("  %d: %s\n", j + 1, file.Path)
 
 		if j > maxFiles && maxFiles > 0 {
 			fmt.Printf("  ...\n  Skipping %d more files\n", len(mySnapshot.Files) - maxFiles)
