@@ -135,7 +135,7 @@ func main() {
 
         snapshotFolder := path.Join(repoPath, "snapshots", workDirName)
 		os.Mkdir(snapshotFolder, 0777)
-		snapshotPath = path.Join(snapshotFolder, snapshotBasename + ".toml")
+		snapshotPath = path.Join(snapshotFolder, snapshotBasename + ".json")
 		mypoly := 0x3DA3358B4DC173
 		fmt.Printf("Checking in %s as snapshot %s\n", filePath, snapshotId[0:8])
 		mySnapshot.TarFileName = filePath
@@ -169,7 +169,7 @@ func main() {
             repoPath = myWorkDirConfig.RepositoryPath
         }
 
-		snapshotGlob := path.Join(repoPath, "snapshots", workDirName, "*.toml")
+		snapshotGlob := path.Join(repoPath, "snapshots", workDirName, "*.json")
 		fmt.Println(snapshotGlob)
 		snapshotPaths, _ := filepath.Glob(snapshotGlob)
 
@@ -216,7 +216,7 @@ func main() {
             repoPath = myWorkDirConfig.RepositoryPath
         }
 
-		snapshotGlob := path.Join(repoPath, "snapshots", workDirName, "*.toml")
+		snapshotGlob := path.Join(repoPath, "snapshots", workDirName, "*.json")
 		fmt.Println(snapshotGlob)
 		snapshotPaths, _ := filepath.Glob(snapshotGlob)
 

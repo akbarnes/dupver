@@ -6,4 +6,4 @@ go build dupver.go commit.go pack.go config.go randstring.go
 install_folder=$HOME/.local/bin
 mkdir -p $install_folder
 cp dupver $install_folder
-cp dupver-test.fish $HOME/Documents
+cp dupver-test.fish $HOME/Results

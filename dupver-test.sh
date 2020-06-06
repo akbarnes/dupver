@@ -13,9 +13,9 @@ echo -------------------------------------
 if (test-path $repo_path) { del -force -recurse $repo_path }
 dupver -init-repo -r $repo_path
 
-$workdir_name = "property"
-$workdir_folder = "Property"
-$workdir_path = "$HOME/Documents/Admin/${workdir_folder}"
+$workdir_name = "fdtd"
+$workdir_folder = "FDTD"
+$workdir_path = "$HOME/Results/${workdir_folder}"
 if (test-path $workdir_path/.dupver) { del -force -recurse $workdir_path/.dupver }
 
 
