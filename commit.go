@@ -11,6 +11,7 @@ import (
 	"crypto/sha256"
 	// "strings"
 	"github.com/BurntSushi/toml"
+	"encoding/json"
 	"archive/tar"
 )
 
@@ -32,7 +33,7 @@ type fileInfo struct {
 	ModTime string
 	Size int64
 	Hash string
-	Permissions int
+	// Permissions int
 }
 
 
@@ -113,13 +114,24 @@ func ReadTarIndex(tarFile *os.File) ([]fileInfo, workDirConfig) {
 }
 
 
+func WriteSnapshot(snapshotPath string, mySnapshot commit) {
+	snapshotFile, _ := os.Create(snapshotPath)
+	myEncoder := json.NewEncoder(snapshotFile)
+	myEncoder.SetIndent("", "  ")
+	myEncoder.Encode(mySnapshot)
+	snapshotFile.Close()
+}
+
+
 func ReadSnapshot(snapshotPath string) (commit) {
 	var mySnapshot commit
 	f, _ := os.Open(snapshotPath)
+	myDecoder := json.NewDecoder(f)
 
-	if _, err := toml.DecodeReader(f, &mySnapshot); err != nil {
+
+	if err := myDecoder.Decode(&mySnapshot); err != nil {
 		log.Fatal(err)
-	}
+	}	
 
 	f.Close()
 	return mySnapshot

@@ -9,7 +9,7 @@ import (
 	"time"
 	"path"
 	"path/filepath"
-	"github.com/BurntSushi/toml"
+	// "github.com/BurntSushi/toml"
 )
 
 
@@ -149,10 +149,7 @@ func main() {
 		// also save hashes for tar file to check which files are modified
 		mySnapshot.Chunks = PackFile(filePath, repoPath, mypoly)
 
-		snapshotFile, _ := os.Create(snapshotPath)
-		myEncoder := toml.NewEncoder(snapshotFile)
-		myEncoder.Encode(mySnapshot)
-		snapshotFile.Close()
+		WriteSnapshot(snapshotPath, mySnapshot)
 	} else if checkoutFlag {
 		var configPath string
 

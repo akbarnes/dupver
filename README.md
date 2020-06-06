@@ -30,10 +30,11 @@ is stored as a plaintext .toml file also under .dupver.
 * [ ] use json for snapshots. compression probably isn't needed as files are about 100 kB for 1 GB data 
 * [x] don't write TOML by hand
 * [ ] don't hardcode chunker polynomial
-* [ ] read repo path & workdir name from config files
+* [x] read repo path & workdir name from config files
 * [ ] don't ignore errors
 * [ ] multiple repos and names for repos
 * [ ] unit tests
+* [ ] move main() functionality into functions
 
 
 ## Setup
