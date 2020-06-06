@@ -6,21 +6,38 @@
 # if (-not (test-path $InstallFolder)) { mkdir $Installfolder }
 # copy dupver.exe $InstallFolder
  
-$repo_path = "$HOME\.dupver_repo"
-if (test-path $repo_path) { del -force -recurse $repo_path }
-dupver -init-repo -r $repo_path
+$RepoPath = "$HOME\.dupver_repo"
+echo "Initialize repo $RepoPath"
+echo -------------------------------------
+if (test-path $RepoPath) { del -force -recurse $RepoPath }
+dupver -init-repo -r $RepoPath
 
-$workdir_name = "property"
-$workdir_path = "$HOME\Documents\Admin\Property"
-if (test-path $workdir_path\.dupver) { del -force -recurse $workdir_path\.dupver }
+$WorkdirName = "property"
+$WorkdirFolder = "Property"
+$WorkdirPath = "$HOME\Documents\Admin\${WorkdirFolder}"
+if (test-path $WorkdirPath\.dupver) { del -force -recurse $WorkdirPath\.dupver }
 
-cd $workdir_path
-dupver -init -w $workdir_name -r $repo_path
-cd ..
 
-$tar_name = "${workdir_name}.tar"
-if (test-path $tar_name) { del -force $tar_name }
-tar cfv $tar_name $workdir_path
+echo "Initialize workdir $WorkdirName in $WorkdirPath"
+echo -------------------------------------
+dupver -init -d $WorkdirFolder -r $RepoPath
 
-dupver -r $repo_path -w $workdir_name -ci -f $tar_name
-dupver -r $repo_path -w $workdir_name -list
+$TarName = "${WorkdirName}.tar"
+if (test-path $TarName) { del -force $TarName }
+tar cfv $TarName $WorkdirFolder
+
+echo "Checking in $TarName to $WorkdirName"
+echo -------------------------------------
+dupver -ci -f $TarName
+
+
+echo "List $WorkdirName in $RepoPath"
+echo -------------------------------------
+dupver -list -d Property
+
+$Snapshots = (dir $RepoPath\snapshots\$WorkdirName\*.toml)
+$SnapshotId = $Snapshots[0].basename.substring(21,40)
+
+echo "Check out commit $SnapshotId"
+echo -------------------------------------
+dupver -co -d Property -s $SnapshotId

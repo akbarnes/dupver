@@ -1,12 +1,12 @@
 package main
 
 import (
-    "fmt"
+    // "fmt"
     "log"
-    "io"
+    // "io"
 	"os"
 	"path"
-    "archive/tar"
+    // "archive/tar"
 	"github.com/BurntSushi/toml"
 )
 
@@ -20,12 +20,6 @@ type repoConfig struct {
 	ChunkerPolynomial int
 }
 
-func SaveWorkDirConfig(myConfig workDirConfig) {
-	f, _ := os.Create(".dupver/config.toml")
-	myEncoder := toml.NewEncoder(f)
-	myEncoder.Encode(myConfig)
-	f.Close()
-}
 
 
 
@@ -39,33 +33,27 @@ func SaveRepoConfig(repoPath string, myConfig repoConfig) {
 }
 
 
-func ReadWorkDirConfig(filePath string) (workDirConfig) {
-	var myConfig workDirConfig
-	tarFile, _ := os.Open(filePath)
-
-
-	// Open and iterate through the files in the archive.
-	tr := tar.NewReader(tarFile)
-	i := 0
-	for {
-		hdr, err := tr.Next()
-		if err == io.EOF {
-			break // End of archive
-		}
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		i++
-		fmt.Printf("File %d: %s\n", i, hdr.Name)
-	}
-
-	tarFile.Close()
-
-	myConfig.RepositoryPath = "C:\\Users\\305232\\DupVerRepo"
-	return myConfig
+func SaveWorkDirConfig(configPath string, myConfig workDirConfig) {
+	f, _ := os.Create(configPath)
+	myEncoder := toml.NewEncoder(f)
+	myEncoder.Encode(myConfig)
+	f.Close()
 }
 
 
-// func ReadConfig(tarFile *os.File) {
-// }
+
+func ReadWorkDirConfig(filePath string) (workDirConfig) {
+	var myConfig workDirConfig
+
+
+	f, _ := os.Open(filePath)
+
+	if _, err := toml.DecodeReader(f, &myConfig); err != nil {
+		log.Fatal(err)
+	}
+
+	f.Close()
+
+	return myConfig
+}
+

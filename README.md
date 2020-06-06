@@ -15,19 +15,25 @@ is stored as a plaintext .toml file also under .dupver.
 * [x] zip/gzip compression
 * [x] handle multiple files via stage file or zip/tar
 * [x] restore
-* [ ] store revisions in a sqlite database
 * [ ] combine small chunks into single files like restic
-* [ ] store chunks in HDF5 or similar container?
+* [ ] store packs in gotiny/msgpack/protobuf
 * [ ] decompress archives before deduplicating
 * [ ] use buffered file io for speed
 * [ ] print when deduplication occurs
 * [x] identify revisions with hashes rather than integers so repositories can be merged
 * [ ] support deletions of snapshots
+* [ ] support copy between repos
+* [x] file metadata: mtime, ctime, hash, permissions?
 * [ ] support `status` and `diff` commands
 * [x] move repository out of working directory
 * [ ] check to make sure I don't overwrite workdir config
 * [ ] use json for snapshots. compression probably isn't needed as files are about 100 kB for 1 GB data 
-* [ ] use workdir config for repo path and workdir name
+* [x] don't write TOML by hand
+* [ ] don't hardcode chunker polynomial
+* [ ] read repo path & workdir name from config files
+* [ ] don't ignore errors
+* [ ] multiple repos and names for repos
+* [ ] unit tests
 
 
 ## Setup
