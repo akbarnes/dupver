@@ -22,11 +22,9 @@ type commit struct {
 	Time string
 	Files []fileInfo
 	Chunks []string
+	Tags []string
 }
 
-type commitHistory struct {
-	Commits []commit
-}
 
 type fileInfo struct {
 	Path string
@@ -159,11 +157,18 @@ func PrintSnapshot(mySnapshot commit, maxFiles int) {
 		fmt.Printf("Message: %s\n", mySnapshot.Message)
 	}
 
-	fmt.Printf("Files:\n")
-	for j, file := range mySnapshot.Files {
-		fmt.Printf("  %d: %s\n", j + 1, file.Path)
+	if len(mySnapshot.Tags) > 0 {
+		fmt.Printf("Tags:\n")
+		for _,  tag := range mySnapshot.Tags {
+			fmt.Printf("  %s\n", tag)
+		}
+	}
 
-		if j > maxFiles && maxFiles > 0 {
+	fmt.Printf("Files:\n")
+	for i, file := range mySnapshot.Files {
+		fmt.Printf("  %d: %s\n", i + 1, file.Path)
+
+		if i > maxFiles && maxFiles > 0 {
 			fmt.Printf("  ...\n  Skipping %d more files\n", len(mySnapshot.Files) - maxFiles)
 			break
 		}

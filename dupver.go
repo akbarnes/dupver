@@ -33,7 +33,7 @@ func main() {
 	flag.BoolVar(&initWorkDirFlag, "init", false, "Initialize the working directory")
 	flag.BoolVar(&checkinFlag, "commit", false, "Commit specified file")
 	flag.BoolVar(&checkinFlag, "ci", false, "Commit specified file (shorthand)")
-	flag.BoolVar(&tagFlag, "tag", false, "Tag specified commit (shorthand)")
+	// flag.BoolVar(&tagFlag, "tag", false, "Tag specified commit (shorthand)")
 
 
 	flag.BoolVar(&checkoutFlag, "checkout", false, "Check out specified file")
@@ -95,7 +95,6 @@ func main() {
 		if len(workDir) == 0 {
  			os.Mkdir(".dupver", 0777)
  			configPath = path.Join(".dupver", "config.toml")
- 			tagPath = 
 		} else {
  			os.Mkdir(path.Join(workDir, ".dupver"), 0777)
  			configPath = path.Join(workDir, ".dupver", "config.toml")
@@ -139,12 +138,26 @@ func main() {
 
 		fmt.Printf("Workdir name: %s\nRepo path: %s\n", workDirName, repoPath)
 
+		if len(tagName) > 0 {
+			mySnapshot.Tags = []string{tagName}
+		}
+
         snapshotFolder := path.Join(repoPath, "snapshots", workDirName)
 		os.Mkdir(snapshotFolder, 0777)
 		snapshotPath = path.Join(snapshotFolder, snapshotBasename + ".json")
 		mypoly := 0x3DA3358B4DC173
 		fmt.Printf("Checking in %s as snapshot %s\n", filePath, snapshotId[0:8])
 		mySnapshot.TarFileName = filePath
+
+        // tagFolder := path.Join(repoPath, "tags", workDirName)
+		// os.Mkdir(tagFolder, 0777)	
+
+		// if len(tagName) > 0 {
+		// 	tagPath := 	path.Join(snapshotFolder, tagName + ".toml")
+		// 	f = os.Create(tagPath)
+		// 	fmt.Fprintf("%s", snapshotId)
+		// }
+
 
 		if len(msg) == 0 {
 			msg =  strings.Replace(filePath[0:len(filePath)-4], ".\\", "", -1)
