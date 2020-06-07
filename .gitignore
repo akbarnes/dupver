@@ -6,7 +6,12 @@
 *.tgz
 *.tar
 *.exe
+*.swp
 
 /chunks/*
 /data/*
 /SyntheticUSA/*
+/dupver.code-workspace
+dupver
+    
+/glob.go
