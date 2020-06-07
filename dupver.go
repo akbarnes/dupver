@@ -40,7 +40,7 @@ func main() {
 	flag.BoolVar(&checkoutFlag, "co", false, "Check out specified file")
 
 	flag.BoolVar(&listFlag, "list", false, "List revisions")
-
+	flag.BoolVar(&listFlag, "ls", false, "List revisions (shorthand)")
 
 	var filePath string
 	flag.StringVar(&filePath, "file", "", "Archive path")
@@ -221,19 +221,9 @@ func main() {
 		UnchunkFile(filePath, repoPath, mySnapshot.Chunks) 
 		fmt.Printf("Wrote to %s\n", filePath)
 	} else if listFlag {
-		var configPath string
+		myWorkDirConfig := ReadWorkDirConfig(workDir)
 
-		if len(workDir) == 0 {
-			configPath = path.Join(".dupver", "config.toml")
-		} else {
-			configPath = path.Join(workDir, ".dupver", "config.toml")
-		}
-
-		myWorkDirConfig := ReadWorkDirConfig(configPath)
-
-		if len(workDirName) == 0 {
-			workDirName = myWorkDirConfig.WorkDirName
-		}
+		UpdateWorkDirName(&workDirName, myWorkDirConfig)
 
 		if len(repoPath) == 0 { 
             repoPath = myWorkDirConfig.RepositoryPath

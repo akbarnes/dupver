@@ -20,6 +20,11 @@ type repoConfig struct {
 	ChunkerPolynomial int
 }
 
+func UpdateWorkDirName(workDirName *string, myWorkDirConfig workDirConfig) {
+	if len(*workDirName) == 0 {
+		*workDirName = myWorkDirConfig.WorkDirName
+	} 
+}
 
 
 
@@ -40,11 +45,20 @@ func SaveWorkDirConfig(configPath string, myConfig workDirConfig) {
 	f.Close()
 }
 
+func ReadWorkDirConfig(workDir string) workDirConfig {
+	var configPath string
 
+	if len(workDir) == 0 {
+		configPath = path.Join(".dupver", "config.toml")
+	} else {
+		configPath = path.Join(workDir, ".dupver", "config.toml")
+	}
 
-func ReadWorkDirConfig(filePath string) (workDirConfig) {
+	return ReadWorkDirConfigFile(configPath)
+}
+
+func ReadWorkDirConfigFile(filePath string) workDirConfig {
 	var myConfig workDirConfig
-
 
 	f, _ := os.Open(filePath)
 
