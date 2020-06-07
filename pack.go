@@ -10,15 +10,23 @@ import (
 	"compress/gzip"
 )
 
-func PackFile(filePath string, repoPath string, mypoly int) []string {
+
+type pack struct {
+	Chunks [][]byte
+	Hashes []string
+}
+
+func ChunkFile(filePath string, repoPath string, mypoly int) []string {
 	f, _ := os.Open(filePath)
-	chunks := WritePacks(f, repoPath, mypoly)
+	chunks := WriteChunks(f, repoPath, mypoly)
 	f.Close()
 	return chunks
 }
 
 
-func WritePacks(f *os.File, repoPath string, poly int) []string {
+func WriteChunks(f *os.File, repoPath string, poly int) []string {
+	const minPackSize int = 524288000
+
 	// create a chunker
 	chunks := []string{}
 	mychunker := chunker.New(f, chunker.Pol(poly))
@@ -62,15 +70,60 @@ func WritePacks(f *os.File, repoPath string, poly int) []string {
 }
 
 
+func WritePacks(f *os.File, repoPath string, poly int) (string, []string) {
+	const minPackSize int = 524288000
+	packId := "deadb33f"
 
-func UnpackTar(filePath string, repoPath string, chunks []string) {
-	tarFile, _ := os.Create(filePath)
-	WriteChunks(tarFile, repoPath, chunks)
-	tarFile.Close()
+	// create a chunker
+	chunks := []string{}
+	mychunker := chunker.New(f, chunker.Pol(poly))
+
+	// reuse this buffer
+	buf := make([]byte, 8*1024*1024)
+	
+	i := 0	
+
+	for {
+		chunk, err := mychunker.Next(buf)
+		if err == io.EOF {
+			break
+		}
+
+		if err != nil {
+			panic(err)
+		}
+		
+		i++
+		myHash := sha256.Sum256(chunk.Data)
+		fmt.Printf("Chunk %d: %d kB, %02x\n", i, chunk.Length/1024, myHash)
+		chunks = append(chunks, fmt.Sprintf("%02x", myHash))
+
+		chunkFolder := fmt.Sprintf("%02x", myHash[0:1])
+		chunkFolderPath := path.Join(repoPath, "packs", chunkFolder)
+		os.MkdirAll(chunkFolderPath, 0777)
+
+		chunkFilename := fmt.Sprintf("%064x.gz", myHash)
+		chunkPath := path.Join(chunkFolderPath, chunkFilename)
+		g0, chunkPathErr := os.Create(chunkPath)
+        check(chunkPathErr)
+		g := gzip.NewWriter(g0)
+		g.Write(chunk.Data)
+		g.Close()
+		g0.Close()
+	}
+
+
+	return packId, chunks
+}
+
+func UnchunkFile(filePath string, repoPath string, chunks []string) {
+	f, _ := os.Create(filePath)
+	ReadChunks(f, repoPath, chunks)
+	f.Close()
 }
 
 
-func WriteChunks(tarFile *os.File, repoPath string, chunks []string) {
+func ReadChunks(tarFile *os.File, repoPath string, chunks []string) {
 	b := make([]byte, 1024)
 
 	for i, hash := range chunks {

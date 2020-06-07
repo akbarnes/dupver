@@ -81,6 +81,10 @@ func main() {
         fmt.Printf("Creating folder %s\n", packPath)
 		os.Mkdir(packPath, 0777)
 
+	    treesPath := path.Join(repoPath, "trees")
+        fmt.Printf("Creating folder %s\n", treesPath)
+		os.Mkdir(treesPath, 0777)		
+
 	    snapshotsPath := path.Join(repoPath, "snapshots")
         fmt.Printf("Creating folder %s\n", snapshotsPath)
 		os.Mkdir(snapshotsPath, 0777)
@@ -166,7 +170,7 @@ func main() {
 		mySnapshot.Message = msg
 
 		// also save hashes for tar file to check which files are modified
-		mySnapshot.Chunks = PackFile(filePath, repoPath, mypoly)
+		mySnapshot.Chunks = ChunkFile(filePath, repoPath, mypoly)
 
 		WriteSnapshot(snapshotPath, mySnapshot)
 	} else if checkoutFlag {
@@ -214,7 +218,7 @@ func main() {
 			filePath = fmt.Sprintf("%s-%s-%s.tar", workDirName, mySnapshot.Time, snapshot)
 		}
 
-		UnpackTar(filePath, repoPath, mySnapshot.Chunks) 
+		UnchunkFile(filePath, repoPath, mySnapshot.Chunks) 
 		fmt.Printf("Wrote to %s\n", filePath)
 	} else if listFlag {
 		var configPath string

@@ -6,7 +6,10 @@
 # set InstallFolder "$HOME/AppData/Local/Executables"
 # if (-not (test-path $InstallFolder)) { mkdir $Installfolder }
 # copy dupver.exe $InstallFolder
- 
+
+set workdir_folder "FDTD"
+set workdir_path "$HOME/Results/$workdir_folder"
+  
 set repo_path "$HOME/.dupver_repo"
 echo "Initialize repo $repo_path"
 echo -------------------------------------
@@ -15,13 +18,10 @@ if test -d $repo_path
 end
 dupver -init-repo -r $repo_path
 
-set workdir_folder "FDTD"
 set workdir_name (echo $workdir_folder | tr '[:upper:]' '[:lower:]')
-set workdir_path "$HOME/Results/$workdir_folder"
 if test -d $workdir_path/.dupver
     rm -fr $workdir_path/.dupver 
 end
-
 
 echo "Initialize workdir $workdir_name in $workdir_path"
 echo -------------------------------------
