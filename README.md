@@ -73,35 +73,42 @@ You will need to edit them to set your desired install folder.
 
 ### Initialize repository
 Initialize a repository with
-`dupver -init`
+`dupver -init-repo`
 
-### Backup
-Stage your files by adding them to a gzipped tar file
+### Initialize working directory
+From inside the working directory
+`dupver -init -w workdir_name`
 
-`tar cfvz tarfile.tgz file1 file2 file`
+Or from the parent directory
+`dupver -init -w workdir_name -d working_directory`
+
+### Commit
+Stage your files by adding them to a tar file
+
+`tar cfv tarfile.tar file1 file2 file`
 
 Commit the tarfile with
-`dupver -backup -f tarfile.tgz -m "commit message"`
+`dupver -commit -f tarfile.tar -m "commit message" -d working_directory`
+
+Commit (shorhand)
+`dupver -ci -f tarfile.tar -d working_directory`
 
 ### List commits
 List all commits
 `dupver -list`
 
 List a specific commit
-`dupver -list -r 1`
+`dupver -list -s snapshot_id`
 
 List the last commit
-`dupver -list -r -1`
+`dupver -list -s snapshot_id`
 
 List the 2nd to last commit
-`dupver -list -r -2`
+`dupver -list -s snapshot_id`
 
 ### Restore
-Restore the last commit to snapshot<n>.tgz
-`dupver -restore`
-
 Restore another commit
-`dupver -restore -r 1`
+`dupver -checkout -s snapshot_id`
 
 Restore to a particular file
-`dupver -restore -f filename.tgz`
+`dupver -checkout -f filename.tar`
