@@ -31,8 +31,9 @@ func main() {
 
 	flag.BoolVar(&initRepoFlag, "init-repo", false, "Initialize the repository")
 	flag.BoolVar(&initWorkDirFlag, "init", false, "Initialize the working directory")
-	flag.BoolVar(&checkinFlag, "checkin", false, "Check in specified file")
-	flag.BoolVar(&checkinFlag, "ci", false, "Check in specified file")
+	flag.BoolVar(&checkinFlag, "commit", false, "Commit specified file")
+	flag.BoolVar(&checkinFlag, "ci", false, "Commit specified file (shorthand)")
+	flag.BoolVar(&tagFlag, "tag", false, "Tag specified commit (shorthand)")
 
 
 	flag.BoolVar(&checkoutFlag, "checkout", false, "Check out specified file")
@@ -65,6 +66,10 @@ func main() {
 	flag.StringVar(&workDirName, "workdir-name", "", "Working directory name")
 	flag.StringVar(&workDirName, "w", "", "Working directory name (shorthand)")
 
+	var tagName string
+	flag.StringVar(&tagName, "tag-name", "", "Tag name")
+	flag.StringVar(&tagName, "t", "", "Tag name (shorthand)")
+
 	flag.Parse()
 	
 
@@ -90,6 +95,7 @@ func main() {
 		if len(workDir) == 0 {
  			os.Mkdir(".dupver", 0777)
  			configPath = path.Join(".dupver", "config.toml")
+ 			tagPath = 
 		} else {
  			os.Mkdir(path.Join(workDir, ".dupver"), 0777)
  			configPath = path.Join(workDir, ".dupver", "config.toml")
