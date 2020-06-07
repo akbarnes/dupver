@@ -20,23 +20,27 @@ type repoConfig struct {
 	ChunkerPolynomial int
 }
 
-func UpdateWorkDirName(workDirName *string, myWorkDirConfig workDirConfig) {
-	if len(*workDirName) == 0 {
-		*workDirName = myWorkDirConfig.WorkDirName
+func UpdateWorkDirName(myWorkDirConfig workDirConfig, workDirName string)  workDirConfig{
+	if len(workDirName) > 0 {
+		myWorkDirConfig.WorkDirName = workDirName
 	} 
+
+	return myWorkDirConfig
 }
 
-func UpdateRepoPath(repoPath *string, myWorkDirConfig workDirConfig) {
-	if len(*repoPath) == 0 { 
-		*repoPath = myWorkDirConfig.RepoPath
+func UpdateRepoPath(myWorkDirConfig workDirConfig, repoPath string,) workDirConfig {
+	if len(repoPath) > 0 { 
+		myWorkDirConfig.RepoPath = repoPath
 	}
+
+	return myWorkDirConfig
 }
 
 
 
 
 func SaveRepoConfig(repoPath string, myConfig repoConfig) {
-	// TODO: add a check to make sure I don't overwrite existing
+	// TODO: add a check to make sure I don't over`write` existing
 	configPath := path.Join(repoPath, "config.toml")
 	f, _ := os.Create(configPath)
 	myEncoder := toml.NewEncoder(f)

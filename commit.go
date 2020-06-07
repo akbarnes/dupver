@@ -7,6 +7,7 @@ import (
 	"log"
 	"fmt"
 	"path"
+	"path/filepath"
 	// "time"
 	"crypto/sha256"
 	// "strings"
@@ -33,6 +34,9 @@ type fileInfo struct {
 	Hash string
 	// Permissions int
 }
+
+const SNAPSHOT_ID_LEN int = 40 
+
 
 
 func ReadTarFileIndex(filePath string) ([]fileInfo, workDirConfig) {
@@ -147,6 +151,38 @@ func GetRevIndex(revision int, numCommits int) int {
 
 	return revIndex
 }
+
+func ListSnapshots(cfg workDirConfig) []string {
+	snapshotGlob := path.Join(cfg.RepoPath, "snapshots", cfg.WorkDirName, "*.json")
+	fmt.Println(snapshotGlob)
+	snapshotPaths, err := filepath.Glob(snapshotGlob)
+	check(err)
+	return snapshotPaths
+}
+
+func PrintSnapshots(snapshotPaths[] string, snapshot string) {
+	// print a specific revision
+	if len(snapshot) == 0 {
+		fmt.Printf("Snapshot History\n")
+
+		for _, snapshotPath := range snapshotPaths {
+			fmt.Printf("Path: %s\n", snapshotPath)
+			PrintSnapshot(ReadSnapshot(snapshotPath), 10)
+		}			
+	} else {
+		fmt.Println("Snapshot")
+
+		for _, snapshotPath := range snapshotPaths {
+			n := len(snapshotPath)
+			snapshotId := snapshotPath[n-SNAPSHOT_ID_LEN-5:n-5]
+		
+			if snapshotId[0:8] == snapshot {
+				PrintSnapshot(ReadSnapshot(snapshotPath), 0)
+			}
+		}	
+	}
+}
+
 
 
 func PrintSnapshot(mySnapshot commit, maxFiles int) {			

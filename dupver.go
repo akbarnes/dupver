@@ -21,8 +21,6 @@ func check(e error) {
 
 
 func main() {
-	SNAPSHOT_ID_LEN := 40 
-
 	var initRepoFlag bool
 	var initWorkDirFlag bool
 	var checkinFlag bool
@@ -222,39 +220,10 @@ func main() {
 		fmt.Printf("Wrote to %s\n", filePath)
 	} else if listFlag {
 		myWorkDirConfig := ReadWorkDirConfig(workDir)
-
-		UpdateWorkDirName(&workDirName, myWorkDirConfig)
-		UpdateRepoPath(&repoPath, myWorkDirConfig)
-
-		if len(repoPath) == 0 { 
-            repoPath = myWorkDirConfig.RepoPath
-        }
-
-		snapshotGlob := path.Join(repoPath, "snapshots", workDirName, "*.json")
-		fmt.Println(snapshotGlob)
-		snapshotPaths, _ := filepath.Glob(snapshotGlob)
-
-		// print a specific revision
-		if len(snapshot) == 0 {
-			fmt.Printf("Snapshot History\n")
-
-			for _, snapshotPath := range snapshotPaths {
-				fmt.Printf("Path: %s\n", snapshotPath)
-				PrintSnapshot(ReadSnapshot(snapshotPath), 10)
-			}			
-		} else {
-			fmt.Println("Snapshot")
-
-			for _, snapshotPath := range snapshotPaths {
-				n := len(snapshotPath)
-				snapshotId := snapshotPath[n-SNAPSHOT_ID_LEN-5:n-5]
-			
-				if snapshotId[0:8] == snapshot {
-					PrintSnapshot(ReadSnapshot(snapshotPath), 0)
-				}
-			}	
-
-		}
+		myWorkDirConfig = UpdateWorkDirName(myWorkDirConfig, workDirName)
+		myWorkDirConfig = UpdateRepoPath(myWorkDirConfig, repoPath)
+		snapshotPaths := ListSnapshots(myWorkDirConfig)
+		PrintSnapshots(snapshotPaths, snapshot)
 	} else {
 		fmt.Println("No command specified, exiting")
 		fmt.Println("For available commands run: dupver -help")
