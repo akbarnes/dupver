@@ -113,7 +113,7 @@ func main() {
 		}
 
 		var myConfig workDirConfig
-		myConfig.RepositoryPath = repoPath
+		myConfig.RepoPath = repoPath
 		myConfig.WorkDirName = workDirName
 		SaveWorkDirConfig(configPath, myConfig)
 	} else if checkinFlag {
@@ -137,7 +137,7 @@ func main() {
 		} 
 
 		if len(repoPath) == 0 {
-			repoPath = myWorkDirConfig.RepositoryPath
+			repoPath = myWorkDirConfig.RepoPath
 		}
 
 		fmt.Printf("Workdir name: %s\nRepo path: %s\n", workDirName, repoPath)
@@ -189,7 +189,7 @@ func main() {
 		}
 
 		if len(repoPath) == 0 { 
-            repoPath = myWorkDirConfig.RepositoryPath
+            repoPath = myWorkDirConfig.RepoPath
         }
 
 		snapshotGlob := path.Join(repoPath, "snapshots", workDirName, "*.json")
@@ -224,9 +224,10 @@ func main() {
 		myWorkDirConfig := ReadWorkDirConfig(workDir)
 
 		UpdateWorkDirName(&workDirName, myWorkDirConfig)
+		UpdateRepoPath(&repoPath, myWorkDirConfig)
 
 		if len(repoPath) == 0 { 
-            repoPath = myWorkDirConfig.RepositoryPath
+            repoPath = myWorkDirConfig.RepoPath
         }
 
 		snapshotGlob := path.Join(repoPath, "snapshots", workDirName, "*.json")

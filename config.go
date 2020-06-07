@@ -12,7 +12,7 @@ import (
 
 type workDirConfig struct {
 	WorkDirName string
-	RepositoryPath string
+	RepoPath string
 }
 
 type repoConfig struct {
@@ -25,6 +25,13 @@ func UpdateWorkDirName(workDirName *string, myWorkDirConfig workDirConfig) {
 		*workDirName = myWorkDirConfig.WorkDirName
 	} 
 }
+
+func UpdateRepoPath(repoPath *string, myWorkDirConfig workDirConfig) {
+	if len(*repoPath) == 0 { 
+		*repoPath = myWorkDirConfig.RepoPath
+	}
+}
+
 
 
 

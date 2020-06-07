@@ -77,7 +77,7 @@ func ReadTarIndex(tarFile *os.File) ([]fileInfo, workDirConfig) {
 				log.Fatal(err)
 			}
 
-			// fmt.Printf("Read config\nworkdir name: %s\nrepo path: %s\n", myConfig.WorkDirName, myConfig.RepositoryPath)
+			// fmt.Printf("Read config\nworkdir name: %s\nrepo path: %s\n", myConfig.WorkDirName, myConfig.RepoPath)
 		}
 
 		var myFileInfo fileInfo
