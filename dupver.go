@@ -125,13 +125,12 @@ func main() {
 		mySnapshot = UpdateTags(mySnapshot, tagName)
 		mySnapshot = UpdateMessage(mySnapshot, msg, filePath)		
 		mySnapshot.Files, myWorkDirConfig = ReadTarFileIndex(filePath)
+		mySnapshot.Chunks = ChunkFile(filePath, myWorkDirConfig.RepoPath, 0x3DA3358B4DC173)
 
 		snapshotFolder := path.Join(myWorkDirConfig.RepoPath, "snapshots", myWorkDirConfig.WorkDirName)
         snapshotBasename := fmt.Sprintf("%s-%s", t.Format("2006-01-02-T15-04-05"), mySnapshot.ID[0:40])		
 		os.Mkdir(snapshotFolder, 0777)
 		snapshotPath := path.Join(snapshotFolder, snapshotBasename + ".json")
-\		// also save hashes for tar file to check which files are modified
-		mySnapshot.Chunks = ChunkFile(filePath, myWorkDirConfig.RepoPath, 0x3DA3358B4DC173)
 		WriteSnapshot(snapshotPath, mySnapshot)
 	} else if checkoutFlag {
 		myWorkDirConfig := ReadWorkDirConfig(workDir)

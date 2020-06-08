@@ -57,12 +57,18 @@ func WriteChunks(f *os.File, repoPath string, poly int) []string {
 
 		chunkFilename := fmt.Sprintf("%064x.gz", myHash)
 		chunkPath := path.Join(chunkFolderPath, chunkFilename)
-		g0, chunkPathErr := os.Create(chunkPath)
-        check(chunkPathErr)
-		g := gzip.NewWriter(g0)
-		g.Write(chunk.Data)
-		g.Close()
-		g0.Close()
+
+		if _, err := os.Stat(chunkPath); err == nil {
+			// path/to/whatever exists
+			fmt.Printf("Chunk file %s exists\n", chunkPath)
+		} else {
+			g0, chunkPathErr := os.Create(chunkPath)
+			check(chunkPathErr)
+			g := gzip.NewWriter(g0)
+			g.Write(chunk.Data)
+			g.Close()
+			g0.Close()
+		}
 	}
 
 
