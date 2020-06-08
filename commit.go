@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	// "time"
 	"crypto/sha256"
-	// "strings"
+	"strings"
 	"github.com/BurntSushi/toml"
 	"encoding/json"
 	"archive/tar"
@@ -37,6 +37,23 @@ type fileInfo struct {
 
 const SNAPSHOT_ID_LEN int = 40 
 
+func UpdateTags(mySnapshot commit, tagName string) commit {
+	if len(tagName) > 0 {
+		mySnapshot.Tags = []string{tagName}
+	}
+
+	return mySnapshot
+}
+
+
+func UpdateMessage(mySnapshot commit, msg string, filePath string) commit {
+	if len(msg) == 0 {
+		msg =  strings.Replace(filePath[0:len(filePath)-4], ".\\", "", -1)
+	}
+
+	mySnapshot.Message = msg
+	return mySnapshot
+}
 
 
 func ReadTarFileIndex(filePath string) ([]fileInfo, workDirConfig) {
@@ -125,7 +142,23 @@ func WriteSnapshot(snapshotPath string, mySnapshot commit) {
 }
 
 
-func ReadSnapshot(snapshotPath string) (commit) {
+func ReadSnapshot(snapshot string, cfg workDirConfig) commit {
+	snapshotPaths := ListSnapshots(cfg)
+
+	for _, snapshotPath := range snapshotPaths {
+		n := len(snapshotPath)
+		snapshotId := snapshotPath[n-SNAPSHOT_ID_LEN-5:n-5]
+
+		if snapshotId[0:len(snapshot)] == snapshot {
+			return ReadSnapshotFile(snapshotPath)
+		}
+	}
+
+	panic("Could not find snapshot")
+}
+
+
+func ReadSnapshotFile(snapshotPath string) (commit) {
 	var mySnapshot commit
 	f, _ := os.Open(snapshotPath)
 	myDecoder := json.NewDecoder(f)
@@ -167,7 +200,7 @@ func PrintSnapshots(snapshotPaths[] string, snapshot string) {
 
 		for _, snapshotPath := range snapshotPaths {
 			fmt.Printf("Path: %s\n", snapshotPath)
-			PrintSnapshot(ReadSnapshot(snapshotPath), 10)
+			PrintSnapshot(ReadSnapshotFile(snapshotPath), 10)
 		}			
 	} else {
 		fmt.Println("Snapshot")
@@ -177,7 +210,7 @@ func PrintSnapshots(snapshotPaths[] string, snapshot string) {
 			snapshotId := snapshotPath[n-SNAPSHOT_ID_LEN-5:n-5]
 		
 			if snapshotId[0:8] == snapshot {
-				PrintSnapshot(ReadSnapshot(snapshotPath), 0)
+				PrintSnapshot(ReadSnapshotFile(snapshotPath), 0)
 			}
 		}	
 	}

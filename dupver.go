@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 	"path"
-	"path/filepath"
+	// "path/filepath"
 	// "github.com/BurntSushi/toml"
 )
 
@@ -115,115 +115,41 @@ func main() {
 		myConfig.WorkDirName = workDirName
 		SaveWorkDirConfig(configPath, myConfig)
 	} else if checkinFlag {
+		var myWorkDirConfig workDirConfig
 		t := time.Now()
 
 		var mySnapshot commit
-		var myWorkDirConfig workDirConfig
-
-		snapshotsPath := path.Join(repoPath, "snapshots")
-		os.Mkdir(snapshotsPath, 0777)
-        snapshotId := RandHexString(SNAPSHOT_ID_LEN)
-        mySnapshot.ID = snapshotId
-		snapshotDate := t.Format("2006-01-02-T15-04-05")
+        mySnapshot.ID = RandHexString(SNAPSHOT_ID_LEN)
 		mySnapshot.Time = t.Format("2006/01/02 15:04:05")
-        snapshotBasename := fmt.Sprintf("%s-%s", snapshotDate, snapshotId[0:40])
+		mySnapshot.TarFileName = filePath
+		mySnapshot = UpdateTags(mySnapshot, tagName)
+		mySnapshot = UpdateMessage(mySnapshot, msg, filePath)		
 		mySnapshot.Files, myWorkDirConfig = ReadTarFileIndex(filePath)
 
-        var snapshotPath string
-		if len(workDirName) == 0 {
-			workDirName = myWorkDirConfig.WorkDirName
-		} 
-
-		if len(repoPath) == 0 {
-			repoPath = myWorkDirConfig.RepoPath
-		}
-
-		fmt.Printf("Workdir name: %s\nRepo path: %s\n", workDirName, repoPath)
-
-		if len(tagName) > 0 {
-			mySnapshot.Tags = []string{tagName}
-		}
-
-        snapshotFolder := path.Join(repoPath, "snapshots", workDirName)
+		snapshotFolder := path.Join(myWorkDirConfig.RepoPath, "snapshots", myWorkDirConfig.WorkDirName)
+        snapshotBasename := fmt.Sprintf("%s-%s", t.Format("2006-01-02-T15-04-05"), mySnapshot.ID[0:40])		
 		os.Mkdir(snapshotFolder, 0777)
-		snapshotPath = path.Join(snapshotFolder, snapshotBasename + ".json")
-		mypoly := 0x3DA3358B4DC173
-		fmt.Printf("Checking in %s as snapshot %s\n", filePath, snapshotId[0:8])
-		mySnapshot.TarFileName = filePath
-
-        // tagFolder := path.Join(repoPath, "tags", workDirName)
-		// os.Mkdir(tagFolder, 0777)	
-
-		// if len(tagName) > 0 {
-		// 	tagPath := 	path.Join(snapshotFolder, tagName + ".toml")
-		// 	f = os.Create(tagPath)
-		// 	fmt.Fprintf("%s", snapshotId)
-		// }
-
-
-		if len(msg) == 0 {
-			msg =  strings.Replace(filePath[0:len(filePath)-4], ".\\", "", -1)
-		}
-
-		mySnapshot.Message = msg
-
-		// also save hashes for tar file to check which files are modified
-		mySnapshot.Chunks = ChunkFile(filePath, repoPath, mypoly)
-
+		snapshotPath := path.Join(snapshotFolder, snapshotBasename + ".json")
+\		// also save hashes for tar file to check which files are modified
+		mySnapshot.Chunks = ChunkFile(filePath, myWorkDirConfig.RepoPath, 0x3DA3358B4DC173)
 		WriteSnapshot(snapshotPath, mySnapshot)
 	} else if checkoutFlag {
-		var configPath string
-
-		if len(workDir) == 0 {
-			configPath = path.Join(".dupver", "config.toml")
-		} else {
-			configPath = path.Join(workDir, ".dupver", "config.toml")
-		}
-
-		myWorkDirConfig := ReadWorkDirConfig(configPath)
-
-		if len(workDirName) == 0 {
-			workDirName = myWorkDirConfig.WorkDirName
-		}
-
-		if len(repoPath) == 0 { 
-            repoPath = myWorkDirConfig.RepoPath
-        }
-
-		snapshotGlob := path.Join(repoPath, "snapshots", workDirName, "*.json")
-		fmt.Println(snapshotGlob)
-		snapshotPaths, _ := filepath.Glob(snapshotGlob)
-
-		var mySnapshot commit
-		foundSnapshot := false
-
-		for _, snapshotPath := range snapshotPaths {
-			n := len(snapshotPath)
-			snapshotId := snapshotPath[n-SNAPSHOT_ID_LEN-5:n-5]
-		
-			if snapshotId[0:len(snapshot)] == snapshot {
-				mySnapshot = ReadSnapshot(snapshotPath)
-				foundSnapshot = true
-				break
-			}
-		}
-		
-		if !foundSnapshot {
-			panic("Could not find snapshot")
-		}
+		myWorkDirConfig := ReadWorkDirConfig(workDir)
+		myWorkDirConfig = UpdateWorkDirName(myWorkDirConfig, workDirName)
+		myWorkDirConfig = UpdateRepoPath(myWorkDirConfig, repoPath)
+		mySnapshot := ReadSnapshot(snapshot, myWorkDirConfig)
 
 		if len(filePath) == 0 {
-			filePath = fmt.Sprintf("%s-%s-%s.tar", workDirName, mySnapshot.Time, snapshot)
+			filePath = fmt.Sprintf("%s-%s-%s.tar", myWorkDirConfig.WorkDirName, mySnapshot.Time, snapshot)
 		}
 
-		UnchunkFile(filePath, repoPath, mySnapshot.Chunks) 
+		UnchunkFile(filePath, myWorkDirConfig.RepoPath, mySnapshot.Chunks) 
 		fmt.Printf("Wrote to %s\n", filePath)
 	} else if listFlag {
 		myWorkDirConfig := ReadWorkDirConfig(workDir)
 		myWorkDirConfig = UpdateWorkDirName(myWorkDirConfig, workDirName)
 		myWorkDirConfig = UpdateRepoPath(myWorkDirConfig, repoPath)
-		snapshotPaths := ListSnapshots(myWorkDirConfig)
-		PrintSnapshots(snapshotPaths, snapshot)
+		PrintSnapshots(ListSnapshots(myWorkDirConfig), snapshot)
 	} else {
 		fmt.Println("No command specified, exiting")
 		fmt.Println("For available commands run: dupver -help")
