@@ -22,6 +22,7 @@ type commit struct {
 	Message string
 	Time string
 	Files []fileInfo
+	Packs []string
 	Chunks []string
 	Tags []string
 }
@@ -36,6 +37,9 @@ type fileInfo struct {
 }
 
 const SNAPSHOT_ID_LEN int = 40 
+const PACK_ID_LEN int = 64
+const CHUNK_ID_LEN int = 64
+const TREE_ID_LEN int = 40
 
 func UpdateTags(mySnapshot commit, tagName string) commit {
 	if len(tagName) > 0 {

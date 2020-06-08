@@ -125,6 +125,7 @@ func main() {
 		mySnapshot = UpdateTags(mySnapshot, tagName)
 		mySnapshot = UpdateMessage(mySnapshot, msg, filePath)		
 		mySnapshot.Files, myWorkDirConfig = ReadTarFileIndex(filePath)
+		// mySnapshot.Packs, mySnapshot.Chunks = PackFile(filePath, myWorkDirConfig.RepoPath, 0x3DA3358B4DC173)
 		mySnapshot.Chunks = ChunkFile(filePath, myWorkDirConfig.RepoPath, 0x3DA3358B4DC173)
 
 		snapshotFolder := path.Join(myWorkDirConfig.RepoPath, "snapshots", myWorkDirConfig.WorkDirName)
