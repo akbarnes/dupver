@@ -1,6 +1,7 @@
 #!/bin/bash
 go get github.com/restic/chunker
 go get github.com/BurntSushi/toml
+github.com/vmihailenco/msgpack
 go build dupver.go commit.go pack.go config.go randstring.go
 
 install_folder=$HOME/.local/bin

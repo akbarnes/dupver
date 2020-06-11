@@ -8,13 +8,9 @@ import (
 	"crypto/sha256"
 	"github.com/restic/chunker"
 	"compress/gzip"
+	"github.com/vmihailenco/msgpack/v5"
 )
 
-
-type pack struct {
-	Chunks [][]byte
-	Hashes []string
-}
 
 func ChunkFile(filePath string, repoPath string, mypoly int) []string {
 	f, _ := os.Open(filePath)
@@ -84,22 +80,19 @@ func WriteChunks(f *os.File, repoPath string, poly int) []string {
 }
 
 
-func WritePacks(f *os.File, repoPath string, poly int) ([]string, []string) {
+func WritePacks(f *os.File, repoPath string, poly int) map[string]string
+{
 	const maxPackSize uint = 104857600 // 100 MB
-
-
-	// create a chunker
-	packIds := []string{}
-	chunkIds := []string{}
 	mychunker := chunker.New(f, chunker.Pol(poly))
-
-	// reuse this buffer
-	buf := make([]byte, 8*1024*1024)
+	buf := make([]byte, 8*1024*1024) // reuse this buffer
 	
 	i := 0	
 	var packId string
-	var g0 *os.File
-	var g *gzip.Writer
+	var pack map[string][]byte
+	chunkPack := make(map[string]string)	
+	
+	var f *os.File
+	var zf *gzip.Writer
 	var packPathErr error	
 	
 	var curPackSize  uint 
@@ -118,38 +111,36 @@ func WritePacks(f *os.File, repoPath string, poly int) ([]string, []string) {
 
 		if curPackSize == 0 {
 			packId = RandHexString(PACK_ID_LEN)
-			packIds = append(packIds, packId)
-
-			packFolder := fmt.Sprintf("%s", packId[0:2])
-			packFolderPath := path.Join(repoPath, "packs", packFolder)
-			os.MkdirAll(packFolderPath, 0777)
-	
-			packFilename := fmt.Sprintf("%s.gz", packId)
-			packPath := path.Join(packFolderPath, packFilename)	
-			fmt.Printf("Creating pack file %s\n", packPath)		
-			g0, packPathErr = os.Create(packPath)
-			check(packPathErr)
-			g = gzip.NewWriter(g0)
+			pack = make(map[string][]byte)	
 		}
 		
 		i++
-		chunkId := sha256.Sum256(chunk.Data)
+		chunkId := fmt.Sprintf("%064x", sha256.Sum256(chunk.Data))
 		curPackSize += chunk.Length
 		fmt.Printf("Chunk %d: chunk size %d kB, total size %d kB\n", i, chunk.Length/1024, curPackSize/1024)
-		fmt.Printf("  Pack ID: %s\n  Chunk ID: %02x\n", packId, chunkId)
-		chunkIds = append(chunkIds, fmt.Sprintf("%064x", chunkId))
-		g.Write(chunk.Data)
+		fmt.Printf("  Pack ID: %s\n  Chunk ID: %sx\n", packId, chunkId)
+
+		pack[chunkId] = chunk.Data
+		chunkPack[chunkId] = packId
 
 		if curPackSize >= maxPackSize {
-			fmt.Println("Closing pack file")
-			g.Close()
-			g0.Close()
+			packFolderPath := path.Join(repoPath, "packs", packId[0:2])
+			os.MkdirAll(packFolderPath, 0777)
+			packPath := path.Join(packFolderPath, packId + ".mp.gz")	
+			fmt.Printf("Writing pack file %s\n", packPath)		
+
+			f, packPathErr = os.Create(packPath)
+			check(packPathErr)
+			zf = gzip.NewWriter(f)	
+			myEncoder := msgpack.NewEncoder(zf) 
+			myEncoder.Encode(pack)
+			zf.Close()
+			f.Close()
 			curPackSize = 0
 		}
 	}
 
-
-	return packIds, chunkIds
+	return chunkPack
 }
 
 func UnchunkFile(filePath string, repoPath string, chunks []string) {

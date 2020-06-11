@@ -83,7 +83,7 @@ Or from the parent directory
 `dupver -init -w workdir_name -d working_directory`
 
 ### Commit
-Stage your files by adding them to a tar file
+Stage your files by adding them to aø tar file
 
 `tar cfv tarfile.tar file1 file2 file`
 
