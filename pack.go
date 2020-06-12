@@ -122,25 +122,25 @@ func WritePacks(f *os.File, repoPath string, poly int) []packIndex {
 			
 			i++
 			chunkId := fmt.Sprintf("%064x", sha256.Sum256(chunk.Data))
+			myPackIndex.ChunkIDs = append(myPackIndex.ChunkIDs, chunkId)
+			chunkPack[chunkId] = packId
+			curPackSize += chunk.Length
 
 			if _, ok := chunkPack[chunkId]; ok {
 				//do something here
 				fmt.Printf("Skipping Chunk ID %s\n  Already in pack %s\n",chunkId, chunkPack[chunkId])
-			}
+			} else {	
+				fmt.Printf("Chunk %d: chunk size %d kB, total size %d kB, ", i, chunk.Length/1024, curPackSize/1024)
+				fmt.Printf("chunk ID: %s\n",chunkId)
 
-			myPackIndex.ChunkIDs = append(myPackIndex.ChunkIDs, chunkId)
-			chunkPack[chunkId] = packId
-			curPackSize += chunk.Length
-			fmt.Printf("Chunk %d: chunk size %d kB, total size %d kB, ", i, chunk.Length/1024, curPackSize/1024)
-			fmt.Printf("chunk ID: %s\n",chunkId)
-	
-			var header zip.FileHeader
-			header.Name = chunkId
-			header.Method = zip.Deflate
-		
-			writer, err := zipWriter.CreateHeader(&header)
-			check(err)
-			writer.Write(chunk.Data)			
+				var header zip.FileHeader
+				header.Name = chunkId
+				header.Method = zip.Deflate
+			
+				writer, err := zipWriter.CreateHeader(&header)
+				check(err)
+				writer.Write(chunk.Data)	
+			}		
 		}	
 
 		packIndexes = append(packIndexes, myPackIndex)

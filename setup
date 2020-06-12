@@ -2,7 +2,8 @@
 go get github.com/restic/chunker
 go get github.com/BurntSushi/toml
 # github.com/vmihailenco/msgpack
-go build dupver.go commit.go pack.go config.go randstring.go
+go build dupver.go commit.go pack.go \
+   config.go randstring.go util.go
 echo "Done building"
 
 install_folder=$HOME/.local/bin
