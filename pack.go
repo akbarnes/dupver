@@ -7,8 +7,9 @@ import (
     "path"
 	"crypto/sha256"
 	"github.com/restic/chunker"
-	"compress/gzip"
-	"github.com/vmihailenco/msgpack/v5"
+	// "compress/gzip"
+	"archive/zip"
+	// "github.com/vmihailenco/msgpack/v5"
 )
 
 
@@ -126,16 +127,37 @@ func WritePacks(f *os.File, repoPath string, poly int) map[string]string
 		if curPackSize >= maxPackSize {
 			packFolderPath := path.Join(repoPath, "packs", packId[0:2])
 			os.MkdirAll(packFolderPath, 0777)
-			packPath := path.Join(packFolderPath, packId + ".mp.gz")	
+			packPath := path.Join(packFolderPath, packId + ".zip")	
 			fmt.Printf("Writing pack file %s\n", packPath)		
 
-			f, packPathErr = os.Create(packPath)
-			check(packPathErr)
-			zf = gzip.NewWriter(f)	
-			myEncoder := msgpack.NewEncoder(zf) 
-			myEncoder.Encode(pack)
-			zf.Close()
-			f.Close()
+			zipFile, err := os.Create(filename)
+			check(err)
+			zipWriter := zip.NewWriter(zipFile)
+			defer zipWriter.Close()
+
+			fileToZip, err := os.Open(filename)
+			check(err)
+			defer fileToZip.Close()
+		
+			// Get the file information
+			info, err := fileToZip.Stat()
+			check(err)
+		
+			header, err := zip.FileInfoHeader(info)
+			check(err)
+			// Using FileInfoHeader() above only uses the basename of the file. If we want
+			// to preserve the folder structure we can overwrite this with the full path.
+			header.Name = filename
+		
+			// Change to deflate to gain better compression
+			// see http://golang.org/pkg/archive/zip/#pkg-constants
+			header.Method = zip.Deflate
+		
+			writer, err := zipWriter.CreateHeader(header)
+			check(err)
+			_, err = io.Copy(writer, fileToZip)
+			check(err)
+			
 			curPackSize = 0
 		}
 	}
