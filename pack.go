@@ -25,14 +25,6 @@ func ChunkFile(filePath string, repoPath string, mypoly int) []string {
 	return chunks
 }
 
-func PackFile(filePath string, repoPath string, mypoly int) []packIndex {
-	f, _ := os.Open(filePath)
-	packIndexes := WritePacks(f, repoPath, mypoly)
-	f.Close()
-	return packIndexes
-}
-
-
 
 func WriteChunks(f *os.File, repoPath string, poly int) []string {
 	const minPackSize int = 524288000
@@ -86,12 +78,29 @@ func WriteChunks(f *os.File, repoPath string, poly int) []string {
 }
 
 
-func WritePacks(f *os.File, repoPath string, poly int) []packIndex {
+func PackFile(filePath string, repoPath string, mypoly int) map[string]string {
+	f, _ := os.Open(filePath)
+	chunkPacks := WritePacks(f, repoPath, mypoly)
+	f.Close()
+	return chunkPacks
+}
+
+
+// func PackFile(filePath string, repoPath string, mypoly int) []packIndex {
+// 	f, _ := os.Open(filePath)
+// 	packIndexes := WritePacks(f, repoPath, mypoly)
+// 	f.Close()
+// 	return packIndexes
+// }
+
+
+func WritePacks(f *os.File, repoPath string, poly int) map[string]string {
+// func WritePacks(f *os.File, repoPath string, poly int) []packIndex {
 	const maxPackSize uint = 104857600 // 100 MB
 	mychunker := chunker.New(f, chunker.Pol(poly))
 	buf := make([]byte, 8*1024*1024) // reuse this buffer
 	packIndexes := []packIndex{}
-	chunkPack := make(map[string]string)	
+	chunkPacks := make(map[string]string)	
 	var curPackSize  uint 
 	stillReadingInput := true
 
@@ -101,7 +110,7 @@ func WritePacks(f *os.File, repoPath string, poly int) []packIndex {
 		packFolderPath := path.Join(repoPath, "packs", packId[0:2])
 		os.MkdirAll(packFolderPath, 0777)
 		packPath := path.Join(packFolderPath, packId + ".zip")	
-		fmt.Printf("Creating pack file %s\n", packPath)		
+		fmt.Printf("\nCreating pack file %s\n", packPath)		
 
 		zipFile, err := os.Create(packPath)
 		check(err)
@@ -123,15 +132,15 @@ func WritePacks(f *os.File, repoPath string, poly int) []packIndex {
 			i++
 			chunkId := fmt.Sprintf("%064x", sha256.Sum256(chunk.Data))
 			myPackIndex.ChunkIDs = append(myPackIndex.ChunkIDs, chunkId)
-			chunkPack[chunkId] = packId
 			curPackSize += chunk.Length
 
-			if _, ok := chunkPack[chunkId]; ok {
+			if _, ok := chunkPacks[chunkId]; ok {
 				//do something here
-				fmt.Printf("Skipping Chunk ID %s\n  Already in pack %s\n",chunkId, chunkPack[chunkId])
+				fmt.Printf("Skipping Chunk ID %s already in pack %s\n", chunkId[0:16], chunkPacks[chunkId][0:16])
 			} else {	
 				fmt.Printf("Chunk %d: chunk size %d kB, total size %d kB, ", i, chunk.Length/1024, curPackSize/1024)
-				fmt.Printf("chunk ID: %s\n",chunkId)
+				fmt.Printf("chunk ID: %s\n",chunkId[0:16])
+				chunkPacks[chunkId] = packId
 
 				var header zip.FileHeader
 				header.Name = chunkId
@@ -155,7 +164,8 @@ func WritePacks(f *os.File, repoPath string, poly int) []packIndex {
 		zipFile.Close()
 	}
 
-	return packIndexes
+	// return packIndexes
+	return chunkPacks
 }
 
 func UnchunkFile(filePath string, repoPath string, chunks []string) {
