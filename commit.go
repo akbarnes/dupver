@@ -22,8 +22,7 @@ type commit struct {
 	Message string
 	Time string
 	Files []fileInfo
-	Packs []string
-	Chunks []string
+	PackIndexes []packIndex
 	Tags []string
 }
 

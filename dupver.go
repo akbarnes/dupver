@@ -126,7 +126,7 @@ func main() {
 		mySnapshot = UpdateMessage(mySnapshot, msg, filePath)		
 		mySnapshot.Files, myWorkDirConfig = ReadTarFileIndex(filePath)
 		// mySnapshot.Packs, mySnapshot.Chunks = PackFile(filePath, myWorkDirConfig.RepoPath, 0x3DA3358B4DC173)
-		mySnapshot.Chunks = ChunkFile(filePath, myWorkDirConfig.RepoPath, 0x3DA3358B4DC173)
+		mySnapshot.PackIndexes = PackFile(filePath, myWorkDirConfig.RepoPath, 0x3DA3358B4DC173)
 
 		snapshotFolder := path.Join(myWorkDirConfig.RepoPath, "snapshots", myWorkDirConfig.WorkDirName)
         snapshotBasename := fmt.Sprintf("%s-%s", t.Format("2006-01-02-T15-04-05"), mySnapshot.ID[0:40])		
@@ -143,7 +143,7 @@ func main() {
 			filePath = fmt.Sprintf("%s-%s-%s.tar", myWorkDirConfig.WorkDirName, mySnapshot.Time, snapshot)
 		}
 
-		UnchunkFile(filePath, myWorkDirConfig.RepoPath, mySnapshot.Chunks) 
+		UnpackFile(filePath, myWorkDirConfig.RepoPath, mySnapshot.PackIndexes) 
 		fmt.Printf("Wrote to %s\n", filePath)
 	} else if listFlag {
 		myWorkDirConfig := ReadWorkDirConfig(workDir)

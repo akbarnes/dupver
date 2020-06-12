@@ -7,10 +7,15 @@ import (
     "path"
 	"crypto/sha256"
 	"github.com/restic/chunker"
-	// "compress/gzip"
+	"compress/gzip"
 	"archive/zip"
 	// "github.com/vmihailenco/msgpack/v5"
 )
+
+type packIndex struct {
+	ID string
+	ChunkIDs []string
+}
 
 
 func ChunkFile(filePath string, repoPath string, mypoly int) []string {
@@ -20,11 +25,11 @@ func ChunkFile(filePath string, repoPath string, mypoly int) []string {
 	return chunks
 }
 
-func PackFile(filePath string, repoPath string, mypoly int) ([]string, []string) {
+func PackFile(filePath string, repoPath string, mypoly int) []packIndex {
 	f, _ := os.Open(filePath)
-	packs, chunks := WritePacks(f, repoPath, mypoly)
+	packIndexes := WritePacks(f, repoPath, mypoly)
 	f.Close()
-	return packs, chunks
+	return packIndexes
 }
 
 
@@ -81,93 +86,85 @@ func WriteChunks(f *os.File, repoPath string, poly int) []string {
 }
 
 
-func WritePacks(f *os.File, repoPath string, poly int) map[string]string
-{
+func WritePacks(f *os.File, repoPath string, poly int) []packIndex {
 	const maxPackSize uint = 104857600 // 100 MB
 	mychunker := chunker.New(f, chunker.Pol(poly))
 	buf := make([]byte, 8*1024*1024) // reuse this buffer
-	
-	i := 0	
-	var packId string
-	var pack map[string][]byte
-	chunkPack := make(map[string]string)	
-	
-	var f *os.File
-	var zf *gzip.Writer
-	var packPathErr error	
-	
+	packIndexes := []packIndex{}
 	var curPackSize  uint 
-	curPackSize = 0
-	
+	var chunkErr error
+	chunkErr = nil
+	eof := false
 
 	for {
-		chunk, err := mychunker.Next(buf)
-		if err == io.EOF {
-			break
-		}
+		packId := RandHexString(PACK_ID_LEN)
+		myPackIndex := packIndex{ID: packId}
+		packFolderPath := path.Join(repoPath, "packs", packId[0:2])
+		os.MkdirAll(packFolderPath, 0777)
+		packPath := path.Join(packFolderPath, packId + ".zip")	
+		fmt.Printf("Creating pack file %s\n", packPath)		
 
-		if err != nil {
-			panic(err)
-		}
+		zipFile, err := os.Create(packPath)
+		check(err)
+		zipWriter := zip.NewWriter(zipFile)
 
-		if curPackSize == 0 {
-			packId = RandHexString(PACK_ID_LEN)
-			pack = make(map[string][]byte)	
-		}
-		
-		i++
-		chunkId := fmt.Sprintf("%064x", sha256.Sum256(chunk.Data))
-		curPackSize += chunk.Length
-		fmt.Printf("Chunk %d: chunk size %d kB, total size %d kB\n", i, chunk.Length/1024, curPackSize/1024)
-		fmt.Printf("  Pack ID: %s\n  Chunk ID: %sx\n", packId, chunkId)
+		i := 0
+		curPackSize = 0
 
-		pack[chunkId] = chunk.Data
-		chunkPack[chunkId] = packId
-
-		if curPackSize >= maxPackSize {
-			packFolderPath := path.Join(repoPath, "packs", packId[0:2])
-			os.MkdirAll(packFolderPath, 0777)
-			packPath := path.Join(packFolderPath, packId + ".zip")	
-			fmt.Printf("Writing pack file %s\n", packPath)		
-
-			zipFile, err := os.Create(filename)
-			check(err)
-			zipWriter := zip.NewWriter(zipFile)
-			defer zipWriter.Close()
-
-			fileToZip, err := os.Open(filename)
-			check(err)
-			defer fileToZip.Close()
-		
-			// Get the file information
-			info, err := fileToZip.Stat()
-			check(err)
-		
-			header, err := zip.FileInfoHeader(info)
-			check(err)
-			// Using FileInfoHeader() above only uses the basename of the file. If we want
-			// to preserve the folder structure we can overwrite this with the full path.
-			header.Name = filename
-		
-			// Change to deflate to gain better compression
-			// see http://golang.org/pkg/archive/zip/#pkg-constants
+		for  { // white chunks to pack
+			chunk, chunkErr := mychunker.Next(buf)
+			if chunkErr == io.EOF {
+				fmt.Printf("Reached end of input file, stop chunking\n")	
+				eof = true			
+				break
+			}
+	
+			check(err)		
+			
+			i++
+			chunkId := fmt.Sprintf("%064x", sha256.Sum256(chunk.Data))
+			curPackSize += chunk.Length
+			fmt.Printf("Chunk %d: chunk size %d kB, total size %d kB, ", i, chunk.Length/1024, curPackSize/1024)
+			fmt.Printf("Chunk ID: %s\n",chunkId)
+	
+			myPackIndex.ChunkIDs = append(myPackIndex.ChunkIDs, chunkId)
+			var header zip.FileHeader
+			header.Name = chunkId
 			header.Method = zip.Deflate
 		
-			writer, err := zipWriter.CreateHeader(header)
+			writer, err := zipWriter.CreateHeader(&header)
 			check(err)
-			_, err = io.Copy(writer, fileToZip)
-			check(err)
+			writer.Write(chunk.Data)
 			
-			curPackSize = 0
+			if curPackSize >= maxPackSize {
+				fmt.Printf("Pack size %d exceeds max size %d\n", curPackSize, maxPackSize)
+				break
+			}
+		}	
+		
+		fmt.Printf("Closing zip file\n")
+		zipWriter.Close()
+		zipFile.Close()
+
+		if eof {
+			fmt.Printf("Reached end of input file, exiting\n")
+			break
 		}
 	}
 
-	return chunkPack
+	return packIndexes
 }
 
 func UnchunkFile(filePath string, repoPath string, chunks []string) {
 	f, _ := os.Create(filePath)
 	ReadChunks(f, repoPath, chunks)
+	f.Close()
+}
+
+
+func UnpackFile(filePath string, repoPath string, packIndexes []packIndex) {
+	f, _ := os.Create(filePath)
+	// ReadChunks(f, repoPath, chunks)
 	f.Close()
 }
 
