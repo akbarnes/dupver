@@ -61,6 +61,31 @@ dupver -init -d $workdir_folder -r $repo_path
 # -rw-rw-r--@ 1 art  staff   151K Sep 11  2019 contab_ACTIVSg2000.m
 # -rw-rw-r--@ 1 art  staff   3.5M Sep 11  2019 scenarios_ACTIVSg2000.m
 
+set i 0
+echo "Backup set $i"
+echo =====================================
+
+echo "Copy files to $workdir_path"
+echo -------------------------------------
+cp Static/Electric/ACTIVSg70k/*.csv $workdir_name
+cp Static/Electric/ACTIVSg70k/*.PWB $workdir_name
+cp Static/Electric/ACTIVSg70k/*.pwd $workdir_name
+cp Static/Electric/ACTIVSg25k/*.pwb $workdir_name
+cp Static/Electric/ACTIVSg25k/*.pwd $workdir_name
+cp Static/Electric/ACTIVSg10k/*.pwb $workdir_name
+cp Static/Electric/ACTIVSg10k/*.pwd $workdir_name
+
+
+set tar_name "$workdir_name$i.tar"
+if test -e $tar_name
+    rm $tar_name
+end
+tar cfv $tar_name $workdir_folder
+
+echo "Checking in $tar_name to $workdir_name"
+echo -------------------------------------
+dupver -ci -f $tar_name
+
 set i 1
 echo "Backup set $i"
 echo =====================================
