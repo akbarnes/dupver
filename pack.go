@@ -94,9 +94,8 @@ func WritePacks(f *os.File, repoPath string, poly int) []packIndex {
 	var curPackSize  uint 
 	var chunkErr error
 	chunkErr = nil
-	eof := false
 
-	for {
+	for chunkErr == nil {
 		packId := RandHexString(PACK_ID_LEN)
 		myPackIndex := packIndex{ID: packId}
 		packFolderPath := path.Join(repoPath, "packs", packId[0:2])
@@ -111,12 +110,11 @@ func WritePacks(f *os.File, repoPath string, poly int) []packIndex {
 		i := 0
 		curPackSize = 0
 
-		for  { // white chunks to pack
+		for curPackSize < maxPackSize { // white chunks to pack
 			chunk, chunkErr := mychunker.Next(buf)
 			if chunkErr == io.EOF {
 				fmt.Printf("Reached end of input file, stop chunking\n")	
-				eof = true			
-				break
+   				break
 			}
 	
 			check(err)		
@@ -134,22 +132,13 @@ func WritePacks(f *os.File, repoPath string, poly int) []packIndex {
 		
 			writer, err := zipWriter.CreateHeader(&header)
 			check(err)
-			writer.Write(chunk.Data)
-			
-			if curPackSize >= maxPackSize {
-				fmt.Printf("Pack size %d exceeds max size %d\n", curPackSize, maxPackSize)
-				break
-			}
+			writer.Write(chunk.Data)			
 		}	
-		
+
+		fmt.Printf("Pack size %d exceeds max size or EOF%d\n", curPackSize, maxPackSize)		
 		fmt.Printf("Closing zip file\n")
 		zipWriter.Close()
 		zipFile.Close()
-
-		if eof {
-			fmt.Printf("Reached end of input file, exiting\n")
-			break
-		}
 	}
 
 	return packIndexes
