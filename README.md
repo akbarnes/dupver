@@ -11,14 +11,14 @@ are accepted as input as Dupver relies on the tar container to
 
 
 ## Setup
-This requires the chunker and toml libraries. Install them and build
+Binary releases are provided for MacOS/Windows. Copy them somewhere in your path. Building from source requires the chunker and toml libraries. Install them and build
 ```
 go get github.com/restic/chunker
 go get github.com/BurntSushi/toml
 go build dupver.go
 ```
 
-Copy the executable somewhere in your path. Binary releases and scripts for 
+Copy the executable somewhere in your path. Build scripts for 
 MacOS/*nix/Windows are included, see
 
 * `setup` (MacOS, *nix)
