@@ -34,10 +34,10 @@ Initialize a repository with
 
 ### Initialize working directory
 From inside the working directory
-`dupver -init -w workdir_name`
+`dupver -init -w workdir_name -r repo_path`
 
 Or from the parent directory
-`dupver -init -w workdir_name -d working_directory`
+`dupver -init -w workdir_name -d working_directory -r repo_path`
 
 ### Commit
 Stage your files by adding them to aø tar file
