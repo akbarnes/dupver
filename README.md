@@ -18,7 +18,7 @@ go get github.com/BurntSushi/toml
 go build dupver.go
 ```
 
-Copy the executable somewhere in your path. Build scripts for 
+Copy the executable somewhere in your path. Binary releases and scripts for 
 MacOS/*nix/Windows are included, see
 
 * `setup` (MacOS, *nix)
