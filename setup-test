@@ -9,5 +9,7 @@ echo "Done building"
 install_folder=$HOME/.local/bin
 mkdir -p $install_folder
 cp dupver $install_folder
+cp dupver-test.fish $HOME/Results
+cp dupver-test.fish $HOME/Data/
 echo "Copied to $install_folder"
 
