@@ -147,8 +147,8 @@ func ReadPacks(tarFile *os.File, repoPath string, chunkIds []string, packIndexes
 			if h.Name == chunkId {
 				rc, err := f.Open()
 				check(err)
-				// _, err = io.Copy(tarFile, rc)
-				fmt.Fprintf(tarFile, "Pack %s, chunk %s, csize %d, usize %d\n", packId, h.Name, h.CompressedSize, h.UncompressedSize)
+				_, err = io.Copy(tarFile, rc)
+				// fmt.Fprintf(tarFile, "Pack %s, chunk %s, csize %d, usize %d\n", packId, h.Name, h.CompressedSize, h.UncompressedSize)
 				check(err)
 				rc.Close()
 			}

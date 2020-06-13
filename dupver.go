@@ -145,7 +145,7 @@ func main() {
 
 		if len(filePath) == 0 {
 			timeStr := strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(mySnapshot.Time, ":", "-"), "/", "-"), " ", "-")
-			filePath = fmt.Sprintf("%s-%s-%s.txt", myWorkDirConfig.WorkDirName, timeStr, snapshot[0:16])
+			filePath = fmt.Sprintf("%s-%s-%s.tar", myWorkDirConfig.WorkDirName, timeStr, snapshot[0:16])
 		}
 
 		UnpackFile(filePath, myWorkDirConfig.RepoPath, mySnapshot.ChunkIDs, mySnapshot.PackIndexes) 
