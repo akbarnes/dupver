@@ -78,24 +78,24 @@ func WriteChunks(f *os.File, repoPath string, poly int) []string {
 }
 
 
-func PackFile(filePath string, repoPath string, mypoly int) map[string]string {
-	f, _ := os.Open(filePath)
-	chunkPacks := WritePacks(f, repoPath, mypoly)
-	f.Close()
-	return chunkPacks
-}
-
-
-// func PackFile(filePath string, repoPath string, mypoly int) []packIndex {
+// func PackFile(filePath string, repoPath string, mypoly int) map[string]string {
 // 	f, _ := os.Open(filePath)
-// 	packIndexes := WritePacks(f, repoPath, mypoly)
+// 	chunkPacks := WritePacks(f, repoPath, mypoly)
 // 	f.Close()
-// 	return packIndexes
+// 	return chunkPacks
 // }
 
 
-func WritePacks(f *os.File, repoPath string, poly int) map[string]string {
-// func WritePacks(f *os.File, repoPath string, poly int) []packIndex {
+func PackFile(filePath string, repoPath string, mypoly int) []packIndex {
+	f, _ := os.Open(filePath)
+	packIndexes := WritePacks(f, repoPath, mypoly)
+	f.Close()
+	return packIndexes
+}
+
+
+// func WritePacks(f *os.File, repoPath string, poly int) map[string]string {
+func WritePacks(f *os.File, repoPath string, poly int) []packIndex {
 	const maxPackSize uint = 104857600 // 100 MB
 	mychunker := chunker.New(f, chunker.Pol(poly))
 	buf := make([]byte, 8*1024*1024) // reuse this buffer
@@ -164,8 +164,8 @@ func WritePacks(f *os.File, repoPath string, poly int) map[string]string {
 		zipFile.Close()
 	}
 
-	// return packIndexes
-	return chunkPacks
+	return packIndexes
+	// return chunkPacks
 }
 
 func UnchunkFile(filePath string, repoPath string, chunks []string) {

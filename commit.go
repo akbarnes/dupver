@@ -22,7 +22,7 @@ type commit struct {
 	Message string
 	Time string
 	Files []fileInfo
-	ChunkPacks map[string]string
+	// ChunkPacks map[string]string
 	PackIndexes []packIndex
 	Tags []string
 }
