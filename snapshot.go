@@ -7,9 +7,10 @@ import (
 	"log"
 	"fmt"
 	"path"
+	"path/filepath"
 	// "time"
 	"crypto/sha256"
-	// "strings"
+	"strings"
 	"github.com/BurntSushi/toml"
 	"encoding/json"
 	"archive/tar"
@@ -21,7 +22,9 @@ type commit struct {
 	Message string
 	Time string
 	Files []fileInfo
-	Chunks []string
+	// ChunkPacks map[string]string
+	ChunkIDs []string
+	// PackIndexes []packIndex
 	Tags []string
 }
 
@@ -32,6 +35,29 @@ type fileInfo struct {
 	Size int64
 	Hash string
 	// Permissions int
+}
+
+const SNAPSHOT_ID_LEN int = 40 
+const PACK_ID_LEN int = 64
+const CHUNK_ID_LEN int = 64
+const TREE_ID_LEN int = 40
+
+func UpdateTags(mySnapshot commit, tagName string) commit {
+	if len(tagName) > 0 {
+		mySnapshot.Tags = []string{tagName}
+	}
+
+	return mySnapshot
+}
+
+
+func UpdateMessage(mySnapshot commit, msg string, filePath string) commit {
+	if len(msg) == 0 {
+		msg =  strings.Replace(filePath[0:len(filePath)-4], ".\\", "", -1)
+	}
+
+	mySnapshot.Message = msg
+	return mySnapshot
 }
 
 
@@ -77,7 +103,7 @@ func ReadTarIndex(tarFile *os.File) ([]fileInfo, workDirConfig) {
 				log.Fatal(err)
 			}
 
-			// fmt.Printf("Read config\nworkdir name: %s\nrepo path: %s\n", myConfig.WorkDirName, myConfig.RepositoryPath)
+			// fmt.Printf("Read config\nworkdir name: %s\nrepo path: %s\n", myConfig.WorkDirName, myConfig.RepoPath)
 		}
 
 		var myFileInfo fileInfo
@@ -113,15 +139,70 @@ func ReadTarIndex(tarFile *os.File) ([]fileInfo, workDirConfig) {
 
 
 func WriteSnapshot(snapshotPath string, mySnapshot commit) {
-	snapshotFile, _ := os.Create(snapshotPath)
-	myEncoder := json.NewEncoder(snapshotFile)
+	f, _ := os.Create(snapshotPath)
+	myEncoder := json.NewEncoder(f)
 	myEncoder.SetIndent("", "  ")
 	myEncoder.Encode(mySnapshot)
-	snapshotFile.Close()
+	f.Close()
 }
 
 
-func ReadSnapshot(snapshotPath string) (commit) {
+func WriteTree(treePath string, chunkPacks map[string]string) {
+	f, _ := os.Create(treePath)
+	myEncoder := json.NewEncoder(f)
+	myEncoder.SetIndent("", "  ")
+	myEncoder.Encode(chunkPacks)
+	f.Close()
+}
+
+
+func ReadTrees(repoPath string) map[string]string {
+	treesGlob := path.Join(repoPath, "trees", "*.json")
+	fmt.Println(treesGlob)
+	treePaths, err := filepath.Glob(treesGlob)
+	check(err)
+	chunkPacks := make(map[string]string)	
+
+	
+	for _, treePath := range treePaths {
+		treePacks := make(map[string]string)	
+		
+		f, _ := os.Open(treePath)
+		myDecoder := json.NewDecoder(f)
+	
+		if err := myDecoder.Decode(&treePacks); err != nil {
+			log.Fatal(err)
+		}	
+
+		// TODO: handle supersedes to allow repacking files			
+		for k, v := range treePacks {
+			chunkPacks[k] = v
+		}
+
+		f.Close()
+	}
+
+	return chunkPacks
+}
+
+
+func ReadSnapshot(snapshot string, cfg workDirConfig) commit {
+	snapshotPaths := ListSnapshots(cfg)
+
+	for _, snapshotPath := range snapshotPaths {
+		n := len(snapshotPath)
+		snapshotId := snapshotPath[n-SNAPSHOT_ID_LEN-5:n-5]
+
+		if snapshotId[0:len(snapshot)] == snapshot {
+			return ReadSnapshotFile(snapshotPath)
+		}
+	}
+
+	panic("Could not find snapshot")
+}
+
+
+func ReadSnapshotFile(snapshotPath string) (commit) {
 	var mySnapshot commit
 	f, _ := os.Open(snapshotPath)
 	myDecoder := json.NewDecoder(f)
@@ -147,6 +228,38 @@ func GetRevIndex(revision int, numCommits int) int {
 
 	return revIndex
 }
+
+func ListSnapshots(cfg workDirConfig) []string {
+	snapshotGlob := path.Join(cfg.RepoPath, "snapshots", cfg.WorkDirName, "*.json")
+	fmt.Println(snapshotGlob)
+	snapshotPaths, err := filepath.Glob(snapshotGlob)
+	check(err)
+	return snapshotPaths
+}
+
+func PrintSnapshots(snapshotPaths[] string, snapshot string) {
+	// print a specific revision
+	if len(snapshot) == 0 {
+		fmt.Printf("Snapshot History\n")
+
+		for _, snapshotPath := range snapshotPaths {
+			fmt.Printf("Path: %s\n", snapshotPath)
+			PrintSnapshot(ReadSnapshotFile(snapshotPath), 10)
+		}			
+	} else {
+		fmt.Println("Snapshot")
+
+		for _, snapshotPath := range snapshotPaths {
+			n := len(snapshotPath)
+			snapshotId := snapshotPath[n-SNAPSHOT_ID_LEN-5:n-5]
+		
+			if snapshotId[0:8] == snapshot {
+				PrintSnapshot(ReadSnapshotFile(snapshotPath), 0)
+			}
+		}	
+	}
+}
+
 
 
 func PrintSnapshot(mySnapshot commit, maxFiles int) {			

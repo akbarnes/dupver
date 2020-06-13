@@ -8,21 +8,12 @@ import (
 	"strings"
 	"time"
 	"path"
-	"path/filepath"
+	// "path/filepath"
 	// "github.com/BurntSushi/toml"
 )
 
 
-func check(e error) {
-    if e != nil {
-        panic(e)
-    }
-}
-
-
 func main() {
-	SNAPSHOT_ID_LEN := 40 
-
 	var initRepoFlag bool
 	var initWorkDirFlag bool
 	var checkinFlag bool
@@ -40,7 +31,7 @@ func main() {
 	flag.BoolVar(&checkoutFlag, "co", false, "Check out specified file")
 
 	flag.BoolVar(&listFlag, "list", false, "List revisions")
-
+	flag.BoolVar(&listFlag, "ls", false, "List revisions (shorthand)")
 
 	var filePath string
 	flag.StringVar(&filePath, "file", "", "Archive path")
@@ -49,6 +40,8 @@ func main() {
 	var snapshot string
 	flag.StringVar(&snapshot, "snapshot", "", "Specify snapshot id (default is last)")
 	flag.StringVar(&snapshot, "s", "", "Specify snapshot id (shorthand)")
+	flag.StringVar(&snapshot, "commit-id", "", "Specify commit (snaphot) id (default is last)")
+	flag.StringVar(&snapshot, "c", "", "Specify commit (snapshot) id (shorthand)")
 
 	var msg string
 	flag.StringVar(&msg, "message", "", "Commit message")
@@ -81,6 +74,10 @@ func main() {
         fmt.Printf("Creating folder %s\n", packPath)
 		os.Mkdir(packPath, 0777)
 
+	    treesPath := path.Join(repoPath, "trees")
+        fmt.Printf("Creating folder %s\n", treesPath)
+		os.Mkdir(treesPath, 0777)		
+
 	    snapshotsPath := path.Join(repoPath, "snapshots")
         fmt.Printf("Creating folder %s\n", snapshotsPath)
 		os.Mkdir(snapshotsPath, 0777)
@@ -109,157 +106,54 @@ func main() {
 		}
 
 		var myConfig workDirConfig
-		myConfig.RepositoryPath = repoPath
+		myConfig.RepoPath = repoPath
 		myConfig.WorkDirName = workDirName
 		SaveWorkDirConfig(configPath, myConfig)
 	} else if checkinFlag {
+		var myWorkDirConfig workDirConfig
 		t := time.Now()
 
 		var mySnapshot commit
-		var myWorkDirConfig workDirConfig
-
-		snapshotsPath := path.Join(repoPath, "snapshots")
-		os.Mkdir(snapshotsPath, 0777)
-        snapshotId := RandHexString(SNAPSHOT_ID_LEN)
-        mySnapshot.ID = snapshotId
-		snapshotDate := t.Format("2006-01-02-T15-04-05")
+        mySnapshot.ID = RandHexString(SNAPSHOT_ID_LEN)
 		mySnapshot.Time = t.Format("2006/01/02 15:04:05")
-        snapshotBasename := fmt.Sprintf("%s-%s", snapshotDate, snapshotId[0:40])
-		mySnapshot.Files, myWorkDirConfig = ReadTarFileIndex(filePath)
-
-        var snapshotPath string
-		if len(workDirName) == 0 {
-			workDirName = myWorkDirConfig.WorkDirName
-		} 
-
-		if len(repoPath) == 0 {
-			repoPath = myWorkDirConfig.RepositoryPath
-		}
-
-		fmt.Printf("Workdir name: %s\nRepo path: %s\n", workDirName, repoPath)
-
-		if len(tagName) > 0 {
-			mySnapshot.Tags = []string{tagName}
-		}
-
-        snapshotFolder := path.Join(repoPath, "snapshots", workDirName)
-		os.Mkdir(snapshotFolder, 0777)
-		snapshotPath = path.Join(snapshotFolder, snapshotBasename + ".json")
-		mypoly := 0x3DA3358B4DC173
-		fmt.Printf("Checking in %s as snapshot %s\n", filePath, snapshotId[0:8])
 		mySnapshot.TarFileName = filePath
+		// mySnapshot = UpdateTags(mySnapshot, tagName)
+		mySnapshot = UpdateMessage(mySnapshot, msg, filePath)		
+		mySnapshot.Files, myWorkDirConfig = ReadTarFileIndex(filePath)
+		// mySnapshot.Packs, mySnapshot.Chunks = PackFile(filePath, myWorkDirConfig.RepoPath, 0x3DA3358B4DC173)
+		chunkIDs, chunkPacks := PackFile(filePath, myWorkDirConfig.RepoPath, 0x3DA3358B4DC173)
+		mySnapshot.ChunkIDs = chunkIDs
+		// mySnapshot.ChunkPacks = chunkPacks
 
-        // tagFolder := path.Join(repoPath, "tags", workDirName)
-		// os.Mkdir(tagFolder, 0777)	
-
-		// if len(tagName) > 0 {
-		// 	tagPath := 	path.Join(snapshotFolder, tagName + ".toml")
-		// 	f = os.Create(tagPath)
-		// 	fmt.Fprintf("%s", snapshotId)
-		// }
-
-
-		if len(msg) == 0 {
-			msg =  strings.Replace(filePath[0:len(filePath)-4], ".\\", "", -1)
-		}
-
-		mySnapshot.Message = msg
-
-		// also save hashes for tar file to check which files are modified
-		mySnapshot.Chunks = PackFile(filePath, repoPath, mypoly)
-
+		snapshotFolder := path.Join(myWorkDirConfig.RepoPath, "snapshots", myWorkDirConfig.WorkDirName)
+        snapshotBasename := fmt.Sprintf("%s-%s", t.Format("2006-01-02-T15-04-05"), mySnapshot.ID[0:40])		
+		os.Mkdir(snapshotFolder, 0777)
+		snapshotPath := path.Join(snapshotFolder, snapshotBasename + ".json")
 		WriteSnapshot(snapshotPath, mySnapshot)
+
+		treeFolder := path.Join(myWorkDirConfig.RepoPath, "trees")
+        treeBasename := mySnapshot.ID[0:40]
+		os.Mkdir(treeFolder, 0777)
+		treePath := path.Join(treeFolder, treeBasename + ".json")
+		WriteTree(treePath, chunkPacks)
 	} else if checkoutFlag {
-		var configPath string
-
-		if len(workDir) == 0 {
-			configPath = path.Join(".dupver", "config.toml")
-		} else {
-			configPath = path.Join(workDir, ".dupver", "config.toml")
-		}
-
-		myWorkDirConfig := ReadWorkDirConfig(configPath)
-
-		if len(workDirName) == 0 {
-			workDirName = myWorkDirConfig.WorkDirName
-		}
-
-		if len(repoPath) == 0 { 
-            repoPath = myWorkDirConfig.RepositoryPath
-        }
-
-		snapshotGlob := path.Join(repoPath, "snapshots", workDirName, "*.json")
-		fmt.Println(snapshotGlob)
-		snapshotPaths, _ := filepath.Glob(snapshotGlob)
-
-		var mySnapshot commit
-		foundSnapshot := false
-
-		for _, snapshotPath := range snapshotPaths {
-			n := len(snapshotPath)
-			snapshotId := snapshotPath[n-SNAPSHOT_ID_LEN-5:n-5]
-		
-			if snapshotId[0:len(snapshot)] == snapshot {
-				mySnapshot = ReadSnapshot(snapshotPath)
-				foundSnapshot = true
-				break
-			}
-		}
-		
-		if !foundSnapshot {
-			panic("Could not find snapshot")
-		}
+		myWorkDirConfig := ReadWorkDirConfig(workDir)
+		myWorkDirConfig = UpdateWorkDirName(myWorkDirConfig, workDirName)
+		myWorkDirConfig = UpdateRepoPath(myWorkDirConfig, repoPath)
+		mySnapshot := ReadSnapshot(snapshot, myWorkDirConfig)
 
 		if len(filePath) == 0 {
-			filePath = fmt.Sprintf("%s-%s-%s.tar", workDirName, mySnapshot.Time, snapshot)
+			timeStr := strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(mySnapshot.Time, ":", "-"), "/", "-"), " ", "-")
+			filePath = fmt.Sprintf("%s-%s-%s.tar", myWorkDirConfig.WorkDirName, timeStr, snapshot[0:16])
 		}
 
-		UnpackTar(filePath, repoPath, mySnapshot.Chunks) 
+		UnpackFile(filePath, myWorkDirConfig.RepoPath, mySnapshot.ChunkIDs) 
 		fmt.Printf("Wrote to %s\n", filePath)
 	} else if listFlag {
-		var configPath string
-
-		if len(workDir) == 0 {
-			configPath = path.Join(".dupver", "config.toml")
-		} else {
-			configPath = path.Join(workDir, ".dupver", "config.toml")
-		}
-
-		myWorkDirConfig := ReadWorkDirConfig(configPath)
-
-		if len(workDirName) == 0 {
-			workDirName = myWorkDirConfig.WorkDirName
-		}
-
-		if len(repoPath) == 0 { 
-            repoPath = myWorkDirConfig.RepositoryPath
-        }
-
-		snapshotGlob := path.Join(repoPath, "snapshots", workDirName, "*.json")
-		fmt.Println(snapshotGlob)
-		snapshotPaths, _ := filepath.Glob(snapshotGlob)
-
-		// print a specific revision
-		if len(snapshot) == 0 {
-			fmt.Printf("Snapshot History\n")
-
-			for _, snapshotPath := range snapshotPaths {
-				fmt.Printf("Path: %s\n", snapshotPath)
-				PrintSnapshot(ReadSnapshot(snapshotPath), 10)
-			}			
-		} else {
-			fmt.Println("Snapshot")
-
-			for _, snapshotPath := range snapshotPaths {
-				n := len(snapshotPath)
-				snapshotId := snapshotPath[n-SNAPSHOT_ID_LEN-5:n-5]
-			
-				if snapshotId[0:8] == snapshot {
-					PrintSnapshot(ReadSnapshot(snapshotPath), 0)
-				}
-			}	
-
-		}
+		myWorkDirConfig := ReadWorkDirConfig(workDir)
+		myWorkDirConfig = UpdateWorkDirName(myWorkDirConfig, workDirName)
+		myWorkDirConfig = UpdateRepoPath(myWorkDirConfig, repoPath)
+		PrintSnapshots(ListSnapshots(myWorkDirConfig), snapshot)
 	} else {
 		fmt.Println("No command specified, exiting")
 		fmt.Println("For available commands run: dupver -help")
