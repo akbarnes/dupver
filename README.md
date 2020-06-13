@@ -19,10 +19,10 @@ go build dupver.go
 ```
 
 Copy the executable somewhere in your path. Build scripts for 
-Windows/*nix are included, see
+MacOS/*nix/Windows are included, see
 
-* setup (*nix)
-* Install-Dupver.ps1 (Windows)
+* `setup` (MacOS, *nix)
+* `Install-Dupver.ps1` (Windows)
 
 You will need to edit them to set your desired install folder.
 
