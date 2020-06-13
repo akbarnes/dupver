@@ -24,7 +24,7 @@ type commit struct {
 	Files []fileInfo
 	// ChunkPacks map[string]string
 	ChunkIDs []string
-	PackIndexes []packIndex
+	// PackIndexes []packIndex
 	Tags []string
 }
 
@@ -147,12 +147,42 @@ func WriteSnapshot(snapshotPath string, mySnapshot commit) {
 }
 
 
-func WriteTree(treePath string, packIndexes []packIndex) {
+func WriteTree(treePath string, chunkPacks map[string]string) {
 	f, _ := os.Create(treePath)
 	myEncoder := json.NewEncoder(f)
 	myEncoder.SetIndent("", "  ")
-	myEncoder.Encode(packIndexes)
+	myEncoder.Encode(chunkPacks)
 	f.Close()
+}
+
+
+func ReadTrees(repoPath string) map[string]string {
+	treesGlob := path.Join(repoPath, "trees", "*.json")
+	fmt.Println(treesGlob)
+	treePaths, err := filepath.Glob(treesGlob)
+	check(err)
+	chunkPacks := make(map[string]string)	
+
+	
+	for _, treePath := range treePaths {
+		treePacks := make(map[string]string)	
+		
+		f, _ := os.Open(treePath)
+		myDecoder := json.NewDecoder(f)
+	
+		if err := myDecoder.Decode(&treePacks); err != nil {
+			log.Fatal(err)
+		}	
+
+		// TODO: handle supersedes to allow repacking files			
+		for k, v := range treePacks {
+			chunkPacks[k] = v
+		}
+
+		f.Close()
+	}
+
+	return chunkPacks
 }
 
 

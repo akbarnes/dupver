@@ -24,49 +24,35 @@ type packIndex struct {
 }
 
 
-func MapPackIndexes(packIndexes []packIndex) map[string]string {
-	chunkPacks := make(map[string]string)	
-
-	for _, pindex := range packIndexes {
-		for _, chunkId := range pindex.ChunkIDs {
-			chunkPacks[chunkId] = pindex.ID
-		}
-	}
-
-	return chunkPacks
+func PackFile(filePath string, repoPath string, mypoly int) ([]string, map[string]string) {
+	f, _ := os.Open(filePath)
+	chunkIDs, chunkPacks := WritePacks(f, repoPath, mypoly)
+	f.Close()
+	return chunkIDs, chunkPacks
 }
 
 
-// func PackFile(filePath string, repoPath string, mypoly int) map[string]string {
+// func PackFile(filePath string, repoPath string, mypoly int) ([]string, []packIndex) {
 // 	f, _ := os.Open(filePath)
-// 	chunkPacks := WritePacks(f, repoPath, mypoly)
+// 	chunkIDs, packIndexes := WritePacks(f, repoPath, mypoly)
 // 	f.Close()
-// 	return chunkPacks
+// 	return chunkIDs, packIndexes
 // }
 
 
-func PackFile(filePath string, repoPath string, mypoly int) ([]string, []packIndex) {
-	f, _ := os.Open(filePath)
-	chunkIDs, packIndexes := WritePacks(f, repoPath, mypoly)
-	f.Close()
-	return chunkIDs, packIndexes
-}
-
-
 // func WritePacks(f *os.File, repoPath string, poly int) map[string]string {
-func WritePacks(f *os.File, repoPath string, poly int) ([]string, []packIndex) {
+func WritePacks(f *os.File, repoPath string, poly int) ([]string, map[string]string) {
 	const maxPackSize uint = 104857600 // 100 MB
 	mychunker := chunker.New(f, chunker.Pol(poly))
 	buf := make([]byte, 8*1024*1024) // reuse this buffer
 	chunkIDs := []string{}
-	packIndexes := []packIndex{}
-	chunkPacks := make(map[string]string)	
+	chunkPacks := ReadTrees(repoPath)
+	newChunkPacks := make(map[string]string)	
 	var curPackSize  uint 
 	stillReadingInput := true
 
 	for stillReadingInput {
 		packId := RandHexString(PACK_ID_LEN)
-		myPackIndex := packIndex{ID: packId}
 		packFolderPath := path.Join(repoPath, "packs", packId[0:2])
 		os.MkdirAll(packFolderPath, 0777)
 		packPath := path.Join(packFolderPath, packId + ".zip")	
@@ -92,16 +78,15 @@ func WritePacks(f *os.File, repoPath string, poly int) ([]string, []packIndex) {
 			i++
 			chunkId := fmt.Sprintf("%064x", sha256.Sum256(chunk.Data))
 			chunkIDs = append(chunkIDs, chunkId)
-			myPackIndex.ChunkIDs = append(myPackIndex.ChunkIDs, chunkId)
 			curPackSize += chunk.Length
 
 			if _, ok := chunkPacks[chunkId]; ok {
-				//do something here
 				fmt.Printf("Skipping Chunk ID %s already in pack %s\n", chunkId[0:16], chunkPacks[chunkId][0:16])
 			} else {	
 				fmt.Printf("Chunk %d: chunk size %d kB, total size %d kB, ", i, chunk.Length/1024, curPackSize/1024)
 				fmt.Printf("chunk ID: %s\n",chunkId[0:16])
 				chunkPacks[chunkId] = packId
+				newChunkPacks[chunkId] = packId
 
 				var header zip.FileHeader
 				header.Name = chunkId
@@ -113,7 +98,6 @@ func WritePacks(f *os.File, repoPath string, poly int) ([]string, []packIndex) {
 			}		
 		}	
 
-		packIndexes = append(packIndexes, myPackIndex)
 		if stillReadingInput {
 			fmt.Printf("Pack size %d exceeds max size %d\n", curPackSize, maxPackSize)		
 		} else {
@@ -125,14 +109,20 @@ func WritePacks(f *os.File, repoPath string, poly int) ([]string, []packIndex) {
 		zipFile.Close()
 	}
 
-	return chunkIDs, packIndexes
-	// return chunkPacks
+	return chunkIDs, newChunkPacks 
 }
 
 
-func ReadPacks(tarFile *os.File, repoPath string, chunkIds []string, packIndexes []packIndex) {
-	chunkPacks := MapPackIndexes(packIndexes)
+func UnpackFile(filePath string, repoPath string, chunkIds []string) {
+	chunkPacks := ReadTrees(repoPath)
 
+	f, _ := os.Create(filePath)
+	ReadPacks(f, repoPath, chunkIds, chunkPacks)
+	f.Close()
+}
+
+
+func ReadPacks(tarFile *os.File, repoPath string, chunkIds []string, chunkPacks map[string]string) {
 	for i, chunkId := range chunkIds {
 		packId := chunkPacks[chunkId]
 		packPath := path.Join(repoPath, "packs", packId[0:2], packId + ".zip")
@@ -157,18 +147,4 @@ func ReadPacks(tarFile *os.File, repoPath string, chunkIds []string, packIndexes
 		r.Close()			
 	}
 }
-
-
-
-
-func UnpackFile(filePath string, repoPath string, chunkIds []string, packIndexes []packIndex) {
-	f, _ := os.Create(filePath)
-	ReadPacks(f, repoPath, chunkIds, packIndexes)
-	f.Close()
-}
-
-
-
-
-
 

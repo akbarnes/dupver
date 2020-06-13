@@ -121,10 +121,9 @@ func main() {
 		mySnapshot = UpdateMessage(mySnapshot, msg, filePath)		
 		mySnapshot.Files, myWorkDirConfig = ReadTarFileIndex(filePath)
 		// mySnapshot.Packs, mySnapshot.Chunks = PackFile(filePath, myWorkDirConfig.RepoPath, 0x3DA3358B4DC173)
-		chunkIDs, packIndexes := PackFile(filePath, myWorkDirConfig.RepoPath, 0x3DA3358B4DC173)
-		// mySnapshot.ChunkPacks = PackFile(filePath, myWorkDirConfig.RepoPath, 0x3DA3358B4DC173)
+		chunkIDs, chunkPacks := PackFile(filePath, myWorkDirConfig.RepoPath, 0x3DA3358B4DC173)
 		mySnapshot.ChunkIDs = chunkIDs
-		mySnapshot.PackIndexes = packIndexes
+		// mySnapshot.ChunkPacks = chunkPacks
 
 		snapshotFolder := path.Join(myWorkDirConfig.RepoPath, "snapshots", myWorkDirConfig.WorkDirName)
         snapshotBasename := fmt.Sprintf("%s-%s", t.Format("2006-01-02-T15-04-05"), mySnapshot.ID[0:40])		
@@ -132,11 +131,11 @@ func main() {
 		snapshotPath := path.Join(snapshotFolder, snapshotBasename + ".json")
 		WriteSnapshot(snapshotPath, mySnapshot)
 
-		treeFolder := path.Join(myWorkDirConfig.RepoPath, "trees", myWorkDirConfig.WorkDirName)
+		treeFolder := path.Join(myWorkDirConfig.RepoPath, "trees")
         treeBasename := mySnapshot.ID[0:40]
 		os.Mkdir(treeFolder, 0777)
 		treePath := path.Join(treeFolder, treeBasename + ".json")
-		WriteTree(treePath, packIndexes)
+		WriteTree(treePath, chunkPacks)
 	} else if checkoutFlag {
 		myWorkDirConfig := ReadWorkDirConfig(workDir)
 		myWorkDirConfig = UpdateWorkDirName(myWorkDirConfig, workDirName)
@@ -148,7 +147,7 @@ func main() {
 			filePath = fmt.Sprintf("%s-%s-%s.tar", myWorkDirConfig.WorkDirName, timeStr, snapshot[0:16])
 		}
 
-		UnpackFile(filePath, myWorkDirConfig.RepoPath, mySnapshot.ChunkIDs, mySnapshot.PackIndexes) 
+		UnpackFile(filePath, myWorkDirConfig.RepoPath, mySnapshot.ChunkIDs) 
 		fmt.Printf("Wrote to %s\n", filePath)
 	} else if listFlag {
 		myWorkDirConfig := ReadWorkDirConfig(workDir)
