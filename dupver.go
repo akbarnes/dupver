@@ -40,6 +40,8 @@ func main() {
 	var snapshot string
 	flag.StringVar(&snapshot, "snapshot", "", "Specify snapshot id (default is last)")
 	flag.StringVar(&snapshot, "s", "", "Specify snapshot id (shorthand)")
+	flag.StringVar(&snapshot, "commit-id", "", "Specify commit (snaphot) id (default is last)")
+	flag.StringVar(&snapshot, "c", "", "Specify commit (snapshot) id (shorthand)")
 
 	var msg string
 	flag.StringVar(&msg, "message", "", "Commit message")
@@ -115,18 +117,26 @@ func main() {
         mySnapshot.ID = RandHexString(SNAPSHOT_ID_LEN)
 		mySnapshot.Time = t.Format("2006/01/02 15:04:05")
 		mySnapshot.TarFileName = filePath
-		mySnapshot = UpdateTags(mySnapshot, tagName)
+		// mySnapshot = UpdateTags(mySnapshot, tagName)
 		mySnapshot = UpdateMessage(mySnapshot, msg, filePath)		
 		mySnapshot.Files, myWorkDirConfig = ReadTarFileIndex(filePath)
 		// mySnapshot.Packs, mySnapshot.Chunks = PackFile(filePath, myWorkDirConfig.RepoPath, 0x3DA3358B4DC173)
-		mySnapshot.PackIndexes = PackFile(filePath, myWorkDirConfig.RepoPath, 0x3DA3358B4DC173)
+		chunkIDs, packIndexes := PackFile(filePath, myWorkDirConfig.RepoPath, 0x3DA3358B4DC173)
 		// mySnapshot.ChunkPacks = PackFile(filePath, myWorkDirConfig.RepoPath, 0x3DA3358B4DC173)
+		mySnapshot.ChunkIDs = chunkIDs
+		mySnapshot.PackIndexes = packIndexes
 
 		snapshotFolder := path.Join(myWorkDirConfig.RepoPath, "snapshots", myWorkDirConfig.WorkDirName)
         snapshotBasename := fmt.Sprintf("%s-%s", t.Format("2006-01-02-T15-04-05"), mySnapshot.ID[0:40])		
 		os.Mkdir(snapshotFolder, 0777)
 		snapshotPath := path.Join(snapshotFolder, snapshotBasename + ".json")
 		WriteSnapshot(snapshotPath, mySnapshot)
+
+		treeFolder := path.Join(myWorkDirConfig.RepoPath, "trees", myWorkDirConfig.WorkDirName)
+        treeBasename := mySnapshot.ID[0:40]
+		os.Mkdir(treeFolder, 0777)
+		treePath := path.Join(treeFolder, treeBasename + ".json")
+		WriteTree(treePath, packIndexes)
 	} else if checkoutFlag {
 		myWorkDirConfig := ReadWorkDirConfig(workDir)
 		myWorkDirConfig = UpdateWorkDirName(myWorkDirConfig, workDirName)
@@ -134,10 +144,11 @@ func main() {
 		mySnapshot := ReadSnapshot(snapshot, myWorkDirConfig)
 
 		if len(filePath) == 0 {
-			filePath = fmt.Sprintf("%s-%s-%s.tar", myWorkDirConfig.WorkDirName, mySnapshot.Time, snapshot)
+			timeStr := strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(mySnapshot.Time, ":", "-"), "/", "-"), " ", "-")
+			filePath = fmt.Sprintf("%s-%s-%s.txt", myWorkDirConfig.WorkDirName, timeStr, snapshot[0:16])
 		}
 
-		UnpackFile(filePath, myWorkDirConfig.RepoPath, mySnapshot.PackIndexes) 
+		UnpackFile(filePath, myWorkDirConfig.RepoPath, mySnapshot.ChunkIDs, mySnapshot.PackIndexes) 
 		fmt.Printf("Wrote to %s\n", filePath)
 	} else if listFlag {
 		myWorkDirConfig := ReadWorkDirConfig(workDir)

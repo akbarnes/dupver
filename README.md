@@ -18,10 +18,10 @@ is stored as a plaintext .toml file also under .dupver.
 * [ ] support `status` and `diff` commands
 * [ ] multiple repos and names for repos
 * [ ] merge workdirs - check what Hg does as it didn't do lightweight branching
-* [ ] combine small chunks into single files like restic
-* [ ] store packs in gotiny/msgpack/protobuf
+* [x] combine small chunks into single files like restic
+* [ ] ~~store packs in gotiny/msgpack/protobuf~~ don't need serialization format if using zip compression
 * [ ] decompress archives before deduplicating
-* [ ] print when deduplication occurs
+* [x] print when deduplication occurs
 * [ ] merge workdirs - check what Hg does as it didn't do lightweight branching
 * [ ] support deletions of snapshots
 * [ ] support copy between repos
@@ -35,7 +35,7 @@ is stored as a plaintext .toml file also under .dupver.
 * [x] read repo path & workdir name from config files
 * [ ] don't ignore errors
 * [ ] unit tests
-* [ ] move main() functionality into functions
+* [x] move main() functionality into functions
 * [ ] record last commit (head)
 
 
@@ -98,17 +98,17 @@ List all commits
 `dupver -list`
 
 List a specific commit
-`dupver -list -s snapshot_id`
+`dupver -list -c commit_id`
 
 List the last commit
-`dupver -list -s snapshot_id`
+`dupver -list -c commit_id`
 
 List the 2nd to last commit
-`dupver -list -s snapshot_id`
+`dupver -list -c commit_id`
 
 ### Restore
 Restore another commit
-`dupver -checkout -s snapshot_id`
+`dupver -checkout -c commit_id`
 
 Restore to a particular file
 `dupver -checkout -f filename.tar`

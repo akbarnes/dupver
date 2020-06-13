@@ -7,10 +7,16 @@ import (
     "path"
 	"crypto/sha256"
 	"github.com/restic/chunker"
-	"compress/gzip"
+	// "compress/gzip"
 	"archive/zip"
 	// "github.com/vmihailenco/msgpack/v5"
 )
+
+
+type packTree struct {
+	supersedesPackID string
+	packIndexes []packIndex
+}
 
 type packIndex struct {
 	ID string
@@ -18,63 +24,16 @@ type packIndex struct {
 }
 
 
-func ChunkFile(filePath string, repoPath string, mypoly int) []string {
-	f, _ := os.Open(filePath)
-	chunks := WriteChunks(f, repoPath, mypoly)
-	f.Close()
-	return chunks
-}
+func MapPackIndexes(packIndexes []packIndex) map[string]string {
+	chunkPacks := make(map[string]string)	
 
-
-func WriteChunks(f *os.File, repoPath string, poly int) []string {
-	const minPackSize int = 524288000
-
-	// create a chunker
-	chunks := []string{}
-	mychunker := chunker.New(f, chunker.Pol(poly))
-
-	// reuse this buffer
-	buf := make([]byte, 8*1024*1024)
-	
-	i := 0
-
-	for {
-		chunk, err := mychunker.Next(buf)
-		if err == io.EOF {
-			break
-		}
-
-		if err != nil {
-			panic(err)
-		}
-		
-		i++
-		myHash := sha256.Sum256(chunk.Data)
-		fmt.Printf("Chunk %d: %d kB, %02x\n", i, chunk.Length/1024, myHash)
-		chunks = append(chunks, fmt.Sprintf("%02x", myHash))
-
-		chunkFolder := fmt.Sprintf("%02x", myHash[0:1])
-		chunkFolderPath := path.Join(repoPath, "packs", chunkFolder)
-		os.MkdirAll(chunkFolderPath, 0777)
-
-		chunkFilename := fmt.Sprintf("%064x.gz", myHash)
-		chunkPath := path.Join(chunkFolderPath, chunkFilename)
-
-		if _, err := os.Stat(chunkPath); err == nil {
-			// path/to/whatever exists
-			fmt.Printf("Duplicate chunk file %s exists\n", chunkPath)
-		} else {
-			g0, chunkPathErr := os.Create(chunkPath)
-			check(chunkPathErr)
-			g := gzip.NewWriter(g0)
-			g.Write(chunk.Data)
-			g.Close()
-			g0.Close()
+	for _, pindex := range packIndexes {
+		for _, chunkId := range pindex.ChunkIDs {
+			chunkPacks[chunkId] = pindex.ID
 		}
 	}
 
-
-	return chunks
+	return chunkPacks
 }
 
 
@@ -86,19 +45,20 @@ func WriteChunks(f *os.File, repoPath string, poly int) []string {
 // }
 
 
-func PackFile(filePath string, repoPath string, mypoly int) []packIndex {
+func PackFile(filePath string, repoPath string, mypoly int) ([]string, []packIndex) {
 	f, _ := os.Open(filePath)
-	packIndexes := WritePacks(f, repoPath, mypoly)
+	chunkIDs, packIndexes := WritePacks(f, repoPath, mypoly)
 	f.Close()
-	return packIndexes
+	return chunkIDs, packIndexes
 }
 
 
 // func WritePacks(f *os.File, repoPath string, poly int) map[string]string {
-func WritePacks(f *os.File, repoPath string, poly int) []packIndex {
+func WritePacks(f *os.File, repoPath string, poly int) ([]string, []packIndex) {
 	const maxPackSize uint = 104857600 // 100 MB
 	mychunker := chunker.New(f, chunker.Pol(poly))
 	buf := make([]byte, 8*1024*1024) // reuse this buffer
+	chunkIDs := []string{}
 	packIndexes := []packIndex{}
 	chunkPacks := make(map[string]string)	
 	var curPackSize  uint 
@@ -131,6 +91,7 @@ func WritePacks(f *os.File, repoPath string, poly int) []packIndex {
 			
 			i++
 			chunkId := fmt.Sprintf("%064x", sha256.Sum256(chunk.Data))
+			chunkIDs = append(chunkIDs, chunkId)
 			myPackIndex.ChunkIDs = append(myPackIndex.ChunkIDs, chunkId)
 			curPackSize += chunk.Length
 
@@ -164,48 +125,50 @@ func WritePacks(f *os.File, repoPath string, poly int) []packIndex {
 		zipFile.Close()
 	}
 
-	return packIndexes
+	return chunkIDs, packIndexes
 	// return chunkPacks
 }
 
-func UnchunkFile(filePath string, repoPath string, chunks []string) {
-	f, _ := os.Create(filePath)
-	ReadChunks(f, repoPath, chunks)
-	f.Close()
-}
 
+func ReadPacks(tarFile *os.File, repoPath string, chunkIds []string, packIndexes []packIndex) {
+	chunkPacks := MapPackIndexes(packIndexes)
 
-func UnpackFile(filePath string, repoPath string, packIndexes []packIndex) {
-	f, _ := os.Create(filePath)
-	// ReadChunks(f, repoPath, chunks)
-	f.Close()
-}
+	for i, chunkId := range chunkIds {
+		packId := chunkPacks[chunkId]
+		packPath := path.Join(repoPath, "packs", packId[0:2], packId + ".zip")
+		fmt.Printf("Reading chunk %d %s \n from pack %s\n", i, chunkId, packPath)
 
-
-func ReadChunks(tarFile *os.File, repoPath string, chunks []string) {
-	b := make([]byte, 1024)
-
-	for i, hash := range chunks {
-		chunkPath := path.Join(repoPath, "packs", hash[0:2], hash + ".gz")
-		fmt.Printf("Reading %d %s\n", i, chunkPath)
-
-		f0, err := os.Open(chunkPath)
+		// From https://golangcode.com/unzip-files-in-go/
+		r, err := zip.OpenReader(packPath)
 		check(err)
-		f, _ := gzip.NewReader(f0)
-
-		for {
-			n, _ := f.Read(b)
-			tarFile.Write(b[0:n])
-
-			if n == 0 {
-				break
+	
+		for _, f := range r.File {
+			h := f.FileHeader
+			if h.Name == chunkId {
+				rc, err := f.Open()
+				check(err)
+				// _, err = io.Copy(tarFile, rc)
+				fmt.Fprintf(tarFile, "Pack %s, chunk %s, csize %d, usize %d\n", packId, h.Name, h.CompressedSize, h.UncompressedSize)
+				check(err)
+				rc.Close()
 			}
 		}
 
-		f.Close()
-		f0.Close()			
+		r.Close()			
 	}
 }
+
+
+
+
+func UnpackFile(filePath string, repoPath string, chunkIds []string, packIndexes []packIndex) {
+	f, _ := os.Create(filePath)
+	ReadPacks(f, repoPath, chunkIds, packIndexes)
+	f.Close()
+}
+
+
+
 
 
 

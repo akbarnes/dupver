@@ -23,6 +23,7 @@ type commit struct {
 	Time string
 	Files []fileInfo
 	// ChunkPacks map[string]string
+	ChunkIDs []string
 	PackIndexes []packIndex
 	Tags []string
 }
@@ -138,11 +139,20 @@ func ReadTarIndex(tarFile *os.File) ([]fileInfo, workDirConfig) {
 
 
 func WriteSnapshot(snapshotPath string, mySnapshot commit) {
-	snapshotFile, _ := os.Create(snapshotPath)
-	myEncoder := json.NewEncoder(snapshotFile)
+	f, _ := os.Create(snapshotPath)
+	myEncoder := json.NewEncoder(f)
 	myEncoder.SetIndent("", "  ")
 	myEncoder.Encode(mySnapshot)
-	snapshotFile.Close()
+	f.Close()
+}
+
+
+func WriteTree(treePath string, packIndexes []packIndex) {
+	f, _ := os.Create(treePath)
+	myEncoder := json.NewEncoder(f)
+	myEncoder.SetIndent("", "  ")
+	myEncoder.Encode(packIndexes)
+	f.Close()
 }
 
 
