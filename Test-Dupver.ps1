@@ -7,7 +7,7 @@ echo ----------------------------------------------------
 if (test-path $RepoPath) {
     del -Force -Recurse $RepoPath
 }
-dupver -init-repo -r $RepoPath
+dupver -init-repo 
 # mkdir $RepoPath\snapshots
 
 $WorkdirName = $WorkdirFolder.ToLower()
@@ -15,7 +15,7 @@ $WorkdirName = $WorkdirFolder.ToLower()
 echo ''
 echo "Initialize workdir $WorkdirName in $WorkdirPath"
 echo ----------------------------------------------------
-dupver -init -d $WorkdirFolder -r $RepoPath
+dupver -init -d $WorkdirFolder
 
 $TarName = "${WorkdirName}.tar"
 if (test-path $TarName) { del -Force $TarName }

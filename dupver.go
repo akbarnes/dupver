@@ -68,6 +68,11 @@ func main() {
 	
 
 	if initRepoFlag {
+		if len(repoPath) == 0 {
+			repoPath = path.Join(GetHome(), ".dupver_repo")
+			fmt.Printf("Repo path not specified, setting to %s\n", repoPath)
+		}	
+				
 		// InitRepo(workDir)
 		fmt.Printf("Creating folder %s\n", repoPath)
 		os.Mkdir(repoPath, 0777)
@@ -110,6 +115,11 @@ func main() {
 			}
 		}
 
+		if len(repoPath) == 0 {
+			repoPath = path.Join(GetHome(), ".dupver_repo")
+			fmt.Printf("Repo path not specified, setting to %s\n", repoPath)
+		}		
+
 		var myConfig workDirConfig
 		myConfig.RepoPath = repoPath
 		myConfig.WorkDirName = workDirName
@@ -126,10 +136,8 @@ func main() {
 		mySnapshot = UpdateMessage(mySnapshot, msg, filePath)		
 		mySnapshot.Files, myWorkDirConfig = ReadTarFileIndex(filePath)
 		myRepoConfig := ReadRepoConfigFile(path.Join(myWorkDirConfig.RepoPath, "config.toml"))
-		// mySnapshot.Packs, mySnapshot.Chunks = PackFile(filePath, myWorkDirConfig.RepoPath, 0x3DA3358B4DC173)
 		chunkIDs, chunkPacks := PackFile(filePath, myWorkDirConfig.RepoPath, myRepoConfig.ChunkerPolynomial)
 		mySnapshot.ChunkIDs = chunkIDs
-		// mySnapshot.ChunkPacks = chunkPacks
 
 		snapshotFolder := path.Join(myWorkDirConfig.RepoPath, "snapshots", myWorkDirConfig.WorkDirName)
         snapshotBasename := fmt.Sprintf("%s-%s", t.Format("2006-01-02-T15-04-05"), mySnapshot.ID[0:40])		
