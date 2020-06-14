@@ -24,7 +24,7 @@ type packIndex struct {
 }
 
 
-func PackFile(filePath string, repoPath string, mypoly int) ([]string, map[string]string) {
+func PackFile(filePath string, repoPath string, mypoly chunker.Pol) ([]string, map[string]string) {
 	f, _ := os.Open(filePath)
 	chunkIDs, chunkPacks := WritePacks(f, repoPath, mypoly)
 	f.Close()
@@ -41,7 +41,7 @@ func PackFile(filePath string, repoPath string, mypoly int) ([]string, map[strin
 
 
 // func WritePacks(f *os.File, repoPath string, poly int) map[string]string {
-func WritePacks(f *os.File, repoPath string, poly int) ([]string, map[string]string) {
+func WritePacks(f *os.File, repoPath string, poly chunker.Pol) ([]string, map[string]string) {
 	const maxPackSize uint = 104857600 // 100 MB
 	mychunker := chunker.New(f, chunker.Pol(poly))
 	buf := make([]byte, 8*1024*1024) // reuse this buffer

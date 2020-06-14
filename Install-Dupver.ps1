@@ -1,6 +1,6 @@
 go get github.com/restic/chunker
 go get github.com/BurntSushi/toml
-go build dupver.go repo.go snapshot.go pack.go config.go randstring.go util.go
+go build dupver.go workdir.go repo.go snapshot.go pack.go randstring.go util.go
 echo "Done building"
 
 $InstallFolder = "$HOME\AppData\Local\Executables"

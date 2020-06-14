@@ -2,7 +2,7 @@ package main
 
 import (
     // "fmt"
-    "log"
+    // "log"
     // "io"
 	"os"
 	"path"
@@ -44,14 +44,14 @@ func ReadWorkDirConfig(workDir string) workDirConfig {
 	return ReadWorkDirConfigFile(configPath)
 }
 
+
 func ReadWorkDirConfigFile(filePath string) workDirConfig {
 	var myConfig workDirConfig
 
 	f, _ := os.Open(filePath)
 
-	if _, err := toml.DecodeReader(f, &myConfig); err != nil {
-		log.Fatal(err)
-	}
+	_, err := toml.DecodeReader(f, &myConfig)
+	check(err)
 
 	f.Close()
 
