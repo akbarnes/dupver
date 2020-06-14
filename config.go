@@ -15,10 +15,6 @@ type workDirConfig struct {
 	RepoPath string
 }
 
-type repoConfig struct {
-	Version int
-	ChunkerPolynomial int
-}
 
 func UpdateWorkDirName(myWorkDirConfig workDirConfig, workDirName string)  workDirConfig{
 	if len(workDirName) > 0 {
@@ -26,26 +22,6 @@ func UpdateWorkDirName(myWorkDirConfig workDirConfig, workDirName string)  workD
 	} 
 
 	return myWorkDirConfig
-}
-
-func UpdateRepoPath(myWorkDirConfig workDirConfig, repoPath string,) workDirConfig {
-	if len(repoPath) > 0 { 
-		myWorkDirConfig.RepoPath = repoPath
-	}
-
-	return myWorkDirConfig
-}
-
-
-
-
-func SaveRepoConfig(repoPath string, myConfig repoConfig) {
-	// TODO: add a check to make sure I don't over`write` existing
-	configPath := path.Join(repoPath, "config.toml")
-	f, _ := os.Create(configPath)
-	myEncoder := toml.NewEncoder(f)
-	myEncoder.Encode(myConfig)
-	f.Close()
 }
 
 
