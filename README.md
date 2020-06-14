@@ -11,7 +11,7 @@ are accepted as input as Dupver relies on the tar container to
 
 
 ## Setup
-Binary releases are provided for MacOS/Windows. Copy them somewhere in your path. Building from source requires the chunker and toml libraries. Install them and build
+Binary releases are provided for MacOS/Linux/Windows. Copy them somewhere in your path. Building from source requires the chunker and toml libraries. Install them and build
 ```
 go get github.com/restic/chunker
 go get github.com/BurntSushi/toml
@@ -19,9 +19,9 @@ go build dupver.go
 ```
 
 Copy the executable somewhere in your path. Build scripts for 
-MacOS/*nix/Windows are included, see
+MacOS/Linux/Windows are included, see
 
-* `setup` (MacOS, *nix)
+* `setup` (MacOS, Linux)
 * `Install-Dupver.ps1` (Windows)
 
 You will need to edit them to set your desired install folder.
