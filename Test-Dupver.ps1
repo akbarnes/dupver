@@ -1,5 +1,5 @@
-$WorkdirFolder =  "ERCOT-CRR"
-$WorkdirPath = "$HOME/Data/Static/Electric/Transmission Atlas/$WorkdirFolder"
+$WorkdirFolder =  "KiCAD"
+$WorkdirPath = "$HOME/Documents/Books/$WorkdirFolder"
  
 $RepoPath = "$HOME\.dupver_repo"
 echo "Initialize repo $RepoPath"
@@ -30,9 +30,9 @@ echo "List $WorkdirName in $RepoPath"
 echo -------------------------------------
 dupver -list -d $WorkdirName
 
-# $Snapshots = (dir $RepoPath\snapshots\$WorkdirName\*.toml)
-# $SnapshotId = $Snapshots[0].basename.substring(21,40)
+$Snapshots = (dir $RepoPath\snapshots\$WorkdirName\*.json)
+$SnapshotId = $Snapshots[0].basename.substring(21,40)
 
-# echo "Check out commit $SnapshotId"
-# echo -------------------------------------
-# dupver -co -d Property -s $SnapshotId
+echo "Check out commit $SnapshotId"
+echo -------------------------------------
+dupver -co -d $WorkdirFolder -s $SnapshotId
