@@ -32,7 +32,12 @@ dupver -list -d $WorkdirName
 
 $Snapshots = (dir $RepoPath\snapshots\$WorkdirName\*.json)
 $SnapshotId = $Snapshots[0].basename.substring(21,40)
+$Snapshots = (dir $RepoPath\snapshots\$WorkdirName\*.json)
+$SnapshotId = $Snapshots[0].basename.substring(21,40)
 
+echo "Check out commit $SnapshotId"
+echo -------------------------------------
+dupver -co -d $WorkdirFolder -s $SnapshotId
 echo "Check out commit $SnapshotId"
 echo -------------------------------------
 dupver -co -d $WorkdirFolder -s $SnapshotId
