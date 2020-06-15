@@ -1,9 +1,10 @@
 package main
 
 import (
-    // "fmt"
+    "fmt"
     // "log"
-    // "io"
+	// "io"
+	"strings"
 	"os"
 	"path"
     // "archive/tar"
@@ -15,6 +16,36 @@ type workDirConfig struct {
 	RepoPath string
 }
 
+func InitWorkDir(workDirFolder string, workDirName string, repoPath string) {
+	var configPath string
+	// fmt.Printf("Workdir %s, name %s, repo %s\n", workDirFolder, workDirName, repoPath)
+
+	if len(workDirFolder) == 0 {
+		 os.Mkdir(".dupver", 0777)
+		 configPath = path.Join(".dupver", "config.toml")
+	} else {
+		 os.Mkdir(path.Join(workDirFolder, ".dupver"), 0777)
+		 configPath = path.Join(workDirFolder, ".dupver", "config.toml")
+	}
+
+	if len(workDirName) == 0 {
+		if len(workDirFolder) == 0 {
+			panic("Both workDir and workDirName are empty")
+		} else {
+			workDirName = strings.ToLower(path.Base(workDirFolder))
+		}
+	}
+
+	if len(repoPath) == 0 {
+		repoPath = path.Join(GetHome(), ".dupver_repo")
+		fmt.Printf("Repo path not specified, setting to %s\n", repoPath)
+	}		
+
+	var myConfig workDirConfig
+	myConfig.RepoPath = repoPath
+	myConfig.WorkDirName = workDirName
+	SaveWorkDirConfig(configPath, myConfig)
+}
 
 func UpdateWorkDirName(myWorkDirConfig workDirConfig, workDirName string)  workDirConfig{
 	if len(workDirName) > 0 {

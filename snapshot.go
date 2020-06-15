@@ -158,7 +158,7 @@ func WriteTree(treePath string, chunkPacks map[string]string) {
 
 func ReadTrees(repoPath string) map[string]string {
 	treesGlob := path.Join(repoPath, "trees", "*.json")
-	fmt.Println(treesGlob)
+	// fmt.Println(treesGlob)
 	treePaths, err := filepath.Glob(treesGlob)
 	check(err)
 	chunkPacks := make(map[string]string)	
@@ -231,7 +231,7 @@ func GetRevIndex(revision int, numCommits int) int {
 
 func ListSnapshots(cfg workDirConfig) []string {
 	snapshotGlob := path.Join(cfg.RepoPath, "snapshots", cfg.WorkDirName, "*.json")
-	fmt.Println(snapshotGlob)
+	// fmt.Println(snapshotGlob)
 	snapshotPaths, err := filepath.Glob(snapshotGlob)
 	check(err)
 	return snapshotPaths

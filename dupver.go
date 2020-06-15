@@ -64,6 +64,10 @@ func main() {
 	flag.StringVar(&tagName, "tag-name", "", "Tag name")
 	flag.StringVar(&tagName, "t", "", "Tag name (shorthand)")
 
+	var verbosity int
+	flag.IntVar(&verbosity, "verbosity", 1, "Verbosity level")
+	flag.IntVar(&verbosity, "v", 1, "Verbosity level (shorthand)")	
+
 	flag.Parse()
 	
 
@@ -97,33 +101,7 @@ func main() {
 		myConfig.ChunkerPolynomial = p
 		SaveRepoConfig(repoPath, myConfig)
 	} else if initWorkDirFlag {
-		var configPath string
-
-		if len(workDir) == 0 {
- 			os.Mkdir(".dupver", 0777)
- 			configPath = path.Join(".dupver", "config.toml")
-		} else {
- 			os.Mkdir(path.Join(workDir, ".dupver"), 0777)
- 			configPath = path.Join(workDir, ".dupver", "config.toml")
-		}
-
-		if len(workDirName) == 0 {
-			if len(workDir) == 0 {
-				panic("Both workDir and workDirName are empty")
-			} else {
-				workDirName = strings.ToLower(path.Base(workDir))
-			}
-		}
-
-		if len(repoPath) == 0 {
-			repoPath = path.Join(GetHome(), ".dupver_repo")
-			fmt.Printf("Repo path not specified, setting to %s\n", repoPath)
-		}		
-
-		var myConfig workDirConfig
-		myConfig.RepoPath = repoPath
-		myConfig.WorkDirName = workDirName
-		SaveWorkDirConfig(configPath, myConfig)
+		InitWorkDir(workDir, workDirName, repoPath)
 	} else if checkinFlag {
 		var myWorkDirConfig workDirConfig
 		t := time.Now()
@@ -136,7 +114,8 @@ func main() {
 		mySnapshot = UpdateMessage(mySnapshot, msg, filePath)		
 		mySnapshot.Files, myWorkDirConfig = ReadTarFileIndex(filePath)
 		myRepoConfig := ReadRepoConfigFile(path.Join(myWorkDirConfig.RepoPath, "config.toml"))
-		chunkIDs, chunkPacks := PackFile(filePath, myWorkDirConfig.RepoPath, myRepoConfig.ChunkerPolynomial)
+		
+		chunkIDs, chunkPacks := PackFile(filePath, myWorkDirConfig.RepoPath, myRepoConfig.ChunkerPolynomial, verbosity)
 		mySnapshot.ChunkIDs = chunkIDs
 
 		snapshotFolder := path.Join(myWorkDirConfig.RepoPath, "snapshots", myWorkDirConfig.WorkDirName)
@@ -161,7 +140,7 @@ func main() {
 			filePath = fmt.Sprintf("%s-%s-%s.tar", myWorkDirConfig.WorkDirName, timeStr, snapshot[0:16])
 		}
 
-		UnpackFile(filePath, myWorkDirConfig.RepoPath, mySnapshot.ChunkIDs) 
+		UnpackFile(filePath, myWorkDirConfig.RepoPath, mySnapshot.ChunkIDs, verbosity) 
 		fmt.Printf("Wrote to %s\n", filePath)
 	} else if listFlag {
 		myWorkDirConfig := ReadWorkDirConfig(workDir)

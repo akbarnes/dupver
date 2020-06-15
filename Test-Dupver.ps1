@@ -13,7 +13,7 @@ dupver -init-repo
 $WorkdirName = $WorkdirFolder.ToLower()
 
 echo ''
-echo "Initialize workdir $WorkdirName in $WorkdirPath"
+echo "Initialize workdir $WorkdirName ($WorkdirFolder) in $WorkdirPath"
 echo ----------------------------------------------------
 dupver -init -d $WorkdirFolder
 
@@ -34,9 +34,12 @@ dupver -list -d $WorkdirName
 $Snapshots = (dir $RepoPath\snapshots\$WorkdirName\*.json)
 $SnapshotId = $Snapshots[0].basename.substring(21,40)
 
+echo ''
 echo "Check out commit $SnapshotId"
 echo ----------------------------------------------------
 dupver -co -d $WorkdirFolder -s $SnapshotId
+
+echo ''
 echo "Check out commit $SnapshotId"
 echo ----------------------------------------------------
 dupver -co -d $WorkdirFolder -s $SnapshotId

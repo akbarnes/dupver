@@ -15,7 +15,7 @@ func check(e error) {
 func GetHome() string {
     for _, e := range os.Environ() {
         pair := strings.SplitN(e, "=", 2)
-        fmt.Println(pair[0])
+        // fmt.Println(pair[0])
 
         if pair[0] == "HOME" || pair[0] == "USERPROFILE" {
             return pair[1]

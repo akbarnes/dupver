@@ -24,24 +24,16 @@ type packIndex struct {
 }
 
 
-func PackFile(filePath string, repoPath string, mypoly chunker.Pol) ([]string, map[string]string) {
+func PackFile(filePath string, repoPath string, mypoly chunker.Pol, verbosity int) ([]string, map[string]string) {
 	f, _ := os.Open(filePath)
-	chunkIDs, chunkPacks := WritePacks(f, repoPath, mypoly)
+	chunkIDs, chunkPacks := WritePacks(f, repoPath, mypoly, verbosity)
 	f.Close()
 	return chunkIDs, chunkPacks
 }
 
 
-// func PackFile(filePath string, repoPath string, mypoly int) ([]string, []packIndex) {
-// 	f, _ := os.Open(filePath)
-// 	chunkIDs, packIndexes := WritePacks(f, repoPath, mypoly)
-// 	f.Close()
-// 	return chunkIDs, packIndexes
-// }
-
-
 // func WritePacks(f *os.File, repoPath string, poly int) map[string]string {
-func WritePacks(f *os.File, repoPath string, poly chunker.Pol) ([]string, map[string]string) {
+func WritePacks(f *os.File, repoPath string, poly chunker.Pol, verbosity int) ([]string, map[string]string) {
 	const maxPackSize uint = 104857600 // 100 MB
 	mychunker := chunker.New(f, chunker.Pol(poly))
 	buf := make([]byte, 8*1024*1024) // reuse this buffer
@@ -56,7 +48,10 @@ func WritePacks(f *os.File, repoPath string, poly chunker.Pol) ([]string, map[st
 		packFolderPath := path.Join(repoPath, "packs", packId[0:2])
 		os.MkdirAll(packFolderPath, 0777)
 		packPath := path.Join(packFolderPath, packId + ".zip")	
-		fmt.Printf("\nCreating pack file %s\n", packPath)		
+
+		if verbosity >= 1 {
+			fmt.Printf("\nCreating pack file %s\n", packPath)	
+		}	
 
 		zipFile, err := os.Create(packPath)
 		check(err)
@@ -68,7 +63,7 @@ func WritePacks(f *os.File, repoPath string, poly chunker.Pol) ([]string, map[st
 		for curPackSize < maxPackSize { // white chunks to pack
 			chunk, err := mychunker.Next(buf)
 			if err == io.EOF {
-				fmt.Printf("Reached end of input file, stop chunking\n")
+				// fmt.Printf("Reached end of input file, stop chunking\n")
 				stillReadingInput = false	
    				break
 			}
@@ -81,10 +76,14 @@ func WritePacks(f *os.File, repoPath string, poly chunker.Pol) ([]string, map[st
 			curPackSize += chunk.Length
 
 			if _, ok := chunkPacks[chunkId]; ok {
-				fmt.Printf("Skipping Chunk ID %s already in pack %s\n", chunkId[0:16], chunkPacks[chunkId][0:16])
+				if verbosity >= 2 {
+					fmt.Printf("Skipping Chunk ID %s already in pack %s\n", chunkId[0:16], chunkPacks[chunkId][0:16])
+				}
 			} else {	
-				fmt.Printf("Chunk %d: chunk size %d kB, total size %d kB, ", i, chunk.Length/1024, curPackSize/1024)
-				fmt.Printf("chunk ID: %s\n",chunkId[0:16])
+				if verbosity >= 2 {
+					fmt.Printf("Chunk %d: chunk size %d kB, total size %d kB, ", i, chunk.Length/1024, curPackSize/1024)
+					fmt.Printf("chunk ID: %s\n",chunkId[0:16])
+				}
 				chunkPacks[chunkId] = packId
 				newChunkPacks[chunkId] = packId
 
@@ -100,11 +99,11 @@ func WritePacks(f *os.File, repoPath string, poly chunker.Pol) ([]string, map[st
 
 		if stillReadingInput {
 			fmt.Printf("Pack size %d exceeds max size %d\n", curPackSize, maxPackSize)		
-		} else {
-			fmt.Printf("Reached EOF of input\n")		
 		}
 
-		fmt.Printf("Closing zip file\n")
+		if verbosity >= 2 {
+			fmt.Printf("Reached end of input, closing zip file\n")
+		}
 		zipWriter.Close()
 		zipFile.Close()
 	}
@@ -113,20 +112,23 @@ func WritePacks(f *os.File, repoPath string, poly chunker.Pol) ([]string, map[st
 }
 
 
-func UnpackFile(filePath string, repoPath string, chunkIds []string) {
+func UnpackFile(filePath string, repoPath string, chunkIds []string, verbosity int) {
 	chunkPacks := ReadTrees(repoPath)
 
 	f, _ := os.Create(filePath)
-	ReadPacks(f, repoPath, chunkIds, chunkPacks)
+	ReadPacks(f, repoPath, chunkIds, chunkPacks, verbosity)
 	f.Close()
 }
 
 
-func ReadPacks(tarFile *os.File, repoPath string, chunkIds []string, chunkPacks map[string]string) {
+func ReadPacks(tarFile *os.File, repoPath string, chunkIds []string, chunkPacks map[string]string, verbosity int) {
 	for i, chunkId := range chunkIds {
 		packId := chunkPacks[chunkId]
 		packPath := path.Join(repoPath, "packs", packId[0:2], packId + ".zip")
-		fmt.Printf("Reading chunk %d %s \n from pack %s\n", i, chunkId, packPath)
+
+		if verbosity >= 2 {
+			fmt.Printf("Reading chunk %d %s \n from pack %s\n", i, chunkId, packPath)
+		}
 
 		// From https://golangcode.com/unzip-files-in-go/
 		r, err := zip.OpenReader(packPath)
