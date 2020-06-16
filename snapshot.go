@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"path"
 	"path/filepath"
-	// "time"
+	"time"
 	"crypto/sha256"
 	"strings"
 	"github.com/BurntSushi/toml"
@@ -41,6 +41,37 @@ const SNAPSHOT_ID_LEN int = 40
 const PACK_ID_LEN int = 64
 const CHUNK_ID_LEN int = 64
 const TREE_ID_LEN int = 40
+
+
+func CommitFile(filePath string, msg string, verbosity int) {
+	var myWorkDirConfig workDirConfig
+	t := time.Now()
+
+	var mySnapshot commit
+	mySnapshot.ID = RandHexString(SNAPSHOT_ID_LEN)
+	mySnapshot.Time = t.Format("2006/01/02 15:04:05")
+	mySnapshot.TarFileName = filePath
+	// mySnapshot = UpdateTags(mySnapshot, tagName)
+	mySnapshot = UpdateMessage(mySnapshot, msg, filePath)		
+	mySnapshot.Files, myWorkDirConfig = ReadTarFileIndex(filePath)
+	myRepoConfig := ReadRepoConfigFile(path.Join(myWorkDirConfig.RepoPath, "config.toml"))
+	
+	chunkIDs, chunkPacks := PackFile(filePath, myWorkDirConfig.RepoPath, myRepoConfig.ChunkerPolynomial, verbosity)
+	mySnapshot.ChunkIDs = chunkIDs
+
+	snapshotFolder := path.Join(myWorkDirConfig.RepoPath, "snapshots", myWorkDirConfig.WorkDirName)
+	snapshotBasename := fmt.Sprintf("%s-%s", t.Format("2006-01-02-T15-04-05"), mySnapshot.ID[0:40])		
+	os.Mkdir(snapshotFolder, 0777)
+	snapshotPath := path.Join(snapshotFolder, snapshotBasename + ".json")
+	WriteSnapshot(snapshotPath, mySnapshot)
+
+	treeFolder := path.Join(myWorkDirConfig.RepoPath, "trees")
+	treeBasename := mySnapshot.ID[0:40]
+	os.Mkdir(treeFolder, 0777)
+	treePath := path.Join(treeFolder, treeBasename + ".json")
+	WriteTree(treePath, chunkPacks)
+}
+
 
 func UpdateTags(mySnapshot commit, tagName string) commit {
 	if len(tagName) > 0 {

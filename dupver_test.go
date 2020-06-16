@@ -74,3 +74,21 @@ func TestWorkDirInit(t *testing.T) {
 		t.Error("Incorrect workdir name retrieved")
 	}	
 }
+
+
+func TestCommit(t *testing.T) {
+	// homeDir := GetHome()
+	// verbosity := 1
+	// msg := "Commit random data"
+
+	fileName := CreateRandomTarFile()
+	fmt.Printf("Created tar file %s", fileName)
+
+	// CommitFile(filePath, msg, verbosity)
+
+
+	// expectedWorkDirName := "test_" + workDirId
+	// if cfg.WorkDirName != expectedWorkDirName {
+	// 	t.Error("Incorrect workdir name retrieved")
+	// }	
+}
