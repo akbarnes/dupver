@@ -10,10 +10,10 @@ func TestInit(t *testing.T) {
 	homeDir := GetHome()
 
 	if len(homeDir) == 0 {
-		t.Error("Test failed")
+		t.Error("Could not read home directory environment variable")
 	}
 
-	workDirFolder := "test_" + RandString(40, hexchars)
+	workDirFolder := "Test_" + RandString(40, hexchars)
 	workDirPath := path.Join(homeDir, "temp", workDirFolder)
 	os.MkdirAll(workDirPath, 0777)
 	repoPath := path.Join(homeDir, ".dupver_repo")
@@ -21,5 +21,14 @@ func TestInit(t *testing.T) {
 	workDirName := ""
 	InitWorkDir(workDirFolder, workDirName, repoPath)
 
-	cfg := ReadWorkdirConfig()
+	cfg := ReadWorkdirConfig(workdirPath)
+
+	if cfg.RepoPath != repoPath {
+		t.Error("Incorrect repo path retrieved")
+	}
+
+	expectedWorkdirName := "test_" + RandString(40, hexchars)
+	if cfg.workDirName != expectedWorkdirName {
+		t.Error("Incorrect workdir name retrieved")
+	}	
 }
