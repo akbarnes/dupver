@@ -10,7 +10,7 @@ import (
 	"path"
 	// "path/filepath"
 	// "github.com/BurntSushi/toml"
-	"github.com/restic/chunker"
+	// "github.com/restic/chunker"
 )
 
 const version string = "0.1.0-alpha"
@@ -78,34 +78,7 @@ func main() {
 	
 
 	if initRepoFlag {
-		if len(repoPath) == 0 {
-			repoPath = path.Join(GetHome(), ".dupver_repo")
-			fmt.Printf("Repo path not specified, setting to %s\n", repoPath)
-		}	
-				
-		// InitRepo(workDir)
-		fmt.Printf("Creating folder %s\n", repoPath)
-		os.Mkdir(repoPath, 0777)
-	
-		packPath := path.Join(repoPath, "packs")
-		fmt.Printf("Creating folder %s\n", packPath)
-		os.Mkdir(packPath, 0777)
-	
-		snapshotsPath := path.Join(repoPath, "snapshots")
-		fmt.Printf("Creating folder %s\n", snapshotsPath)
-		os.MkdirAll(snapshotsPath, 0777)
-	
-		treesPath := path.Join(repoPath, "trees")
-		fmt.Printf("Creating folder %s\n", treesPath)
-		os.Mkdir(treesPath, 0777)	
-
-		p, err := chunker.RandomPolynomial()
-		check(err)
-	
-		var myConfig repoConfig
-		myConfig.Version = 1
-		myConfig.ChunkerPolynomial = p
-		SaveRepoConfig(repoPath, myConfig)
+		InitRepo(repoPath)
 	} else if initWorkDirFlag {
 		InitWorkDir(workDir, workDirName, repoPath)
 	} else if checkinFlag {
