@@ -24,7 +24,7 @@ func InitWorkDir(workDirFolder string, workDirName string, repoPath string) {
 		 os.Mkdir(".dupver", 0777)
 		 configPath = path.Join(".dupver", "config.toml")
 	} else {
-		 os.Mkdir(path.Join(workDirFolder, ".dupver"), 0777)
+		 os.MkdirAll(path.Join(workDirFolder, ".dupver"), 0777)
 		 configPath = path.Join(workDirFolder, ".dupver", "config.toml")
 	}
 
