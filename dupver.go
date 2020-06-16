@@ -13,6 +13,7 @@ import (
 	"github.com/restic/chunker"
 )
 
+const version string = "0.1.0-alpha"
 
 func main() {
 	var initRepoFlag bool
@@ -20,6 +21,7 @@ func main() {
 	var checkinFlag bool
 	var checkoutFlag bool
 	var listFlag bool
+	var versionFlag bool
 
 	flag.BoolVar(&initRepoFlag, "init-repo", false, "Initialize the repository")
 	flag.BoolVar(&initWorkDirFlag, "init", false, "Initialize the working directory")
@@ -33,6 +35,10 @@ func main() {
 
 	flag.BoolVar(&listFlag, "list", false, "List revisions")
 	flag.BoolVar(&listFlag, "ls", false, "List revisions (shorthand)")
+
+
+	flag.BoolVar(&versionFlag, "version", false, "Print version number")
+	flag.BoolVar(&versionFlag, "V", false, "Print version number (shorthand)")
 
 	var filePath string
 	flag.StringVar(&filePath, "file", "", "Archive path")
@@ -147,6 +153,8 @@ func main() {
 		myWorkDirConfig = UpdateWorkDirName(myWorkDirConfig, workDirName)
 		myWorkDirConfig = UpdateRepoPath(myWorkDirConfig, repoPath)
 		PrintSnapshots(ListSnapshots(myWorkDirConfig), snapshot)
+	} else if versionFlag {
+		fmt.Println("Dupver version:", version)
 	} else {
 		fmt.Println("No command specified, exiting")
 		fmt.Println("For available commands run: dupver -help")

@@ -20,4 +20,6 @@ func TestInit(t *testing.T) {
 
 	workDirName := ""
 	InitWorkDir(workDirFolder, workDirName, repoPath)
+
+	cfg := ReadWorkdirConfig()
 }

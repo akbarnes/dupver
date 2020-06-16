@@ -3,13 +3,12 @@ go get github.com/restic/chunker
 go get github.com/BurntSushi/toml
 # github.com/vmihailenco/msgpack
 go build dupver.go snapshot.go pack.go \
-   config.go randstring.go util.go
+   repo.go workdir.go randstring.go util.go
 echo "Done building"
 
 install_folder=$HOME/.local/bin
 mkdir -p $install_folder
 cp dupver $install_folder
-cp dupver-test.fish $HOME/Results
 cp dupver-test.fish $HOME/Data/
 echo "Copied to $install_folder"
 
