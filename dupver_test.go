@@ -30,6 +30,16 @@ func TestWorkRepoInit(t *testing.T) {
 		// path/to/whatever exists
 		t.Error("Did not create trees folder", treesPath)
 	} 	
+
+	cfg := ReadRepoConfigFile(path.Join(repoPath, "config.toml"))
+
+	if cfg.Version != 1 {
+		t.Error("Invalid repository version", cfg.Version)
+	}
+
+	if cfg.ChunkerPolynomial <= 0 {
+		t.Error("Invalid chunker polynomial", cfg.ChunkerPolynomial)
+	}
 }
 
 func TestWorkDirInit(t *testing.T) {
