@@ -9,10 +9,10 @@ import (
 var seededRand *rand.Rand = rand.New(
   rand.NewSource(time.Now().UnixNano()))
 
-const hexchars = "0123456789abcdef"
+const hexChars = "0123456789abcdef"
 
 func RandHexString(length int) string {
-	return RandString(length, hexchars)
+	return RandString(length, hexChars)
 }
 
 func RandString(length int, charset string) string {
