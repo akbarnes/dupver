@@ -58,6 +58,8 @@ func UpdateRepoPath(myWorkDirConfig workDirConfig, repoPath string,) workDirConf
 func SaveRepoConfig(repoPath string, myConfig repoConfig) {
 	// TODO: add a check to make sure I don't over`write` existing
 	configPath := path.Join(repoPath, "config.toml")
+	fmt.Printf("Creating config %s\n", configPath)
+
 	f, err := os.Create(configPath)
 	check(err)
 	myEncoder := toml.NewEncoder(f)

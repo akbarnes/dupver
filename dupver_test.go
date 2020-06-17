@@ -105,9 +105,9 @@ func TestCommit(t *testing.T) {
 	// ----------- Create tar file with random data ----------- //    
 	// TODO: add random permutes to data
 	fileName := CreateRandomTarFile(workDirFolder, repoPath)
-	fmt.Printf("Created tar file %s", fileName)
+	fmt.Printf("Created tar file %s\n", fileName)
 
-	CommitFile(fileName	, msg, verbosity)
+	CommitFile(fileName, msg, verbosity)
 
 
 	// expectedWorkDirName := "test_" + workDirId
