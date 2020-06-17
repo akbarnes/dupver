@@ -5,9 +5,9 @@ import (
     // "io"
     "bufio"
     "fmt"
-    // "log"
+    "log"
     "strings"
-    // "archive/tar"
+    "archive/tar"
 )
 
 func check(e error) {
@@ -41,13 +41,13 @@ func CreateRandomTarFile() string {
 func WriteRandomTarFile(fileName string) {
     f, err := os.Create(fileName)
     check(err)
-    // WriteRandomTar(f)
-    WriteRandom(f, 50000, 100, hexChars)
+    WriteRandomTar(f)
+    // WriteRandom(f, 50000, 100, hexChars)
     f.Close()
 }
 
 
-func WriteRandom(f *os.File, numLines int, numCols int, charset string) {
+func WriteRandomText(f *os.File, numLines int, numCols int, charset string) {
 	w := bufio.NewWriter(f)
 
 	b := make([]byte, numCols)
@@ -64,32 +64,34 @@ func WriteRandom(f *os.File, numLines int, numCols int, charset string) {
 }
 
 
-// func WriteRandomTar(buf *os.File) {
-//     nFiles := 10
+func WriteRandomTar(buf *os.File) {
+    nFiles := 10
 
-//     tw := tar.NewWriter(buf)
-//     var files = []string{}
+    tw := tar.NewWriter(buf)
+    var files = []string{}
 
-//     for i := 0; i < nFiles; i += 1 {
-//         files = append(files, RandString(24, hexChars) + ".txt")
-//     }
+    for i := 0; i < nFiles; i += 1 {
+        files = append(files, RandString(24, hexChars) + ".txt")
+    }
         
-//     for _, file := range files {
-//         bytes := RandString(50*1000*1000, hexChars)
+    for _, file := range files {
+        n := 50*1000*1000
+        bytes := make([]byte, n)
+        seededRand.Read(bytes)
 
-//         hdr := &tar.Header{
-//             Name: file,
-//             Mode: 0600,
-//             Size: int64(len(bytes)),
-//         }
-//         if err := tw.WriteHeader(hdr); err != nil {
-//             log.Fatal(err)
-//         }
-//         if _, err := tw.Write(bytes); err != nil {
-//             log.Fatal(err)
-//         }
-//     }
-//     if err := tw.Close(); err != nil {
-//         log.Fatal(err)
-//     }
-// }
+        hdr := &tar.Header{
+            Name: file,
+            Mode: 0600,
+            Size: int64(len(bytes)),
+        }
+        if err := tw.WriteHeader(hdr); err != nil {
+            log.Fatal(err)
+        }
+        if _, err := tw.Write(bytes); err != nil {
+            log.Fatal(err)
+        }
+    }
+    if err := tw.Close(); err != nil {
+        log.Fatal(err)
+    }
+}

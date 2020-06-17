@@ -25,19 +25,4 @@ func RandString(length int, charset string) string {
 	return string(b)
 }
 
-func RandText(lines int, cols int, charset string) string {
-	colChars := cols + 1
-
-	b := make([]byte, lines*colChars)
-
-    for r := 0; r < lines; r += 1 {
-		for c := 0; c < cols; c += 1 {
-			b[r*colChars + c] = charset[seededRand.Intn(len(charset))]
-		}
-
-		b[colChars - 1] = '\n'
-    }
-
-	return string(b)
-}
 
