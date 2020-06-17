@@ -4,6 +4,7 @@ import (
 	"testing"
 	"os"
 	"path"
+	"fmt"
 )
 
 func TestWorkRepoInit(t *testing.T) {
@@ -62,6 +63,8 @@ func TestWorkDirInit(t *testing.T) {
 
 	workDirName := ""
 	InitWorkDir(workDirFolder, workDirName, repoPath)
+
+	return
 
 	cfg := ReadWorkDirConfig(workDirFolder)
 
