@@ -21,9 +21,11 @@ func InitWorkDir(workDirFolder string, workDirName string, repoPath string) {
 	// fmt.Printf("Workdir %s, name %s, repo %s\n", workDirFolder, workDirName, repoPath)
 
 	if len(workDirFolder) == 0 {
+		fmt.Printf("Creating folder %s\n", ".dupver")
 		 os.Mkdir(".dupver", 0777)
 		 configPath = path.Join(".dupver", "config.toml")
 	} else {
+		fmt.Printf("Creating folder %s\n", path.Join(workDirFolder, ".dupver"))
 		 os.MkdirAll(path.Join(workDirFolder, ".dupver"), 0777)
 		 configPath = path.Join(workDirFolder, ".dupver", "config.toml")
 	}
