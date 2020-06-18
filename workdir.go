@@ -2,7 +2,8 @@ package main
 
 import (
     "fmt"
-    // "log"
+	"log"
+	"bufio"
 	// "io"
 	"strings"
 	"os"
@@ -14,6 +15,10 @@ import (
 type workDirConfig struct {
 	WorkDirName string
 	RepoPath string
+}
+
+func FolderToWorkDirName(folder string) string {
+	return strings.ReplaceAll(strings.ToLower(folder), " ", "-")
 }
 
 func InitWorkDir(workDirFolder string, workDirName string, repoPath string) {
@@ -30,11 +35,25 @@ func InitWorkDir(workDirFolder string, workDirName string, repoPath string) {
 		 configPath = path.Join(workDirFolder, ".dupver", "config.toml")
 	}
 
-	if len(workDirName) == 0 {
+	if len(workDirName) == 0 || workDirName == "." {
 		if len(workDirFolder) == 0 {
-			panic("Both workDir and workDirName are empty")
+			dir, err := os.Getwd()
+			if err != nil {
+				log.Fatal(err)
+			}
+			_, folder := path.Split(dir)
+			workDirName = FolderToWorkDirName(folder)
 		} else {
-			workDirName = strings.ToLower(path.Base(workDirFolder))
+			workDirName = FolderToWorkDirName(workDirFolder)
+		}
+
+		reader := bufio.NewReader(os.Stdin)
+		fmt.Printf("Enter project name (default = %s): ", workDirName)
+		text, _ := reader.ReadString('\n')
+		text = strings.TrimSpace(text)
+
+		if len(text) > 0 {
+			workDirName = text
 		}
 	}
 

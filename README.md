@@ -8,7 +8,10 @@ uses an (uncompressed) tar file as input. Not that *only* tar files
 are accepted as input as Dupver relies on the tar container to
  1. provide the list of files in the snapshot
  2. store metadata such as file modification times and permissions
-
+Dupver uses a centralized repository to take advantage of deduplication 
+between working directories. This means that dupver working 
+directories can also be git repositories or subdirectories of git
+repositories.
 
 ## Setup
 Binary releases are provided for MacOS/Linux/Windows. Copy them somewhere in your path. Building from source requires the chunker and toml libraries. Install them and build

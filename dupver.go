@@ -15,12 +15,7 @@ func main() {
 	flag.StringVar(&filePath, "file", "", "Archive path")
 	flag.StringVar(&filePath, "f", "", "Archive path (shorthand)")
 
-	var snapshot string
-	flag.StringVar(&snapshot, "snapshot", "", "Specify snapshot id (default is last)")
-	flag.StringVar(&snapshot, "s", "", "Specify snapshot id (shorthand)")
-	flag.StringVar(&snapshot, "commit-id", "", "Specify commit (snaphot) id (default is last)")
-	flag.StringVar(&snapshot, "c", "", "Specify commit (snapshot) id (shorthand)")
-
+	// Need to move this to subcommand params
 	var msg string
 	flag.StringVar(&msg, "message", "", "Commit message")
 	flag.StringVar(&msg, "m", "", "Commit message (shorthand)")
@@ -46,33 +41,48 @@ func main() {
 	flag.IntVar(&verbosity, "v", 1, "Verbosity level (shorthand)")	
 
 	flag.Parse()
-
-	cmd := flag.Arg(0)
+	posArgs := flag.Args()
+	cmd := posArgs[0]
 	
   	if cmd == "init-repo" {
+		repoPath := posArgs[1]
 		InitRepo(repoPath)
 	} else if cmd == "init" {
-		InitWorkDir(workDir, workDirName, repoPath)
-	} else if cmd == "commit" || cmd == "ci" {
-		CommitFile(filePath, msg, verbosity)
-	} else if cmd == "checkout" || cmd == "co" {
-		myWorkDirConfig := ReadWorkDirConfig(workDir)
-		myWorkDirConfig = UpdateWorkDirName(myWorkDirConfig, workDirName)
-		myWorkDirConfig = UpdateRepoPath(myWorkDirConfig, repoPath)
-		mySnapshot := ReadSnapshot(snapshot, myWorkDirConfig)
-
-		if len(filePath) == 0 {
-			timeStr := TimeToPath(mySnapshot.Time)
-			filePath = fmt.Sprintf("%s-%s-%s.tar", myWorkDirConfig.WorkDirName, timeStr, snapshot[0:16])
+		if len(posArgs) >= 2 {
+			workDir = posArgs[1]
 		}
 
-		UnpackFile(filePath, myWorkDirConfig.RepoPath, mySnapshot.ChunkIDs, verbosity) 
+		// Read repoPath from environment variable if empty
+		InitWorkDir(workDir, workDirName, repoPath)
+	} else if cmd == "commit" || cmd == "ci" {
+		commitFile := posArgs[1]
+		CommitFile(commitFile, msg, verbosity)
+	} else if cmd == "checkout" || cmd == "co" {
+		snapshotId := posArgs[1]
+
+		cfg := ReadWorkDirConfig(workDir)
+		cfg = UpdateWorkDirName(cfg, workDirName)
+		cfg = UpdateRepoPath(cfg, repoPath)
+		snap := ReadSnapshot(snapshotId, cfg)
+
+		if len(filePath) == 0 {
+			timeStr := TimeToPath(snap.Time)
+			filePath = fmt.Sprintf("%s-%s-%s.tar", cfg.WorkDirName, timeStr, snapshotId[0:16])
+		}
+
+		UnpackFile(filePath, cfg.RepoPath, snap.ChunkIDs, verbosity) 
 		fmt.Printf("Wrote to %s\n", filePath)
 	} else if cmd == "log" || cmd == "list" {
-		myWorkDirConfig := ReadWorkDirConfig(workDir)
-		myWorkDirConfig = UpdateWorkDirName(myWorkDirConfig, workDirName)
-		myWorkDirConfig = UpdateRepoPath(myWorkDirConfig, repoPath)
-		PrintSnapshots(ListSnapshots(myWorkDirConfig), snapshot)
+		snapshotId := ""
+
+		if len(posArgs) >= 2 {
+			snapshotId = posArgs[1]
+		}
+
+		cfg := ReadWorkDirConfig(workDir)
+		cfg = UpdateWorkDirName(cfg, workDirName)
+		cfg = UpdateRepoPath(cfg, repoPath)
+		PrintSnapshots(ListSnapshots(cfg), snapshotId)
 	} else if cmd == "version" {
 		fmt.Println("Dupver version:", version)
 	} else {

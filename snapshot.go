@@ -54,6 +54,7 @@ func CommitFile(filePath string, msg string, verbosity int) string {
 	// mySnapshot = UpdateTags(mySnapshot, tagName)
 	mySnapshot = UpdateMessage(mySnapshot, msg, filePath)		
 	mySnapshot.Files, myWorkDirConfig = ReadTarFileIndex(filePath)
+	fmt.Printf("Repo config: %s\n", myWorkDirConfig.RepoPath)
 	myRepoConfig := ReadRepoConfigFile(path.Join(myWorkDirConfig.RepoPath, "config.toml"))
 	
 	chunkIDs, chunkPacks := PackFile(filePath, myWorkDirConfig.RepoPath, myRepoConfig.ChunkerPolynomial, verbosity)
@@ -106,7 +107,7 @@ func ReadTarFileIndex(filePath string) ([]fileInfo, workDirConfig) {
 func ReadTarIndex(tarFile *os.File) ([]fileInfo, workDirConfig) {
 	files := []fileInfo{}
 	var myConfig workDirConfig
-	var baseFolder string
+	// var baseFolder string
 	var configPath string
 
 
@@ -122,15 +123,15 @@ func ReadTarIndex(tarFile *os.File) ([]fileInfo, workDirConfig) {
 			log.Fatal(err)
 		}
 
-		if i == 0 {
-			baseFolder = hdr.Name
-			myConfig.WorkDirName = baseFolder
-			configPath = path.Join(baseFolder,".dupver","config.toml")
-			// fmt.Printf("Base folder: %s\nConfig path: %s\n", baseFolder, configPath)
-		}
+		// if i == 0 {
+		// 	baseFolder = hdr.Name
+		// 	myConfig.WorkDirName = baseFolder
+		// 	configPath = path.Join(baseFolder,".dupver","config.toml")
+		// 	// fmt.Printf("Base folder: %s\nConfig path: %s\n", baseFolder, configPath)
+		// }
 
 
-		if hdr.Name == configPath {
+		if strings.HasSuffix(hdr.Name, ".dupver/config.toml") {
 			fmt.Printf("Matched config path %s\n", configPath)
 			if _, err := toml.DecodeReader(tr, &myConfig); err != nil {
 				log.Fatal(err)

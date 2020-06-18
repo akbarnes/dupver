@@ -40,7 +40,7 @@ func InitRepo(repoPath string) {
 	check(err)
 
 	var myConfig repoConfig
-	myConfig.Version = 1
+	myConfig.Version = 2
 	myConfig.ChunkerPolynomial = p
 	SaveRepoConfig(repoPath, myConfig)
 }
