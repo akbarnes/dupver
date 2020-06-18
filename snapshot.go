@@ -43,7 +43,7 @@ const CHUNK_ID_LEN int = 64
 const TREE_ID_LEN int = 40
 
 
-func CommitFile(filePath string, msg string, verbosity int) {
+func CommitFile(filePath string, msg string, verbosity int) string {
 	var myWorkDirConfig workDirConfig
 	t := time.Now()
 
@@ -70,6 +70,8 @@ func CommitFile(filePath string, msg string, verbosity int) {
 	os.Mkdir(treeFolder, 0777)
 	treePath := path.Join(treeFolder, treeBasename + ".json")
 	WriteTree(treePath, chunkPacks)
+
+	return mySnapshot.ID
 }
 
 

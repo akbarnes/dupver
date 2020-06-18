@@ -32,6 +32,9 @@ func GetHome() string {
     return ""
 }
 
+func TimeToPath(timeStr string) string {
+    return strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(timeStr, ":", "-"), "/", "-"), " ", "-")
+}
 
 func CreateRandomTarFile(workDirFolder string, repoPath string) string {
     var fileName string

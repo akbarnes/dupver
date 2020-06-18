@@ -5,7 +5,7 @@ import (
 	"flag"
     "fmt"
 	// "os"
-	"strings"
+	// "strings"
 	// "time"
 	// "path"
 	// "path/filepath"
@@ -90,7 +90,7 @@ func main() {
 		mySnapshot := ReadSnapshot(snapshot, myWorkDirConfig)
 
 		if len(filePath) == 0 {
-			timeStr := strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(mySnapshot.Time, ":", "-"), "/", "-"), " ", "-")
+			timeStr := TimeToPath(mySnapshot.Time)
 			filePath = fmt.Sprintf("%s-%s-%s.tar", myWorkDirConfig.WorkDirName, timeStr, snapshot[0:16])
 		}
 

@@ -5,6 +5,8 @@ import (
 	"os"
 	"path"
 	"fmt"
+	"os/exec"
+	"log"
 )
 
 func TestWorkRepoInit(t *testing.T) {
@@ -96,7 +98,6 @@ func TestCommit(t *testing.T) {
     // ----------- Create a workdir ----------- //    
 	workDirId := RandString(16, hexChars)
 	workDirFolder := "Test_" + workDirId
-	// workDirPath := path.Join("temp", workDirFolder)
 	err := os.MkdirAll(workDirFolder, 0777)	
 	check(err)
 	workDirName := ""
@@ -107,12 +108,35 @@ func TestCommit(t *testing.T) {
 	fileName := CreateRandomTarFile(workDirFolder, repoPath)
 	fmt.Printf("Created tar file %s\n", fileName)
 
-	CommitFile(fileName, msg, verbosity)
+	// ----------- Commit the tar file  ----------- //    
+	snapshot := CommitFile(fileName, msg, verbosity)
+
+	// ----------- Commit the tar file  ----------- //   
+	myWorkDirConfig := ReadWorkDirConfig(workDirFolder)
+	PrintSnapshots(ListSnapshots(myWorkDirConfig), "")
+	PrintSnapshots(ListSnapshots(myWorkDirConfig), snapshot)
 
 
-	// expectedWorkDirName := "test_" + workDirId
-	// if cfg.WorkDirName != expectedWorkDirName {
-	// 	t.Error("Incorrect workdir name retrieved")
-	// }	
+	// ----------- Checkout the tar file  ----------- //    
+	mySnapshot := ReadSnapshot(snapshot, myWorkDirConfig)
+	timeStr := TimeToPath(mySnapshot.Time)
+	outputFileName := fmt.Sprintf("%s-%s-%s.tar", myWorkDirConfig.WorkDirName, timeStr, snapshot[0:16])
+
+	UnpackFile(outputFileName, myWorkDirConfig.RepoPath, mySnapshot.ChunkIDs, verbosity) 
+	fmt.Printf("Wrote to %s\n", outputFileName)
+
+	cmd := exec.Command("diff", fileName, outputFileName)
+	log.Printf("Running command and waiting for it to finish...")
+	output, err := cmd.Output()
+
+	if err != nil {
+		t.Error("Error comparing tar files")
+	}
+
+	if len(output) > 0 {
+		t.Error("Checked out tar file dose not match input")
+	}
+
 	os.RemoveAll(workDirFolder)
+	os.RemoveAll(repoPath)
 }
