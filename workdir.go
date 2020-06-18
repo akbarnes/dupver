@@ -3,7 +3,7 @@ package main
 import (
     "fmt"
 	"log"
-	"bufio"
+	// "bufio"
 	// "io"
 	"strings"
 	"os"
@@ -47,14 +47,7 @@ func InitWorkDir(workDirFolder string, workDirName string, repoPath string) {
 			workDirName = FolderToWorkDirName(workDirFolder)
 		}
 
-		reader := bufio.NewReader(os.Stdin)
-		fmt.Printf("Enter project name (default = %s): ", workDirName)
-		text, _ := reader.ReadString('\n')
-		text = strings.TrimSpace(text)
-
-		if len(text) > 0 {
-			workDirName = text
-		}
+		fmt.Printf("Workdir name not specified, setting to %s\n", workDirName)
 	}
 
 	if len(repoPath) == 0 {
