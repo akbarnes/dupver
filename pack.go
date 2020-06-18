@@ -43,15 +43,24 @@ func WritePacks(f *os.File, repoPath string, poly chunker.Pol, verbosity int) ([
 	var curPackSize  uint 
 	stillReadingInput := true
 
+	totalDataSize := 0
+	totalPackNum := 0
+	totalChunkNum := 0
+	dupChunkNum := 0
+
 	for stillReadingInput {
 		packId := RandHexString(PACK_ID_LEN)
 		packFolderPath := path.Join(repoPath, "packs", packId[0:2])
 		os.MkdirAll(packFolderPath, 0777)
 		packPath := path.Join(packFolderPath, packId + ".zip")	
 
-		if verbosity >= 1 {
-			fmt.Printf("\nCreating pack file %s\n", packPath)	
-		}	
+		totalPackNum++		
+
+		if verbosity >= 2 {
+			fmt.Printf("Creating pack file %3d: %s\n", totalPackNum, packPath)	
+		} else if verbosity == 1 {
+			fmt.Printf("Creating pack number: %3d, ID: %s\n", totalPackNum, packId[0:16])	
+		}
 
 		zipFile, err := os.Create(packPath)
 		check(err)
@@ -59,6 +68,7 @@ func WritePacks(f *os.File, repoPath string, poly chunker.Pol, verbosity int) ([
 
 		i := 0
 		curPackSize = 0
+
 
 		for curPackSize < maxPackSize { // white chunks to pack
 			chunk, err := mychunker.Next(buf)
@@ -75,10 +85,15 @@ func WritePacks(f *os.File, repoPath string, poly chunker.Pol, verbosity int) ([
 			chunkIDs = append(chunkIDs, chunkId)
 			curPackSize += chunk.Length
 
+			totalDataSize += int(chunk.Length)
+			totalChunkNum++
+
 			if _, ok := chunkPacks[chunkId]; ok {
 				if verbosity >= 2 {
 					fmt.Printf("Skipping Chunk ID %s already in pack %s\n", chunkId[0:16], chunkPacks[chunkId][0:16])
 				}
+
+				dupChunkNum++
 			} else {	
 				if verbosity >= 2 {
 					fmt.Printf("Chunk %d: chunk size %d kB, total size %d kB, ", i, chunk.Length/1024, curPackSize/1024)
@@ -97,15 +112,23 @@ func WritePacks(f *os.File, repoPath string, poly chunker.Pol, verbosity int) ([
 			}		
 		}	
 
-		if stillReadingInput {
-			fmt.Printf("Pack size %d exceeds max size %d\n", curPackSize, maxPackSize)		
-		}
 
 		if verbosity >= 2 {
+			if stillReadingInput {
+				fmt.Printf("Pack size %d exceeds max size %d\n", curPackSize, maxPackSize)		
+			}
+
 			fmt.Printf("Reached end of input, closing zip file\n")
 		}
+
 		zipWriter.Close()
 		zipFile.Close()
+	}
+
+	if verbosity >= 1 {
+		fmt.Printf("%0.2f MB raw data stored\n", float64(totalDataSize)/1e6)
+		fmt.Printf("%d total chunks, %d duplicate chunks\n", totalChunkNum, dupChunkNum)
+		fmt.Printf("%d packs stored, %0.2f chunks/pack\n", totalPackNum, float64(totalChunkNum)/float64(totalPackNum))
 	}
 
 	return chunkIDs, newChunkPacks 

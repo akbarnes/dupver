@@ -72,6 +72,10 @@ func CommitFile(filePath string, msg string, verbosity int) string {
 	treePath := path.Join(treeFolder, treeBasename + ".json")
 	WriteTree(treePath, chunkPacks)
 
+	if verbosity >= 1 {
+		fmt.Printf("Created snapshot %s\n", mySnapshot.ID[0:16])
+	}
+
 	return mySnapshot.ID
 }
 
@@ -109,6 +113,7 @@ func ReadTarIndex(tarFile *os.File) ([]fileInfo, workDirConfig) {
 	var myConfig workDirConfig
 	// var baseFolder string
 	var configPath string
+	maxFiles := 10
 
 
 	// Open and iterate through the files in the archive.
@@ -164,8 +169,16 @@ func ReadTarIndex(tarFile *os.File) ([]fileInfo, workDirConfig) {
 		myFileInfo.ModTime = hdr.ModTime.Format("2006/01/02 15:04:05")
 
 		i++
-		fmt.Printf("File %d: %s\n", i, hdr.Name)
+
+		if i <= maxFiles {
+			fmt.Printf("File %d: %s\n", i, hdr.Name)
+		}
+
 		files = append(files, myFileInfo)
+	}
+
+	if i > maxFiles && maxFiles > 0 {
+		fmt.Printf("...\nSkipping %d more files\n", i - maxFiles)
 	}
 
 	return files, myConfig
