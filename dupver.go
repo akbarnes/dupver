@@ -3,43 +3,14 @@ package main
 
 import (
 	"flag"
-    "fmt"
+	"fmt"
 	// "os"
-	// "strings"
-	// "time"
-	// "path"
-	// "path/filepath"
-	// "github.com/BurntSushi/toml"
-	// "github.com/restic/chunker"
+	// "github.com/google/subcommands"
 )
 
 const version string = "0.1.0-alpha"
 
 func main() {
-	var initRepoFlag bool
-	var initWorkDirFlag bool
-	var checkinFlag bool
-	var checkoutFlag bool
-	var listFlag bool
-	var versionFlag bool
-
-	flag.BoolVar(&initRepoFlag, "init-repo", false, "Initialize the repository")
-	flag.BoolVar(&initWorkDirFlag, "init", false, "Initialize the working directory")
-	flag.BoolVar(&checkinFlag, "commit", false, "Commit specified file")
-	flag.BoolVar(&checkinFlag, "ci", false, "Commit specified file (shorthand)")
-	// flag.BoolVar(&tagFlag, "tag", false, "Tag specified commit (shorthand)")
-
-
-	flag.BoolVar(&checkoutFlag, "checkout", false, "Check out specified file")
-	flag.BoolVar(&checkoutFlag, "co", false, "Check out specified file")
-
-	flag.BoolVar(&listFlag, "list", false, "List revisions")
-	flag.BoolVar(&listFlag, "ls", false, "List revisions (shorthand)")
-
-
-	flag.BoolVar(&versionFlag, "version", false, "Print version number")
-	flag.BoolVar(&versionFlag, "V", false, "Print version number (shorthand)")
-
 	var filePath string
 	flag.StringVar(&filePath, "file", "", "Archive path")
 	flag.StringVar(&filePath, "f", "", "Archive path (shorthand)")
@@ -75,15 +46,16 @@ func main() {
 	flag.IntVar(&verbosity, "v", 1, "Verbosity level (shorthand)")	
 
 	flag.Parse()
-	
 
-	if initRepoFlag {
+	cmd := flag.Arg(0)
+	
+  	if cmd == "init-repo" {
 		InitRepo(repoPath)
-	} else if initWorkDirFlag {
+	} else if cmd == "init" {
 		InitWorkDir(workDir, workDirName, repoPath)
-	} else if checkinFlag {
+	} else if cmd == "commit" || cmd == "ci" {
 		CommitFile(filePath, msg, verbosity)
-	} else if checkoutFlag {
+	} else if cmd == "checkout" || cmd == "co" {
 		myWorkDirConfig := ReadWorkDirConfig(workDir)
 		myWorkDirConfig = UpdateWorkDirName(myWorkDirConfig, workDirName)
 		myWorkDirConfig = UpdateRepoPath(myWorkDirConfig, repoPath)
@@ -96,12 +68,12 @@ func main() {
 
 		UnpackFile(filePath, myWorkDirConfig.RepoPath, mySnapshot.ChunkIDs, verbosity) 
 		fmt.Printf("Wrote to %s\n", filePath)
-	} else if listFlag {
+	} else if cmd == "log" || cmd == "list" {
 		myWorkDirConfig := ReadWorkDirConfig(workDir)
 		myWorkDirConfig = UpdateWorkDirName(myWorkDirConfig, workDirName)
 		myWorkDirConfig = UpdateRepoPath(myWorkDirConfig, repoPath)
 		PrintSnapshots(ListSnapshots(myWorkDirConfig), snapshot)
-	} else if versionFlag {
+	} else if cmd == "version" {
 		fmt.Println("Dupver version:", version)
 	} else {
 		fmt.Println("No command specified, exiting")
