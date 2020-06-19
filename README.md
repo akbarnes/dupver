@@ -33,14 +33,14 @@ You will need to edit them to set your desired install folder.
 
 ### Initialize repository
 Initialize a repository with
-`dupver -init-repo`
+`dupver init-repo repo_path`
 
 ### Initialize working directory
 From inside the working directory
-`dupver -init -w workdir_name -r repo_path`
+`dupver init -r repo_path -w workdir_name`
 
 Or from the parent directory
-`dupver -init -w workdir_name -d working_directory -r repo_path`
+`dupver init -r repo_path -w workdir_name working_directory`
 
 ### Commit
 Stage your files by adding them to aø tar file
