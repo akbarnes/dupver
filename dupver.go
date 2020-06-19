@@ -10,15 +10,46 @@ import (
 
 const version string = "0.1.0-alpha"
 
+func NewCommitCommand() *CommitCommand {
+    cc := &CommitCommand{
+        fs: flag.NewFlagSet("commit", flag.ContinueOnError),
+    }
+
+    cc.fs.StringVar(&cc.Message, "message", "", "Commit message")
+    cc.fs.StringVar(&cc.Message, "m", "", "Commit message (shorthand)")
+
+    return cc
+}
+
+type CommitCommand struct {
+    fs *flag.FlagSet
+
+    Message string
+}
+
+func (c *CommitCommand) Message() string {
+    return c.fs.Message()
+}
+
+func (c *CommitCommand) Init(args []string) error {
+    return c.fs.Parse(args)
+}
+
+func (c *CommitCommand) Run() error {
+    fmt.Println("Hello", c.Message, "!")
+    return nil
+}
+
+type Runner interface {
+    Init([]string) error
+    Run() error
+    Message() string
+}
+
 func main() {
 	var filePath string
 	flag.StringVar(&filePath, "file", "", "Archive path")
 	flag.StringVar(&filePath, "f", "", "Archive path (shorthand)")
-
-	// Need to move this to subcommand params
-	var msg string
-	flag.StringVar(&msg, "message", "", "Commit message")
-	flag.StringVar(&msg, "m", "", "Commit message (shorthand)")
 
 	var repoPath string
 	flag.StringVar(&repoPath, "repository", "", "Repository path")
