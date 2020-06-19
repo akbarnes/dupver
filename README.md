@@ -48,27 +48,18 @@ Stage your files by adding them to aø tar file
 `tar cfv tarfile.tar file1 file2 file`
 
 Commit the tarfile with
-`dupver -commit -f tarfile.tar -m "commit message" -d working_directory`
-
-Commit (shorhand)
-`dupver -ci -f tarfile.tar -d working_directory`
+`dupver -m "commit message" commit tarfile.tar`
 
 ### List commits
 List all commits
-`dupver -list`
+`dupver log`
 
 List a specific commit
-`dupver -list -c commit_id`
-
-List the last commit
-`dupver -list -c commit_id`
-
-List the 2nd to last commit
-`dupver -list -c commit_id`
+`dupver log commit_id`
 
 ### Restore
 Restore another commit
-`dupver -checkout -c commit_id`
+`dupver checkout commit_id`
 
 Restore to a particular file
-`dupver -checkout -f filename.tar`
+`dupver -f filename.tar checkout commit_id`
