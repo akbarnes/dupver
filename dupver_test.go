@@ -36,7 +36,7 @@ func TestWorkRepoInit(t *testing.T) {
 
 	cfg := ReadRepoConfigFile(path.Join(repoPath, "config.toml"))
 
-	if cfg.Version != 1 {
+	if cfg.Version != 2 {
 		t.Error("Invalid repository version", cfg.Version)
 	}
 
