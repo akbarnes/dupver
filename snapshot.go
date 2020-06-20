@@ -1,4 +1,4 @@
-package main
+	package main
 
 import (
 	"os"
@@ -335,3 +335,56 @@ func PrintSnapshot(mySnapshot commit, maxFiles int) {
 	}
 }
 
+// type fileInfo struct {
+// 	Path string
+// 	ModTime string
+// 	Size int64
+// 	Hash string
+// 	// Permissions int
+// }
+
+// type commit struct {
+// 	TarFileName string
+// 	ID string
+// 	Message string
+// 	Time string
+// 	Files []fileInfo
+// 	// ChunkPacks map[string]string
+// 	ChunkIDs []string
+// 	// PackIndexes []packIndex
+// 	Tags []string
+// }
+
+func WorkDirStatus(workDir string, snapshot commit) {
+	myFileInfo := make(map[string]fileInfo)	
+	deletedFiles := make(map[string]bool)
+
+	for _, fi := range snapshot.Files {
+		myFileInfo[fi.Path] = fi
+		deletedFiles[fi.Path] = true
+	}
+
+	
+
+	var CompareAgainstSnapshot = func(path string, info os.FileInfo, err error) error {
+		fmt.Printf("Comparing path %s\n", path)
+		if snapshotInfo, ok := myFileInfo[path]; ok {
+			deletedFiles[path] = false
+
+			fmt.Printf(" mtime: %s\n", snapshotInfo.ModTime)
+			t, err := time.Parse(snapshotInfo.ModTime, "2006/01/02 15:04:05")
+			check(err)
+
+			if t != info.ModTime() {
+				fmt.Printf("Modified file: %s\n", path)
+			}
+		} else {
+			fmt.Printf("New file: %s\n", path)
+		}
+		
+		return nil
+	}
+
+	// fmt.Printf("No changes detected in %s for commit %s\n", workDir, snapshot.ID)
+	filepath.Walk(workDir, CompareAgainstSnapshot)
+}

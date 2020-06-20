@@ -83,6 +83,29 @@ func main() {
 		cfg = UpdateWorkDirName(cfg, workDirName)
 		cfg = UpdateRepoPath(cfg, repoPath)
 		PrintSnapshots(ListSnapshots(cfg), snapshotId)
+	} else if cmd == "status" || cmd == "st" {
+		snapshotId := ""
+
+		if len(posArgs) >= 2 {
+			snapshotId = posArgs[1]
+		}
+
+		cfg := ReadWorkDirConfig(workDir)
+		cfg = UpdateWorkDirName(cfg, workDirName)
+		cfg = UpdateRepoPath(cfg, repoPath)
+		snapshotPaths := ListSnapshots(cfg)
+		
+		for _, snapshotPath := range snapshotPaths {
+			n := len(snapshotPath)
+			sid := snapshotPath[n-SNAPSHOT_ID_LEN-5:n-5]
+		
+			if sid[0:8] == snapshotId {
+				mySnapshot := ReadSnapshotFile(snapshotPath)
+				WorkDirStatus(workDir, mySnapshot)
+				break
+			}
+
+		}			
 	} else if cmd == "version" {
 		fmt.Println("Dupver version:", version)
 	} else {
