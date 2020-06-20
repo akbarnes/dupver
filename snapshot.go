@@ -367,16 +367,18 @@ func WorkDirStatus(workDir string, snapshot commit) {
 	
 
 	var CompareAgainstSnapshot = func(path string, info os.FileInfo, err error) error {
-		fmt.Printf("Comparing path %s\n", path)
+		// fmt.Printf("Comparing path %s\n", path)
 		if snapshotInfo, ok := myFileInfo[path]; ok {
 			deletedFiles[path] = false
 
-			fmt.Printf(" mtime: %s\n", snapshotInfo.ModTime)
-			t, err := time.Parse(snapshotInfo.ModTime, "2006/01/02 15:04:05")
-			check(err)
+			// fmt.Printf(" mtime: %s\n", snapshotInfo.ModTime)
+			// t, err := time.Parse(snapshotInfo.ModTime, "2006/01/02 15:04:05")
+			// check(err)
 
-			if t != info.ModTime() {
+			if snapshotInfo.ModTime != info.ModTime().Format("2006/01/02 15:04:05") {
 				fmt.Printf("Modified file: %s\n", path)
+			} else {
+				fmt.Printf("Unchanged file: %s\n", path)
 			}
 		} else {
 			fmt.Printf("New file: %s\n", path)
