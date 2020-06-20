@@ -41,7 +41,8 @@ func InitWorkDir(workDirFolder string, workDirName string, repoPath string) {
 			if err != nil {
 				log.Fatal(err)
 			}
-			_, folder := path.Split(dir)
+			// _, folder := path.Split(dir)
+			folder := path.Base(dir)
 			workDirName = FolderToWorkDirName(folder)
 		} else {
 			workDirName = FolderToWorkDirName(workDirFolder)

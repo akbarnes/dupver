@@ -8,14 +8,14 @@ import (
 	// "github.com/google/subcommands"
 )
 
-const version string = "0.1.0-alpha"
+const version string = "0.2.0-alpha"
+
 
 func main() {
 	var filePath string
 	flag.StringVar(&filePath, "file", "", "Archive path")
 	flag.StringVar(&filePath, "f", "", "Archive path (shorthand)")
 
-	// Need to move this to subcommand params
 	var msg string
 	flag.StringVar(&msg, "message", "", "Commit message")
 	flag.StringVar(&msg, "m", "", "Commit message (shorthand)")
@@ -83,6 +83,29 @@ func main() {
 		cfg = UpdateWorkDirName(cfg, workDirName)
 		cfg = UpdateRepoPath(cfg, repoPath)
 		PrintSnapshots(ListSnapshots(cfg), snapshotId)
+	} else if cmd == "status" || cmd == "st" {
+		snapshotId := ""
+
+		if len(posArgs) >= 2 {
+			snapshotId = posArgs[1]
+		}
+
+		cfg := ReadWorkDirConfig(workDir)
+		cfg = UpdateWorkDirName(cfg, workDirName)
+		cfg = UpdateRepoPath(cfg, repoPath)
+		snapshotPaths := ListSnapshots(cfg)
+		
+		for _, snapshotPath := range snapshotPaths {
+			n := len(snapshotPath)
+			sid := snapshotPath[n-SNAPSHOT_ID_LEN-5:n-5]
+		
+			if sid[0:8] == snapshotId {
+				mySnapshot := ReadSnapshotFile(snapshotPath)
+				WorkDirStatus(workDir, mySnapshot)
+				break
+			}
+
+		}			
 	} else if cmd == "version" {
 		fmt.Println("Dupver version:", version)
 	} else {
