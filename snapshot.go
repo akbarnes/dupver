@@ -277,7 +277,7 @@ func PrintSnapshots(snapshotPaths[] string, snapshot string) {
 		fmt.Printf("Snapshot History\n")
 
 		for _, snapshotPath := range snapshotPaths {
-			fmt.Printf("Path: %s\n", snapshotPath)
+			// fmt.Printf("Path: %s\n", snapshotPath)
 			PrintSnapshot(ReadSnapshotFile(snapshotPath), 10)
 		}			
 	} else {
