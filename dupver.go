@@ -54,7 +54,7 @@ func main() {
 
 		// Read repoPath from environment variable if empty
 		InitWorkDir(workDir, workDirName, repoPath)
-	} else if cmd == "commit" || cmd == "ci" {
+	} else if cmd == "commit" || cmd == "checkin" || cmd == "ci" {
 		commitFile := posArgs[1]
 		CommitFile(commitFile, msg, verbosity)
 	} else if cmd == "checkout" || cmd == "co" {
@@ -95,17 +95,22 @@ func main() {
 		cfg = UpdateRepoPath(cfg, repoPath)
 		snapshotPaths := ListSnapshots(cfg)
 		
+		if len(snapshotId) == 0 {
+			mySnapshot := ReadSnapshotFile(snapshotPaths[len(snapshotPaths) - 1])
+			WorkDirStatus(workDir, mySnapshot, verbosity)
+		} else {
 		for _, snapshotPath := range snapshotPaths {
-			n := len(snapshotPath)
-			sid := snapshotPath[n-SNAPSHOT_ID_LEN-5:n-5]
-		
-			if sid[0:8] == snapshotId {
-				mySnapshot := ReadSnapshotFile(snapshotPath)
-				WorkDirStatus(workDir, mySnapshot, verbosity)
-				break
-			}
+				n := len(snapshotPath)
+				sid := snapshotPath[n-SNAPSHOT_ID_LEN-5:n-5]
+			
+				if sid[0:8] == snapshotId {
+					mySnapshot := ReadSnapshotFile(snapshotPath)
+					WorkDirStatus(workDir, mySnapshot, verbosity)
+					break
+				}
 
-		}			
+			}		
+		}	
 	} else if cmd == "version" {
 		fmt.Println("Dupver version:", version)
 	} else {
