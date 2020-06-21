@@ -35,12 +35,12 @@ You will need to edit them to set your desired install folder.
 Initialize a repository with
 `dupver init-repo repo_path`
 
-### Initialize working directory
+### Initialize project working directory
 From inside the working directory
-`dupver init -r repo_path -w workdir_name`
+`dupver init -r repo_path -p project_name`
 
 Or from the parent directory
-`dupver init -r repo_path -w workdir_name working_directory`
+`dupver init -r repo_path -p project_name working_directory`
 
 ### Commit
 Stage your files by adding them to aø tar file
@@ -56,6 +56,9 @@ List all commits
 
 List a specific commit
 `dupver log commit_id`
+
+### Check if files are modified/added
+`dupver status`
 
 ### Restore
 Restore another commit

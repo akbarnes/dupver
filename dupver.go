@@ -25,12 +25,12 @@ func main() {
 	flag.StringVar(&repoPath, "r", "", "Repository path (shorthand)")
 
 	var workDir string
-	flag.StringVar(&workDir, "workdir", "", "Working directory")
-	flag.StringVar(&workDir, "d", "", "Working directory (shorthand)")
+	flag.StringVar(&workDir, "workdir", "", "Project working directory")
+	flag.StringVar(&workDir, "d", "", "Project working directory (shorthand)")
 
 	var workDirName string
-	flag.StringVar(&workDirName, "workdir-name", "", "Working directory name")
-	flag.StringVar(&workDirName, "w", "", "Working directory name (shorthand)")
+	flag.StringVar(&workDirName, "project", "", "Project name")
+	flag.StringVar(&workDirName, "p", "", "Project name (shorthand)")
 
 	var tagName string
 	flag.StringVar(&tagName, "tag-name", "", "Tag name")
