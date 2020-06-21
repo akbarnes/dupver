@@ -14,7 +14,7 @@ directories can also be git repositories or subdirectories of git
 repositories.
 
 ## Setup
-Binary releases are provided for MacOS/Linux/Windows. Copy them somewhere in your path. Building from source requires the chunker and toml libraries. Install them and build
+[Binary releases](https://github.com/akbarnes/dupver/releases) are provided for MacOS/Linux/Windows. Copy them somewhere in your path. Building from source requires the chunker and toml libraries. Install them and build
 ```
 go get github.com/restic/chunker
 go get github.com/BurntSushi/toml
