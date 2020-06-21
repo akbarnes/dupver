@@ -101,7 +101,7 @@ func main() {
 		
 			if sid[0:8] == snapshotId {
 				mySnapshot := ReadSnapshotFile(snapshotPath)
-				WorkDirStatus(workDir, mySnapshot)
+				WorkDirStatus(workDir, mySnapshot, verbosity)
 				break
 			}
 

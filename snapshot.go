@@ -355,7 +355,7 @@ func PrintSnapshot(mySnapshot commit, maxFiles int) {
 // 	Tags []string
 // }
 
-func WorkDirStatus(workDir string, snapshot commit) {
+func WorkDirStatus(workDir string, snapshot commit, verbosity int) {
 	myFileInfo := make(map[string]fileInfo)	
 	deletedFiles := make(map[string]bool)
 
@@ -368,6 +368,12 @@ func WorkDirStatus(workDir string, snapshot commit) {
 
 	var CompareAgainstSnapshot = func(path string, info os.FileInfo, err error) error {
 		// fmt.Printf("Comparing path %s\n", path)
+		path = strings.ReplaceAll(path, "\\", "/")
+
+		if info.IsDir() {
+			path += "/"
+		}
+
 		if snapshotInfo, ok := myFileInfo[path]; ok {
 			deletedFiles[path] = false
 
@@ -376,12 +382,14 @@ func WorkDirStatus(workDir string, snapshot commit) {
 			// check(err)
 
 			if snapshotInfo.ModTime != info.ModTime().Format("2006/01/02 15:04:05") {
-				fmt.Printf("Modified file: %s\n", path)
-			} else {
-				fmt.Printf("Unchanged file: %s\n", path)
+				if !info.IsDir() {
+					fmt.Printf("M %s\n", path)
+				}
+			} else if verbosity >= 2 {
+				fmt.Printf("U %s\n", path)
 			}
 		} else {
-			fmt.Printf("New file: %s\n", path)
+			fmt.Printf("+ %s\n", path)
 		}
 		
 		return nil
