@@ -72,7 +72,7 @@ func main() {
 
 		UnpackFile(filePath, cfg.RepoPath, snap.ChunkIDs, verbosity) 
 		fmt.Printf("Wrote to %s\n", filePath)
-	} else if cmd == "log" || cmd == "list" {
+	} else if cmd == "log" || cmd == "list"  || cmd == "ls" {
 		snapshotId := ""
 
 		if len(posArgs) >= 2 {

@@ -335,27 +335,18 @@ func PrintSnapshot(mySnapshot commit, maxFiles int) {
 	}
 }
 
-// type fileInfo struct {
-// 	Path string
-// 	ModTime string
-// 	Size int64
-// 	Hash string
-// 	// Permissions int
-// }
-
-// type commit struct {
-// 	TarFileName string
-// 	ID string
-// 	Message string
-// 	Time string
-// 	Files []fileInfo
-// 	// ChunkPacks map[string]string
-// 	ChunkIDs []string
-// 	// PackIndexes []packIndex
-// 	Tags []string
-// }
 
 func WorkDirStatus(workDir string, snapshot commit, verbosity int) {
+    const colorReset string = "\033[0m"
+
+    const colorRed string = "\033[31m"
+    colorGreen := "\033[32m"
+    // colorYellow := "\033[33m"
+    // colorBlue := "\033[34m"
+    // colorPurple := "\033[35m"
+    colorCyan := "\033[36m"
+    colorWhite := "\033[37m"
+
 	myFileInfo := make(map[string]fileInfo)	
 	deletedFiles := make(map[string]bool)
 
@@ -369,6 +360,7 @@ func WorkDirStatus(workDir string, snapshot commit, verbosity int) {
 	var CompareAgainstSnapshot = func(path string, info os.FileInfo, err error) error {
 		// fmt.Printf("Comparing path %s\n", path)
 		path = strings.ReplaceAll(path, "\\", "/")
+		changes := false
 
 		if info.IsDir() {
 			path += "/"
@@ -383,18 +375,32 @@ func WorkDirStatus(workDir string, snapshot commit, verbosity int) {
 
 			if snapshotInfo.ModTime != info.ModTime().Format("2006/01/02 15:04:05") {
 				if !info.IsDir() {
-					fmt.Printf("M %s\n", path)
+					fmt.Printf("%sM %s%s\n", colorCyan, path, colorReset)
+					changes = true
 				}
 			} else if verbosity >= 2 {
-				fmt.Printf("U %s\n", path)
+				fmt.Printf("%sU %s%s\n", colorWhite, path, colorReset)
 			}
 		} else {
-			fmt.Printf("+ %s\n", path)
+			fmt.Printf("%s+ %s%s\n", colorGreen, path, colorReset)
+			changes = true
+		}
+
+		if changes {
+			fmt.Printf("No changes detected\n")
 		}
 		
 		return nil
 	}
 
+
+
 	// fmt.Printf("No changes detected in %s for commit %s\n", workDir, snapshot.ID)
 	filepath.Walk(workDir, CompareAgainstSnapshot)
+
+	for file, deleted := range deletedFiles {
+		if deleted {
+			fmt.Printf("%s- %s%s\n", colorRed, file, colorReset)
+		}
+	}
 }
