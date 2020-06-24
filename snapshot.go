@@ -337,15 +337,32 @@ func PrintSnapshot(mySnapshot commit, maxFiles int) {
 
 
 func WorkDirStatus(workDir string, snapshot commit, verbosity int) {
-    const colorReset string = "\033[0m"
+	workDirPrefix := ""
 
+	if len(workDir) == 0 {
+		workDir = "."
+		cwd, err := os.Getwd()
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		workDirPrefix = path.Base(cwd)
+	}
+
+	if verbosity >= 2 {
+		fmt.Printf("Comparing changes for wd \"%s\" (prefix: \"%s\"\n", workDir, workDirPrefix)
+	}
+	
+
+    const colorReset string = "\033[0m"
     const colorRed string = "\033[31m"
-    colorGreen := "\033[32m"
-    // colorYellow := "\033[33m"
-    // colorBlue := "\033[34m"
-    // colorPurple := "\033[35m"
-    colorCyan := "\033[36m"
-    colorWhite := "\033[37m"
+    const colorGreen string = "\033[32m"
+    const colorYellow string = "\033[33m"
+    const colorBlue string = "\033[34m"
+    const colorPurple string = "\033[35m"
+    const colorCyan string = "\033[36m"
+    const colorWhite string = "\033[37m"
 
 	myFileInfo := make(map[string]fileInfo)	
 	deletedFiles := make(map[string]bool)
@@ -358,16 +375,20 @@ func WorkDirStatus(workDir string, snapshot commit, verbosity int) {
 
 	
 
-	var CompareAgainstSnapshot = func(path string, info os.FileInfo, err error) error {
+	var CompareAgainstSnapshot = func(curPath string, info os.FileInfo, err error) error {
 		// fmt.Printf("Comparing path %s\n", path)
-		path = strings.ReplaceAll(path, "\\", "/")
-
-		if info.IsDir() {
-			path += "/"
+		if len(workDirPrefix) > 0 {
+			curPath = path.Join(workDirPrefix, curPath)
 		}
 
-		if snapshotInfo, ok := myFileInfo[path]; ok {
-			deletedFiles[path] = false
+		curPath = strings.ReplaceAll(curPath, "\\", "/")
+
+		if info.IsDir() {
+			curPath += "/"
+		}
+
+		if snapshotInfo, ok := myFileInfo[curPath]; ok {
+			deletedFiles[curPath] = false
 
 			// fmt.Printf(" mtime: %s\n", snapshotInfo.ModTime)
 			// t, err := time.Parse(snapshotInfo.ModTime, "2006/01/02 15:04:05")
@@ -375,15 +396,15 @@ func WorkDirStatus(workDir string, snapshot commit, verbosity int) {
 
 			if snapshotInfo.ModTime != info.ModTime().Format("2006/01/02 15:04:05") {
 				if !info.IsDir() {
-					fmt.Printf("%sM %s%s\n", colorCyan, path, colorReset)
-					// fmt.Printf("M %s\n", path)					
+					fmt.Printf("%sM %s%s\n", colorCyan, curPath, colorReset)
+					// fmt.Printf("M %s\n", curPath)					
 					changes = true
 				}
 			} else if verbosity >= 2 {
-				fmt.Printf("%sU %s%s\n", colorWhite, path, colorReset)
+				fmt.Printf("%sU %s%s\n", colorWhite, curPath, colorReset)
 			}
 		} else {
-			fmt.Printf("%s+ %s%s\n", colorGreen, path, colorReset)
+			fmt.Printf("%s+ %s%s\n", colorGreen, curPath, colorReset)
 			changes = true
 		}
 
@@ -394,6 +415,7 @@ func WorkDirStatus(workDir string, snapshot commit, verbosity int) {
 
 
 	// fmt.Printf("No changes detected in %s for commit %s\n", workDir, snapshot.ID)
+
 	filepath.Walk(workDir, CompareAgainstSnapshot)
 
 	for file, deleted := range deletedFiles {
@@ -407,7 +429,7 @@ func WorkDirStatus(workDir string, snapshot commit, verbosity int) {
 		}
 	}
 
-	if !changes {
+	if !changes && verbosity >= 1 {
 		fmt.Printf("No changes detected\n")
 	}	
 }
