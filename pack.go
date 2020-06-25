@@ -10,6 +10,7 @@ import (
 	// "compress/gzip"
 	"archive/zip"
 	// "github.com/vmihailenco/msgpack/v5"
+	"log"
 )
 
 
@@ -25,7 +26,11 @@ type packIndex struct {
 
 
 func PackFile(filePath string, repoPath string, mypoly chunker.Pol, verbosity int) ([]string, map[string]string) {
-	f, _ := os.Open(filePath)
+	f, err := os.Open(filePath)
+
+	if err != nil {
+		log.Fatal(fmt.Sprintf("Could not open file", filePath))
+	}
 	chunkIDs, chunkPacks := WritePacks(f, repoPath, mypoly, verbosity)
 	f.Close()
 	return chunkIDs, chunkPacks
@@ -138,7 +143,12 @@ func WritePacks(f *os.File, repoPath string, poly chunker.Pol, verbosity int) ([
 func UnpackFile(filePath string, repoPath string, chunkIds []string, verbosity int) {
 	chunkPacks := ReadTrees(repoPath)
 
-	f, _ := os.Create(filePath)
+	f, err := os.Create(filePath)
+
+	if err != nil {
+		log.Fatal(fmt.Sprintf("Could not create output file %s", filePath))
+	}
+
 	ReadPacks(f, repoPath, chunkIds, chunkPacks, verbosity)
 	f.Close()
 }

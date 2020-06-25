@@ -13,6 +13,7 @@ const version string = "0.2.0-alpha"
 
 func main() {
 	var filePath string
+
 	flag.StringVar(&filePath, "file", "", "Archive path")
 	flag.StringVar(&filePath, "f", "", "Archive path (shorthand)")
 

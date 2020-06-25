@@ -101,7 +101,12 @@ func UpdateMessage(mySnapshot commit, msg string, filePath string) commit {
 
 
 func ReadTarFileIndex(filePath string) ([]fileInfo, workDirConfig) {
-	tarFile, _ := os.Open(filePath)
+	tarFile, err := os.Open(filePath)
+
+	if err != nil {
+		log.Fatal(fmt.Sprintf("Could not open input tar file %s", filePath))
+	}
+
 	files, myConfig := ReadTarIndex(tarFile)
 	tarFile.Close()
 
@@ -187,7 +192,11 @@ func ReadTarIndex(tarFile *os.File) ([]fileInfo, workDirConfig) {
 
 
 func WriteSnapshot(snapshotPath string, mySnapshot commit) {
-	f, _ := os.Create(snapshotPath)
+	f, err := os.Create(snapshotPath)
+
+	if err != nil {
+		log.Fatal(fmt.Sprintf("Could not creat snapshot file %s", snapshotPath))
+	}
 	myEncoder := json.NewEncoder(f)
 	myEncoder.SetIndent("", "  ")
 	myEncoder.Encode(mySnapshot)
@@ -196,7 +205,12 @@ func WriteSnapshot(snapshotPath string, mySnapshot commit) {
 
 
 func WriteTree(treePath string, chunkPacks map[string]string) {
-	f, _ := os.Create(treePath)
+	f, err := os.Create(treePath)
+
+	if err != nil {
+		log.Fatal(fmt.Sprintf("Could not create tree file %s", treePath))
+	}
+
 	myEncoder := json.NewEncoder(f)
 	myEncoder.SetIndent("", "  ")
 	myEncoder.Encode(chunkPacks)
@@ -215,7 +229,12 @@ func ReadTrees(repoPath string) map[string]string {
 	for _, treePath := range treePaths {
 		treePacks := make(map[string]string)	
 		
-		f, _ := os.Open(treePath)
+		f, err := os.Open(treePath)
+
+		if err != nil {
+			log.Fatal(fmt.Sprintf("Could not read tree file %s", treePath))
+		}
+	
 		myDecoder := json.NewDecoder(f)
 	
 		if err := myDecoder.Decode(&treePacks); err != nil {
@@ -252,7 +271,12 @@ func ReadSnapshot(snapshot string, cfg workDirConfig) commit {
 
 func ReadSnapshotFile(snapshotPath string) (commit) {
 	var mySnapshot commit
-	f, _ := os.Open(snapshotPath)
+	f, err := os.Open(snapshotPath)
+
+	if err != nil {
+		log.Fatal(fmt.Sprintf("Could not read snapshot file %s", snapshotPath))
+	}
+
 	myDecoder := json.NewDecoder(f)
 
 
