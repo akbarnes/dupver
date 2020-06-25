@@ -29,7 +29,7 @@ func PackFile(filePath string, repoPath string, mypoly chunker.Pol, verbosity in
 	f, err := os.Open(filePath)
 
 	if err != nil {
-		log.Fatal(fmt.Sprintf("Could not open file", filePath))
+		log.Fatal(fmt.Sprintf("Could not open file when packing", filePath))
 	}
 	chunkIDs, chunkPacks := WritePacks(f, repoPath, mypoly, verbosity)
 	f.Close()
@@ -146,7 +146,7 @@ func UnpackFile(filePath string, repoPath string, chunkIds []string, verbosity i
 	f, err := os.Create(filePath)
 
 	if err != nil {
-		log.Fatal(fmt.Sprintf("Could not create output file %s", filePath))
+		log.Fatal(fmt.Sprintf("Could not create output file %s while unpacking", filePath))
 	}
 
 	ReadPacks(f, repoPath, chunkIds, chunkPacks, verbosity)

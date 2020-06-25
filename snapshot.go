@@ -104,7 +104,7 @@ func ReadTarFileIndex(filePath string) ([]fileInfo, workDirConfig) {
 	tarFile, err := os.Open(filePath)
 
 	if err != nil {
-		log.Fatal(fmt.Sprintf("Could not open input tar file %s", filePath))
+		log.Fatal(fmt.Sprintf("Could not open input tar file %s when reading index", filePath))
 	}
 
 	files, myConfig := ReadTarIndex(tarFile)
@@ -131,7 +131,7 @@ func ReadTarIndex(tarFile *os.File) ([]fileInfo, workDirConfig) {
 			break // End of archive
 		}
 		if err != nil {
-			log.Fatal(err)
+			log.Fatal(fmt.Sprintf("Error processing section while reading tar file index"))
 		}
 
 		// if i == 0 {
