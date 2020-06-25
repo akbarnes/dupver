@@ -1,4 +1,4 @@
-package main
+	package main
 
 import (
 	"os"
@@ -14,6 +14,7 @@ import (
 	"github.com/BurntSushi/toml"
 	"encoding/json"
 	"archive/tar"
+	"errors"
 )
 
 type commit struct {
@@ -100,7 +101,12 @@ func UpdateMessage(mySnapshot commit, msg string, filePath string) commit {
 
 
 func ReadTarFileIndex(filePath string) ([]fileInfo, workDirConfig) {
-	tarFile, _ := os.Open(filePath)
+	tarFile, err := os.Open(filePath)
+
+	if err != nil {
+		log.Fatal(fmt.Sprintf("Could not open input tar file %s", filePath))
+	}
+
 	files, myConfig := ReadTarIndex(tarFile)
 	tarFile.Close()
 
@@ -186,7 +192,11 @@ func ReadTarIndex(tarFile *os.File) ([]fileInfo, workDirConfig) {
 
 
 func WriteSnapshot(snapshotPath string, mySnapshot commit) {
-	f, _ := os.Create(snapshotPath)
+	f, err := os.Create(snapshotPath)
+
+	if err != nil {
+		log.Fatal(fmt.Sprintf("Could not creat snapshot file %s", snapshotPath))
+	}
 	myEncoder := json.NewEncoder(f)
 	myEncoder.SetIndent("", "  ")
 	myEncoder.Encode(mySnapshot)
@@ -195,7 +205,12 @@ func WriteSnapshot(snapshotPath string, mySnapshot commit) {
 
 
 func WriteTree(treePath string, chunkPacks map[string]string) {
-	f, _ := os.Create(treePath)
+	f, err := os.Create(treePath)
+
+	if err != nil {
+		log.Fatal(fmt.Sprintf("Could not create tree file %s", treePath))
+	}
+
 	myEncoder := json.NewEncoder(f)
 	myEncoder.SetIndent("", "  ")
 	myEncoder.Encode(chunkPacks)
@@ -214,7 +229,12 @@ func ReadTrees(repoPath string) map[string]string {
 	for _, treePath := range treePaths {
 		treePacks := make(map[string]string)	
 		
-		f, _ := os.Open(treePath)
+		f, err := os.Open(treePath)
+
+		if err != nil {
+			log.Fatal(fmt.Sprintf("Could not read tree file %s", treePath))
+		}
+	
 		myDecoder := json.NewDecoder(f)
 	
 		if err := myDecoder.Decode(&treePacks); err != nil {
@@ -251,7 +271,12 @@ func ReadSnapshot(snapshot string, cfg workDirConfig) commit {
 
 func ReadSnapshotFile(snapshotPath string) (commit) {
 	var mySnapshot commit
-	f, _ := os.Open(snapshotPath)
+	f, err := os.Open(snapshotPath)
+
+	if err != nil {
+		log.Fatal(fmt.Sprintf("Could not read snapshot file %s", snapshotPath))
+	}
+
 	myDecoder := json.NewDecoder(f)
 
 
@@ -261,6 +286,21 @@ func ReadSnapshotFile(snapshotPath string) (commit) {
 
 	f.Close()
 	return mySnapshot
+}
+
+func ReadSnapshotId(snapshotId string, cfg workDirConfig) (commit, error) {
+	snapshotPaths := ListSnapshots(cfg)
+
+	for _, snapshotPath := range snapshotPaths {
+		n := len(snapshotPath)
+		sid := snapshotPath[n-SNAPSHOT_ID_LEN-5:n-5]
+	
+		if sid[0:8] == snapshotId {
+			return ReadSnapshotFile(snapshotPath), nil
+		}
+	}	
+
+	return commit{}, errors.New(fmt.Sprintf("Could not find snapshot %s", snapshotId))
 }
 
 
@@ -290,7 +330,7 @@ func PrintSnapshots(snapshotPaths[] string, snapshot string) {
 		fmt.Printf("Snapshot History\n")
 
 		for _, snapshotPath := range snapshotPaths {
-			fmt.Printf("Path: %s\n", snapshotPath)
+			// fmt.Printf("Path: %s\n", snapshotPath)
 			PrintSnapshot(ReadSnapshotFile(snapshotPath), 10)
 		}			
 	} else {
@@ -335,3 +375,101 @@ func PrintSnapshot(mySnapshot commit, maxFiles int) {
 	}
 }
 
+
+func WorkDirStatus(workDir string, snapshot commit, verbosity int) {
+	workDirPrefix := ""
+
+	if len(workDir) == 0 {
+		workDir = "."
+		cwd, err := os.Getwd()
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		workDirPrefix = path.Base(cwd)
+	}
+
+	if verbosity >= 2 {
+		fmt.Printf("Comparing changes for wd \"%s\" (prefix: \"%s\"\n", workDir, workDirPrefix)
+	}
+	
+
+    const colorReset string = "\033[0m"
+    const colorRed string = "\033[31m"
+    const colorGreen string = "\033[32m"
+    const colorYellow string = "\033[33m"
+    const colorBlue string = "\033[34m"
+    const colorPurple string = "\033[35m"
+    const colorCyan string = "\033[36m"
+    const colorWhite string = "\033[37m"
+
+	myFileInfo := make(map[string]fileInfo)	
+	deletedFiles := make(map[string]bool)
+	changes := false
+
+	for _, fi := range snapshot.Files {
+		myFileInfo[fi.Path] = fi
+		deletedFiles[fi.Path] = true
+	}
+
+	
+
+	var CompareAgainstSnapshot = func(curPath string, info os.FileInfo, err error) error {
+		// fmt.Printf("Comparing path %s\n", path)
+		if len(workDirPrefix) > 0 {
+			curPath = path.Join(workDirPrefix, curPath)
+		}
+
+		curPath = strings.ReplaceAll(curPath, "\\", "/")
+
+		if info.IsDir() {
+			curPath += "/"
+		}
+
+		if snapshotInfo, ok := myFileInfo[curPath]; ok {
+			deletedFiles[curPath] = false
+
+			// fmt.Printf(" mtime: %s\n", snapshotInfo.ModTime)
+			// t, err := time.Parse(snapshotInfo.ModTime, "2006/01/02 15:04:05")
+			// check(err)
+
+			if snapshotInfo.ModTime != info.ModTime().Format("2006/01/02 15:04:05") {
+				if !info.IsDir() {
+					fmt.Printf("%sM %s%s\n", colorCyan, curPath, colorReset)
+					// fmt.Printf("M %s\n", curPath)					
+					changes = true
+				}
+			} else if verbosity >= 2 {
+				fmt.Printf("%sU %s%s\n", colorWhite, curPath, colorReset)
+			}
+		} else {
+			fmt.Printf("%s+ %s%s\n", colorGreen, curPath, colorReset)
+			changes = true
+		}
+
+		
+		return nil
+	}
+
+
+
+	// fmt.Printf("No changes detected in %s for commit %s\n", workDir, snapshot.ID)
+
+	filepath.Walk(workDir, CompareAgainstSnapshot)
+
+	for file, deleted := range deletedFiles {
+		if strings.HasPrefix(path.Base(file), "._") {
+			continue
+		}
+
+		if deleted {
+			fmt.Printf("%s- %s%s\n", colorRed, file, colorReset)
+			changes = true
+		}
+	}
+
+	if !changes && verbosity >= 1 {
+		fmt.Printf("No changes detected\n")
+	}	
+}

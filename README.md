@@ -14,7 +14,7 @@ directories can also be git repositories or subdirectories of git
 repositories.
 
 ## Setup
-Binary releases are provided for MacOS/Linux/Windows. Copy them somewhere in your path. Building from source requires the chunker and toml libraries. Install them and build
+[Binary releases](https://github.com/akbarnes/dupver/releases) are provided for MacOS/Linux/Windows. Copy them somewhere in your path. Building from source requires the chunker and toml libraries. Install them and build
 ```
 go get github.com/restic/chunker
 go get github.com/BurntSushi/toml
@@ -35,12 +35,12 @@ You will need to edit them to set your desired install folder.
 Initialize a repository with
 `dupver init-repo repo_path`
 
-### Initialize working directory
+### Initialize project working directory
 From inside the working directory
-`dupver init -r repo_path -w workdir_name`
+`dupver init -r repo_path -p project_name`
 
 Or from the parent directory
-`dupver init -r repo_path -w workdir_name working_directory`
+`dupver init -r repo_path -p project_name working_directory`
 
 ### Commit
 Stage your files by adding them to aø tar file
@@ -56,6 +56,9 @@ List all commits
 
 List a specific commit
 `dupver log commit_id`
+
+### Check if files are modified/added
+`dupver status`
 
 ### Restore
 Restore another commit

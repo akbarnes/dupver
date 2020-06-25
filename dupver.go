@@ -13,6 +13,7 @@ const version string = "0.2.0-alpha"
 
 func main() {
 	var filePath string
+
 	flag.StringVar(&filePath, "file", "", "Archive path")
 	flag.StringVar(&filePath, "f", "", "Archive path (shorthand)")
 
@@ -25,12 +26,12 @@ func main() {
 	flag.StringVar(&repoPath, "r", "", "Repository path (shorthand)")
 
 	var workDir string
-	flag.StringVar(&workDir, "workdir", "", "Working directory")
-	flag.StringVar(&workDir, "d", "", "Working directory (shorthand)")
+	flag.StringVar(&workDir, "workdir", "", "Project working directory")
+	flag.StringVar(&workDir, "d", "", "Project working directory (shorthand)")
 
 	var workDirName string
-	flag.StringVar(&workDirName, "workdir-name", "", "Working directory name")
-	flag.StringVar(&workDirName, "w", "", "Working directory name (shorthand)")
+	flag.StringVar(&workDirName, "project", "", "Project name")
+	flag.StringVar(&workDirName, "p", "", "Project name (shorthand)")
 
 	var tagName string
 	flag.StringVar(&tagName, "tag-name", "", "Tag name")
@@ -54,7 +55,7 @@ func main() {
 
 		// Read repoPath from environment variable if empty
 		InitWorkDir(workDir, workDirName, repoPath)
-	} else if cmd == "commit" || cmd == "ci" {
+	} else if cmd == "commit" || cmd == "checkin" || cmd == "ci" {
 		commitFile := posArgs[1]
 		CommitFile(commitFile, msg, verbosity)
 	} else if cmd == "checkout" || cmd == "co" {
@@ -72,7 +73,7 @@ func main() {
 
 		UnpackFile(filePath, cfg.RepoPath, snap.ChunkIDs, verbosity) 
 		fmt.Printf("Wrote to %s\n", filePath)
-	} else if cmd == "log" || cmd == "list" {
+	} else if cmd == "log" || cmd == "list"  || cmd == "ls" {
 		snapshotId := ""
 
 		if len(posArgs) >= 2 {
@@ -83,6 +84,28 @@ func main() {
 		cfg = UpdateWorkDirName(cfg, workDirName)
 		cfg = UpdateRepoPath(cfg, repoPath)
 		PrintSnapshots(ListSnapshots(cfg), snapshotId)
+	} else if cmd == "status" || cmd == "st" {
+		snapshotId := ""
+
+		if len(posArgs) >= 2 {
+			snapshotId = posArgs[1]
+		}
+
+		cfg := ReadWorkDirConfig(workDir)
+		cfg = UpdateWorkDirName(cfg, workDirName)
+		cfg = UpdateRepoPath(cfg, repoPath)
+		var mySnapshot commit
+		
+		if len(snapshotId) == 0 {
+			snapshotPaths := ListSnapshots(cfg)
+			mySnapshot = ReadSnapshotFile(snapshotPaths[len(snapshotPaths) - 1])
+		} else {
+			var err error
+			mySnapshot, err = ReadSnapshotId(snapshotId, cfg)
+			check(err)
+		}	
+
+		WorkDirStatus(workDir, mySnapshot, verbosity)
 	} else if cmd == "version" {
 		fmt.Println("Dupver version:", version)
 	} else {

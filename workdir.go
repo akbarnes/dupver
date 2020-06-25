@@ -94,10 +94,18 @@ func ReadWorkDirConfig(workDir string) workDirConfig {
 func ReadWorkDirConfigFile(filePath string) workDirConfig {
 	var myConfig workDirConfig
 
-	f, _ := os.Open(filePath)
+	f, err := os.Open(filePath)
 
-	_, err := toml.DecodeReader(f, &myConfig)
-	check(err)
+	if err != nil {
+		log.Fatal(fmt.Sprintf("Could not open project working directory config file %s", filePath))
+	}
+	
+
+	_, err = toml.DecodeReader(f, &myConfig)
+
+	if err != nil {
+		log.Fatal(fmt.Sprintf("Could not decode TOML in project working directory config file %s", filePath))
+	}
 
 	f.Close()
 
