@@ -14,6 +14,7 @@ import (
 	"github.com/BurntSushi/toml"
 	"encoding/json"
 	"archive/tar"
+	"errors"
 )
 
 type commit struct {
@@ -261,6 +262,21 @@ func ReadSnapshotFile(snapshotPath string) (commit) {
 
 	f.Close()
 	return mySnapshot
+}
+
+func ReadSnapshotId(snapshotId string, cfg workDirConfig) (commit, error) {
+	snapshotPaths := ListSnapshots(cfg)
+
+	for _, snapshotPath := range snapshotPaths {
+		n := len(snapshotPath)
+		sid := snapshotPath[n-SNAPSHOT_ID_LEN-5:n-5]
+	
+		if sid[0:8] == snapshotId {
+			return ReadSnapshotFile(snapshotPath), nil
+		}
+	}	
+
+	return commit{}, errors.New(fmt.Sprintf("Could not find snapshot %s", snapshotId))
 }
 
 
