@@ -29,7 +29,7 @@ func PackFile(filePath string, repoPath string, mypoly chunker.Pol, verbosity in
 	f, err := os.Open(filePath)
 
 	if err != nil {
-		log.Fatal(fmt.Sprintf("Could not open file when packing", filePath))
+		log.Fatal(fmt.Sprintf("Could not open file when packing %s", filePath))
 	}
 	chunkIDs, chunkPacks := WritePacks(f, repoPath, mypoly, verbosity)
 	f.Close()
