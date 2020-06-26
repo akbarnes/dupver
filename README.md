@@ -13,7 +13,9 @@ are accepted as input as Dupver relies on the tar container to
 Dupver uses a centralized repository to take advantage of deduplication 
 between working directories. This means that dupver working 
 directories can also be git repositories or subdirectories of git
-repositories. Dupver has not been tested on repository sizes more than
+repositories. 
+
+Dupver has not been tested on repository sizes more than
 a few GB, but it is expected to scale up to the low 100's of GB. 
 
 ## Setup
