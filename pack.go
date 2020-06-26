@@ -68,7 +68,10 @@ func WritePacks(f *os.File, repoPath string, poly chunker.Pol, verbosity int) ([
 		}
 
 		zipFile, err := os.Create(packPath)
-		check(err)
+		
+		if err != nil {
+			panic(fmt.Sprintf("Error creating zip file %s", packPath))
+		}
 		zipWriter := zip.NewWriter(zipFile)
 
 		i := 0
@@ -81,9 +84,11 @@ func WritePacks(f *os.File, repoPath string, poly chunker.Pol, verbosity int) ([
 				// fmt.Printf("Reached end of input file, stop chunking\n")
 				stillReadingInput = false	
    				break
+			} else if err != nil {
+				panic("Error chunking input file")
 			}
 	
-			check(err)		
+				
 			
 			i++
 			chunkId := fmt.Sprintf("%064x", sha256.Sum256(chunk.Data))
@@ -112,7 +117,11 @@ func WritePacks(f *os.File, repoPath string, poly chunker.Pol, verbosity int) ([
 				header.Method = zip.Deflate
 			
 				writer, err := zipWriter.CreateHeader(&header)
-				check(err)
+				
+				if err != nil {
+					panic(fmt.Sprintf("Error creating zip file header for %s", packPath))
+				}
+
 				writer.Write(chunk.Data)	
 			}		
 		}	
@@ -131,8 +140,9 @@ func WritePacks(f *os.File, repoPath string, poly chunker.Pol, verbosity int) ([
 	}
 
 	if verbosity >= 1 {
+		newChunkNum := totalChunkNum - dupChunkNum
 		fmt.Printf("%0.2f MB raw data stored\n", float64(totalDataSize)/1e6)
-		fmt.Printf("%d total chunks, %d duplicate chunks\n", totalChunkNum, dupChunkNum)
+		fmt.Printf("%d new, %d duplicate, %d total chunks\n", newChunkNum, totalChunkNum, dupChunkNum)
 		fmt.Printf("%d packs stored, %0.2f chunks/pack\n", totalPackNum, float64(totalChunkNum)/float64(totalPackNum))
 	}
 
@@ -165,16 +175,25 @@ func ReadPacks(tarFile *os.File, repoPath string, chunkIds []string, chunkPacks 
 
 		// From https://golangcode.com/unzip-files-in-go/
 		r, err := zip.OpenReader(packPath)
-		check(err)
+		
+		if err != nil {
+			panic(fmt.Sprintf("Error opening zip file %s", packPath))
+		}
 	
 		for _, f := range r.File {
 			h := f.FileHeader
 			if h.Name == chunkId {
 				rc, err := f.Open()
-				check(err)
-				_, err = io.Copy(tarFile, rc)
-				// fmt.Fprintf(tarFile, "Pack %s, chunk %s, csize %d, usize %d\n", packId, h.Name, h.CompressedSize, h.UncompressedSize)
-				check(err)
+				
+				if err != nil {
+					panic(fmt.Sprintf("Error opnening pack/chunk %s/%s", packPath, h.Name))
+				}
+
+				if _, err := io.Copy(tarFile, rc); err != nil {
+					// fmt.Fprintf(tarFile, "Pack %s, chunk %s, csize %d, usize %d\n", packId, h.Name, h.CompressedSize, h.UncompressedSize)
+					panic(fmt.Sprintf("Error reading from pack/chunk %s/%s", packPath, h.Name))
+				}
+
 				rc.Close()
 			}
 		}

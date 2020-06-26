@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"log"
 	"github.com/BurntSushi/toml"
 	"github.com/restic/chunker"
 )
@@ -37,7 +38,10 @@ func InitRepo(repoPath string) {
 	os.Mkdir(treesPath, 0777)	
 
 	p, err := chunker.RandomPolynomial()
-	check(err)
+	
+	if err != nil {
+		panic("Error creating random polynomical while initializing repo")
+	}
 
 	var myConfig repoConfig
 	myConfig.Version = 2
@@ -61,7 +65,11 @@ func SaveRepoConfig(repoPath string, myConfig repoConfig) {
 	fmt.Printf("Creating config %s\n", configPath)
 
 	f, err := os.Create(configPath)
-	check(err)
+	
+	if err != nil {
+		log.Fatal(fmt.Sprintf("Error creating repo folder %s", repoPath))
+	}
+
 	myEncoder := toml.NewEncoder(f)
 	myEncoder.Encode(myConfig)
 	f.Close()
@@ -72,10 +80,16 @@ func ReadRepoConfigFile(filePath string) repoConfig {
 	var myConfig repoConfig
 
 	f, err := os.Open(filePath)
-	check(err)
+	
+	if err != nil {
+		panic(fmt.Sprintf("Error opening repo config %s", filePath))
+	}
 
 	_, err = toml.DecodeReader(f, &myConfig)
-	check(err)
+	
+	if err != nil {
+		panic(fmt.Sprintf("Error decoding repo config %s", filePath))
+	}
 
 	f.Close()
 	return myConfig

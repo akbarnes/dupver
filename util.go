@@ -46,7 +46,11 @@ func CreateRandomTarFile(workDirFolder string, repoPath string) string {
 
 func WriteRandomTarFile(fileName string, workDirFolder string, repoPath string) {
     f, err := os.Create(fileName)
-    check(err)
+    
+    if err != nil { 
+        panic(fmt.Sprintf("Error creating random tar file %s", fileName))
+    }
+
     WriteRandomTar(f, workDirFolder, repoPath)
     // WriteRandom(f, 50000, 100, hexChars)
     f.Close()

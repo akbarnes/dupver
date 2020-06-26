@@ -4,6 +4,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 	// "os"
 	// "github.com/google/subcommands"
 )
@@ -46,8 +47,12 @@ func main() {
 	cmd := posArgs[0]
 	
   	if cmd == "init-repo" {
-		repoPath := posArgs[1]
-		InitRepo(repoPath)
+		if len(posArgs) >= 2 {
+			repoPath := posArgs[1]
+			InitRepo(repoPath)			
+		} else { 
+			InitRepo("")
+		}
 	} else if cmd == "init" {
 		if len(posArgs) >= 2 {
 			workDir = posArgs[1]
@@ -102,7 +107,10 @@ func main() {
 		} else {
 			var err error
 			mySnapshot, err = ReadSnapshotId(snapshotId, cfg)
-			check(err)
+			
+			if err != nil {
+				log.Fatal(fmt.Sprintf("Error reading snapshot %s", snapshotId))
+			}
 		}	
 
 		WorkDirStatus(workDir, mySnapshot, verbosity)

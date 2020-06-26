@@ -18,3 +18,4 @@ dupver
 /dupver-linux-x64
 /Test_*/
 .DS_Store
+*.orig
