@@ -104,7 +104,7 @@ func ReadTarFileIndex(filePath string) ([]fileInfo, workDirConfig) {
 	tarFile, err := os.Open(filePath)
 
 	if err != nil {
-		log.Fatal(fmt.Sprintf("Could not open input tar file %s when reading index", filePath))
+		panic(fmt.Sprintf("Could not open input tar file %s when reading index", filePath))
 	}
 
 	files, myConfig := ReadTarIndex(tarFile)
@@ -131,7 +131,7 @@ func ReadTarIndex(tarFile *os.File) ([]fileInfo, workDirConfig) {
 			break // End of archive
 		}
 		if err != nil {
-			log.Fatal(fmt.Sprintf("Error processing section while reading tar file index"))
+			panic(fmt.Sprintf("Error processing section while reading tar file index"))
 		}
 
 		// if i == 0 {
@@ -145,7 +145,7 @@ func ReadTarIndex(tarFile *os.File) ([]fileInfo, workDirConfig) {
 		if strings.HasSuffix(hdr.Name, ".dupver/config.toml") {
 			fmt.Printf("Matched config path %s\n", configPath)
 			if _, err := toml.DecodeReader(tr, &myConfig); err != nil {
-				log.Fatal(err)
+				panic("Error decoding repo configuration file %s while reading tar file index")
 			}
 
 			// fmt.Printf("Read config\nworkdir name: %s\nrepo path: %s\n", myConfig.WorkDirName, myConfig.RepoPath)
@@ -195,7 +195,7 @@ func WriteSnapshot(snapshotPath string, mySnapshot commit) {
 	f, err := os.Create(snapshotPath)
 
 	if err != nil {
-		log.Fatal(fmt.Sprintf("Could not creat snapshot file %s", snapshotPath))
+		panic(fmt.Sprintf("Could not creat snapshot file %s", snapshotPath))
 	}
 	myEncoder := json.NewEncoder(f)
 	myEncoder.SetIndent("", "  ")
@@ -208,7 +208,7 @@ func WriteTree(treePath string, chunkPacks map[string]string) {
 	f, err := os.Create(treePath)
 
 	if err != nil {
-		log.Fatal(fmt.Sprintf("Could not create tree file %s", treePath))
+		panic(fmt.Sprintf("Could not create tree file %s", treePath))
 	}
 
 	myEncoder := json.NewEncoder(f)
@@ -232,13 +232,13 @@ func ReadTrees(repoPath string) map[string]string {
 		f, err := os.Open(treePath)
 
 		if err != nil {
-			log.Fatal(fmt.Sprintf("Could not read tree file %s", treePath))
+			panic(fmt.Sprintf("Error: could not read tree file %s", treePath))
 		}
 	
 		myDecoder := json.NewDecoder(f)
 	
 		if err := myDecoder.Decode(&treePacks); err != nil {
-			log.Fatal(err)
+			panic(err)
 		}	
 
 		// TODO: handle supersedes to allow repacking files			
@@ -274,14 +274,14 @@ func ReadSnapshotFile(snapshotPath string) (commit) {
 	f, err := os.Open(snapshotPath)
 
 	if err != nil {
-		log.Fatal(fmt.Sprintf("Could not read snapshot file %s", snapshotPath))
+		panic(fmt.Sprintf("Could not read snapshot file %s", snapshotPath))
 	}
 
 	myDecoder := json.NewDecoder(f)
 
 
 	if err := myDecoder.Decode(&mySnapshot); err != nil {
-		log.Fatal(err)
+		panic(err)
 	}	
 
 	f.Close()
@@ -384,7 +384,7 @@ func WorkDirStatus(workDir string, snapshot commit, verbosity int) {
 		cwd, err := os.Getwd()
 
 		if err != nil {
-			log.Fatal(err)
+			panic(err)
 		}
 
 		workDirPrefix = path.Base(cwd)
