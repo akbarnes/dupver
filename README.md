@@ -1,7 +1,4 @@
-<!-- [![GoDoc](https://godoc.org/github.com/akbarnes/dupver?status.svg)](http://godoc.org/github.com/restic/chunker) -->
-<!-- [![Build Status](https://travis-ci.com/akbarnes/dupver.svg?branch=master)](https://travis-ci.com/restic/chunker) -->
-[![Build Status]https://github.com/akbarnes/dupver/workflows/Go/badge.svg
-
+![Go](https://github.com/akbarnes/dupver/workflows/Go/badge.svg)
 
 # Dupver
 Dupver is a minimalist deduplicating version control system in Go based on 
