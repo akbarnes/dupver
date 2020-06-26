@@ -9,7 +9,7 @@ import (
 	// "github.com/google/subcommands"
 )
 
-const version string = "0.2.0-alpha"
+const version string = "0.3.0-alpha"
 
 
 func main() {
