@@ -48,7 +48,7 @@ to quickly create a Cobra application.`,
 }
 
 func init() {
-	repo.AddCommand(repoAddCmd)
+	repoCmd.AddCommand(repoAddCmd)
 
 	// Here you will define your flags and configuration settings.
 

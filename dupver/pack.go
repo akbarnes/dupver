@@ -142,7 +142,7 @@ func WritePacks(f *os.File, repoPath string, poly chunker.Pol, verbosity int) ([
 	if verbosity >= 1 {
 		newChunkNum := totalChunkNum - dupChunkNum
 		fmt.Printf("%0.2f MB raw data stored\n", float64(totalDataSize)/1e6)
-		fmt.Printf("%d new, %d duplicate, %d total chunks\n", newChunkNum, totalChunkNum, dupChunkNum)
+		fmt.Printf("%d new, %d duplicate, %d total chunks\n", newChunkNum, dupChunkNum, totalChunkNum)
 		fmt.Printf("%d packs stored, %0.2f chunks/pack\n", totalPackNum, float64(totalChunkNum)/float64(totalPackNum))
 	}
 
