@@ -27,8 +27,10 @@ import (
 
 var cfgFile string
 var RepoPath string
+var WorkDirPath string
 var Verbose bool
 var Quiet bool
+
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -62,7 +64,8 @@ func init() {
 	// will be global for your application.
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.main.yaml)")
-	rootCmd.PersistentFlags().StringVarP(&RepoPath, "repo-path", "r", "", "repo path")
+	rootCmd.PersistentFlags().StringVarP(&RepoPath, "repo-path", "r", "", "repository path")
+	rootCmd.PersistentFlags().StringVarP(&WorkDirPath, "workdir-path", "d", "", "project working directory path")
 	rootCmd.PersistentFlags().BoolVarP(&Verbose, "verbose", "v", false, "verbose output")
 	rootCmd.PersistentFlags().BoolVarP(&Quiet, "quiet", "q", false, "quiet output")		
 

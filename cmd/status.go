@@ -17,7 +17,9 @@ package cmd
 
 import (
 	"fmt"
+	"log"
 
+	"../dupver"
 	"github.com/spf13/cobra"
 )
 
@@ -33,6 +35,37 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("status called")
+		snapshotId := ""
+
+		if len(args) >= 1 {
+			snapshotId = args[0]
+		}
+
+		cfg := dupver.ReadWorkDirConfig(WorkDirPath)
+		cfg = dupver.UpdateRepoPath(cfg, RepoPath)
+		var mySnapshot dupver.commit
+		
+		if len(snapshotId) == 0 {
+			snapshotPaths := dupver.ListSnapshots(cfg)
+			mySnapshot = dupver.ReadSnapshotFile(snapshotPaths[len(snapshotPaths) - 1])
+		} else {
+			var err error
+			mySnapshot, err = dupver.ReadSnapshotId(snapshotId, cfg)
+			
+			if err != nil {
+				log.Fatal(fmt.Sprintf("Error reading snapshot %s", snapshotId))
+			}
+		}	
+
+		verbosity := 1
+
+		if Verbose {
+			verbosity = 2
+		} else if Quiet {
+			verbosity = 0
+		}
+
+		dupver.WorkDirStatus(WorkDirPath, mySnapshot, verbosity)		
 	},
 }
 
