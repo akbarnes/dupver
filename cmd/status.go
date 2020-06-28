@@ -26,7 +26,7 @@ import (
 // statusCmd represents the status command
 var statusCmd = &cobra.Command{
 	Use:   "status",
-	Short: "A brief description of your command",
+	Short: "Print file modification status of the project working directory",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
 
@@ -43,7 +43,7 @@ to quickly create a Cobra application.`,
 
 		cfg := dupver.ReadWorkDirConfig(WorkDirPath)
 		cfg = dupver.UpdateRepoPath(cfg, RepoPath)
-		var mySnapshot dupver.commit
+		var mySnapshot dupver.Commit
 		
 		if len(snapshotId) == 0 {
 			snapshotPaths := dupver.ListSnapshots(cfg)
