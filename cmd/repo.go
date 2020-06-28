@@ -36,10 +36,6 @@ to quickly create a Cobra application.`,
 	},
 }
 
-var RepoPath string
-var Verbose bool
-var Quiet bool
-
 func init() {
 	rootCmd.AddCommand(repoCmd)
 
@@ -52,8 +48,4 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// repoCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	rootCmd.PersistentFlags().StringVarP(&RepoPath, "repo-path", "r", "", "repo path")
-
-	rootCmd.PersistentFlags().BoolVarP(&Verbose, "verbose", "v", false, "verbose output")
-	rootCmd.PersistentFlags().BoolVarP(&Quiet, "quiet", "q", false, "quiet output")	
 }

@@ -17,14 +17,15 @@ package cmd
 
 import (
 	"fmt"
-
+	
+	"../dupver"
 	"github.com/spf13/cobra"
 )
 
 // initCmd represents the init command
 var repoInitCmd = &cobra.Command{
 	Use:   "init",
-	Short: "A brief description of your command",
+	Short: "Initialize a repository",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
 
@@ -33,6 +34,13 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("init called")
+		repoPath := RepoPath
+
+		if len(args) >= 1 {
+			repoPath = args[0]
+		} 
+		
+		dupver.InitRepo(repoPath)			
 	},
 }
 

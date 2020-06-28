@@ -19,12 +19,16 @@ import (
 	"fmt"
 	"github.com/spf13/cobra"
 	"os"
+	"path"
 
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/viper"
 )
 
 var cfgFile string
+var RepoPath string
+var Verbose bool
+var Quiet bool
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -58,6 +62,9 @@ func init() {
 	// will be global for your application.
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.main.yaml)")
+	rootCmd.PersistentFlags().StringVarP(&RepoPath, "repo-path", "r", "", "repo path")
+	rootCmd.PersistentFlags().BoolVarP(&Verbose, "verbose", "v", false, "verbose output")
+	rootCmd.PersistentFlags().BoolVarP(&Quiet, "quiet", "q", false, "quiet output")		
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
@@ -78,8 +85,8 @@ func initConfig() {
 		}
 
 		// Search config in home directory with name ".main" (without extension).
-		viper.AddConfigPath(home)
-		viper.SetConfigName(".main")
+		viper.AddConfigPath(path.Join(home, ".dupver"))
+		viper.SetConfigName("global_config.toml")
 	}
 
 	viper.AutomaticEnv() // read in environment variables that match
