@@ -58,7 +58,7 @@ func main() {
 			workDir = posArgs[1]
 		}
 
-		// Read repoPath from environment variable if empty
+		// TODO: Read repoPath from environment variable if empty
 		InitWorkDir(workDir, workDirName, repoPath)
 	} else if cmd == "commit" || cmd == "checkin" || cmd == "ci" {
 		commitFile := posArgs[1]

@@ -17,14 +17,16 @@ package cmd
 
 import (
 	"fmt"
-
+	"../dupver"
 	"github.com/spf13/cobra"
 )
+
+var ProjectName string
 
 // initCmd represents the init command
 var initCmd = &cobra.Command{
 	Use:   "init",
-	Short: "A brief description of your command",
+	Short: "Initialize a project working directory",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
 
@@ -33,8 +35,17 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("init called")
+		workDirPath := ""
+
+		if len(args) >= 1 {
+			workDirPath = args[0]
+		}
+
+		// TODO: Read repoPath from environment variable if empty
+		dupver.InitWorkDir(workDirPath, ProjectName, RepoPath)		
 	},
 }
+
 
 func init() {
 	rootCmd.AddCommand(initCmd)
@@ -48,4 +59,5 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// initCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	initCmd.Flags().StringVarP(&ProjectName, "project-name", "p", "", "project name")	
 }

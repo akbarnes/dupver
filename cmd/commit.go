@@ -24,7 +24,7 @@ import (
 // commitCmd represents the commit command
 var commitCmd = &cobra.Command{
 	Use:   "commit",
-	Short: "A brief description of your command",
+	Short: "Commit a tar file into the repository",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
 
@@ -35,6 +35,8 @@ to quickly create a Cobra application.`,
 		fmt.Println("commit called")
 	},
 }
+
+var Message string
 
 func init() {
 	rootCmd.AddCommand(commitCmd)
@@ -48,4 +50,5 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// commitCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	commitCmd.Flags().StringVarP(&Message, "message", "m", "", "Commit message")	
 }
