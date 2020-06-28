@@ -34,14 +34,14 @@ You will need to edit them to set your desired install folder.
 
 ### Initialize repository
 Initialize a repository with
-`dupver init-repo repo_path`
+`dupver repo init repo_path`
 
 ### Initialize project working directory
 From inside the working directory
-`dupver init -r repo_path -p project_name`
+`dupver -r repo_path init -p project_name`
 
 Or from the parent directory
-`dupver init -r repo_path -p project_name working_directory`
+`dupver -r repo_path init -p project_name working_directory`
 
 ### Commit
 Stage your files by adding them to aø tar file
@@ -49,7 +49,7 @@ Stage your files by adding them to aø tar file
 `tar cfv tarfile.tar file1 file2 file`
 
 Commit the tarfile with
-`dupver -m "commit message" commit tarfile.tar`
+`dupver commit -m "commit message" tarfile.tar`
 
 ### List commits
 List all commits
@@ -66,4 +66,4 @@ Restore another commit
 `dupver checkout commit_id`
 
 Restore to a particular file
-`dupver -f filename.tar checkout commit_id`
+`dupver checkout -o filename.tar commit_id `

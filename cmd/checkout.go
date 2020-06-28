@@ -18,13 +18,16 @@ package cmd
 import (
 	"fmt"
 
+	"../dupver"
 	"github.com/spf13/cobra"
 )
+
+var OutFile string
 
 // checkoutCmd represents the checkout command
 var checkoutCmd = &cobra.Command{
 	Use:   "checkout",
-	Short: "A brief description of your command",
+	Short: "Checkout commit to a tar file",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
 
@@ -33,6 +36,29 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("checkout called")
+
+
+		snapshotId := args[0]
+
+		cfg := dupver.ReadWorkDirConfig(WorkDirPath)
+		cfg = dupver.UpdateRepoPath(cfg, RepoPath)
+		snap := dupver.ReadSnapshot(snapshotId, cfg)
+
+		if len(OutFile) == 0 {
+			timeStr := dupver.TimeToPath(snap.Time)
+			OutFile = fmt.Sprintf("%s-%s-%s.tar", cfg.WorkDirName, timeStr, snap.ID[0:16])
+		}
+
+		verbosity := 1
+
+		if Verbose {
+			verbosity = 2
+		} else if Quiet {
+			verbosity = 0
+		}
+
+		dupver.UnpackFile(OutFile, cfg.RepoPath, snap.ChunkIDs, verbosity) 
+		fmt.Printf("Wrote to %s\n", OutFile)		
 	},
 }
 
@@ -48,4 +74,5 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// checkoutCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	checkoutCmd.Flags().StringVarP(&OutFile, "output", "o", "", "Output tar file")	
 }

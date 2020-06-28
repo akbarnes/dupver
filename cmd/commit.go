@@ -21,6 +21,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var Message string
+
+
 // commitCmd represents the commit command
 var commitCmd = &cobra.Command{
 	Use:   "commit",
@@ -35,8 +38,6 @@ to quickly create a Cobra application.`,
 		fmt.Println("commit called")
 	},
 }
-
-var Message string
 
 func init() {
 	rootCmd.AddCommand(commitCmd)
