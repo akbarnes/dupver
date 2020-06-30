@@ -1,14 +1,6 @@
 #!/bin/bash
-go get github.com/restic/chunker
-go get github.com/BurntSushi/toml
-# github.com/vmihailenco/msgpack
-go build dupver.go snapshot.go pack.go \
-   repo.go workdir.go randstring.go util.go
+go install
 echo "Done building"
 
-install_folder=$HOME/.local/bin
-mkdir -p $install_folder
-cp dupver $install_folder
 cp dupver-test.fish $HOME/Data/
-echo "Copied to $install_folder"
-
+echo "Copied test script"

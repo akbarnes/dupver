@@ -29,7 +29,7 @@ package cmd
 import (
 	"fmt"
 
-	"../dupver"
+	"github.com/akbarnes/dupver/dupver"
 	"github.com/spf13/cobra"
 )
 

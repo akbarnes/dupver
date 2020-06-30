@@ -30,7 +30,7 @@ import (
 	"fmt"
 	"log"
 
-	"../dupver"
+	"github.com/akbarnes/dupver/dupver"
 	"github.com/spf13/cobra"
 )
 
