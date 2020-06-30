@@ -38,7 +38,7 @@ func TimeToPath(timeStr string) string {
 
 func CreateRandomTarFile(workDirFolder string, repoPath string) string {
     var fileName string
-    fileName = "test_" + RandString(24, hexChars) + ".tar"
+    fileName = "test_" + RandString(24, HexChars) + ".tar"
     WriteRandomTarFile(fileName, workDirFolder, repoPath)
     return fileName
 }
@@ -52,7 +52,7 @@ func WriteRandomTarFile(fileName string, workDirFolder string, repoPath string) 
     }
 
     WriteRandomTar(f, workDirFolder, repoPath)
-    // WriteRandom(f, 50000, 100, hexChars)
+    // WriteRandom(f, 50000, 100, HexChars)
     f.Close()
 }
 
@@ -142,7 +142,7 @@ func WriteRandomTar(buf *os.File, workDirFolder string, repoPath string) {
     var files = []string{}
 
     for i := 0; i < nFiles; i += 1 {
-        files = append(files, path.Join(workDirFolder, RandString(24, hexChars) + ".bin"))
+        files = append(files, path.Join(workDirFolder, RandString(24, HexChars) + ".bin"))
     }
         
     for _, file := range files {

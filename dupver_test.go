@@ -7,20 +7,21 @@ import (
 	"fmt"
 	"os/exec"
 	"log"
+	"./dupver"
 )
 
 func TestWorkRepoInit(t *testing.T) {
-	homeDir := GetHome()
+	homeDir := dupver.GetHome()
 
 	if len(homeDir) == 0 {
 		t.Error("Could not read home directory environment variable")
 	}
 
-	repoId := RandString(16, hexChars)
+	repoId := dupver.RandString(16, dupver.HexChars)
 	repoFolder := ".dupver_repo_" + repoId
 
 	repoPath := path.Join(homeDir, "temp", repoFolder)
-	InitRepo(repoPath)
+	dupver.InitRepo(repoPath)
 
 	snapshotsPath := path.Join(repoPath, "snapshots")
 	if _, err := os.Stat(snapshotsPath); err != nil {
@@ -34,7 +35,7 @@ func TestWorkRepoInit(t *testing.T) {
 		t.Error("Did not create trees folder", treesPath)
 	} 	
 
-	cfg := ReadRepoConfigFile(path.Join(repoPath, "config.toml"))
+	cfg := dupver.ReadRepoConfigFile(path.Join(repoPath, "config.toml"))
 
 	if cfg.Version != 2 {
 		t.Error("Invalid repository version", cfg.Version)
@@ -48,13 +49,13 @@ func TestWorkRepoInit(t *testing.T) {
 }
 
 func TestWorkDirInit(t *testing.T) {
-	homeDir := GetHome()
+	homeDir := dupver.GetHome()
 
 	if len(homeDir) == 0 {
 		t.Error("Could not read home directory environment variable")
 	}
 
-	workDirId := RandString(16, hexChars)
+	workDirId := dupver.RandString(16, dupver.HexChars)
 	workDirFolder := "Test_" + workDirId
 	// workDirPath := path.Join("temp", workDirFolder)
 	err := os.MkdirAll(workDirFolder, 0777)	
@@ -66,9 +67,9 @@ func TestWorkDirInit(t *testing.T) {
 	repoPath := path.Join(homeDir, ".dupver_repo")
 
 	workDirName := ""
-	InitWorkDir(workDirFolder, workDirName, repoPath)
+	dupver.InitWorkDir(workDirFolder, workDirName, repoPath)
 
-	cfg := ReadWorkDirConfig(workDirFolder)
+	cfg :=dupver.ReadWorkDirConfig(workDirFolder)
 
 	if cfg.RepoPath != repoPath {
 		t.Error("Incorrect repo path retrieved")
@@ -89,40 +90,44 @@ func TestCommit(t *testing.T) {
 	msg := "Commit random data"
 
     // ----------- Create a repo ----------- //    
-	homeDir := GetHome()
-	repoId := RandString(16, hexChars)
+	homeDir := dupver.GetHome()
+	repoId := dupver.RandString(16, dupver.HexChars)
 	repoFolder := ".dupver_repo_" + repoId
 	repoPath := path.Join(homeDir, "temp", repoFolder)
-	InitRepo(repoPath)	
+	dupver.InitRepo(repoPath)	
 
     // ----------- Create a workdir ----------- //    
-	workDirId := RandString(16, hexChars)
+	workDirId := dupver.RandString(16, dupver.HexChars)
 	workDirFolder := "Test_" + workDirId
 	err := os.MkdirAll(workDirFolder, 0777)	
-	check(err)
+
+	if err != nil {
+		t.Error("Could not cerate workdir folder " + workDirFolder)
+	}
+
 	workDirName := ""
-	InitWorkDir(workDirFolder, workDirName, repoPath)
+	dupver.InitWorkDir(workDirFolder, workDirName, repoPath)
 
 	// ----------- Create tar file with random data ----------- //    
 	// TODO: add random permutes to data
-	fileName := CreateRandomTarFile(workDirFolder, repoPath)
+	fileName := dupver.CreateRandomTarFile(workDirFolder, repoPath)
 	fmt.Printf("Created tar file %s\n", fileName)
 
 	// ----------- Commit the tar file  ----------- //    
-	snapshot := CommitFile(fileName, msg, verbosity)
+	snapshot := dupver.CommitFile(fileName, msg, verbosity)
 
 	// ----------- Commit the tar file  ----------- //   
-	myWorkDirConfig := ReadWorkDirConfig(workDirFolder)
-	PrintSnapshots(ListSnapshots(myWorkDirConfig), "")
-	PrintSnapshots(ListSnapshots(myWorkDirConfig), snapshot)
+	myWorkDirConfig := dupver.ReadWorkDirConfig(workDirFolder)
+	dupver.PrintSnapshots(dupver.ListSnapshots(myWorkDirConfig), "")
+	dupver.PrintSnapshots(dupver.ListSnapshots(myWorkDirConfig), snapshot)
 
 
 	// ----------- Checkout the tar file  ----------- //    
-	mySnapshot := ReadSnapshot(snapshot, myWorkDirConfig)
-	timeStr := TimeToPath(mySnapshot.Time)
+	mySnapshot := dupver.ReadSnapshot(snapshot, myWorkDirConfig)
+	timeStr := dupver.TimeToPath(mySnapshot.Time)
 	outputFileName := fmt.Sprintf("%s-%s-%s.tar", myWorkDirConfig.WorkDirName, timeStr, snapshot[0:16])
 
-	UnpackFile(outputFileName, myWorkDirConfig.RepoPath, mySnapshot.ChunkIDs, verbosity) 
+	dupver.UnpackFile(outputFileName, myWorkDirConfig.RepoPath, mySnapshot.ChunkIDs, verbosity) 
 	fmt.Printf("Wrote to %s\n", outputFileName)
 
 	cmd := exec.Command("diff", fileName, outputFileName)

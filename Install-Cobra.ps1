@@ -14,5 +14,8 @@ $InstallFolder = "$HOME\AppData\Local\Executables"
 
 if (-not (test-path $InstallFolder)) { mkdir $Installfolder }
 copy dupver.exe $InstallFolder
-
 echo "Copied to $InstallFolder"
+
+$ParentDir = "$HOME\Documents"
+copy Test-Dupver.ps1 $ParentDir
+echo "Copied Test-Dupver.ps1 to $ParentDir"

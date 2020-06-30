@@ -23,7 +23,7 @@ func FolderToWorkDirName(folder string) string {
 
 func InitWorkDir(workDirFolder string, workDirName string, repoPath string) {
 	var configPath string
-	// fmt.Printf("Workdir %s, name %s, repo %s\n", workDirFolder, workDirName, repoPath)
+	fmt.Printf("Workdir %s, name %s, repo %s\n", workDirFolder, workDirName, repoPath)
 
 	if len(workDirFolder) == 0 {
 		fmt.Printf("Creating folder %s\n", ".dupver")

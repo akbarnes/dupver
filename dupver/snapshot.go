@@ -145,7 +145,7 @@ func ReadTarIndex(tarFile *os.File) ([]fileInfo, workDirConfig) {
 
 
 		if strings.HasSuffix(hdr.Name, ".dupver/config.toml") {
-			fmt.Printf("Matched config path %s\n", configPath)
+			fmt.Printf("Reading config file %s\n", hdr.Name)
 			if _, err := toml.DecodeReader(tr, &myConfig); err != nil {
 				panic(fmt.Sprintf("Error decoding repo configuration file %s while reading tar file index", configPath))
 			}
