@@ -8,7 +8,6 @@ if (test-path $RepoPath) {
     del -Force -Recurse $RepoPath
 }
 dupver -r $RepoPath repo init 
-mkdir $RepoPath\snapshots
 
 $WorkdirName = $WorkdirFolder.ToLower()
 
@@ -37,5 +36,8 @@ $SnapshotId = $Snapshots[0].basename.substring(21,40)
 echo ''
 echo "Check out commit $SnapshotId"
 echo ----------------------------------------------------
-dupver -d $WorkdirFolder checkout $SnapshotId
+$OutTarName = (dupver -d $WorkdirFolder -q checkout $SnapshotId)
+echo "Exported to $OutTarName"
+echo "Files in tar:"
+tar tvf $OutTarName
 

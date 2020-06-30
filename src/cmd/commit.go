@@ -27,7 +27,7 @@ POSSIBILITY OF SUCH DAMAGE.
 package cmd
 
 import (
-	"fmt"
+	// "fmt"
 	"log"
 
 	"github.com/akbarnes/dupver/src/dupver"
@@ -35,7 +35,6 @@ import (
 )
 
 var Message string
-
 
 // commitCmd represents the commit command
 var commitCmd = &cobra.Command{
@@ -48,22 +47,20 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("commit called")
-
 		verbosity := 1
 
 		if Verbose {
 			verbosity = 2
 		} else if Quiet {
 			verbosity = 0
-		}		
+		}
 
 		if len(args) >= 1 {
 			commitFile := args[0]
-			dupver.CommitFile(commitFile, Message, verbosity)	
+			dupver.CommitFile(commitFile, Message, verbosity)
 		} else {
 			log.Fatal("Input file name is required")
-		}	
+		}
 	},
 }
 
@@ -79,5 +76,5 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// commitCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	commitCmd.Flags().StringVarP(&Message, "message", "m", "", "Commit message")	
+	commitCmd.Flags().StringVarP(&Message, "message", "m", "", "Commit message")
 }

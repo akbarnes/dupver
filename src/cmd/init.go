@@ -27,8 +27,8 @@ POSSIBILITY OF SUCH DAMAGE.
 package cmd
 
 import (
-	"fmt"
-	
+	// "fmt"
+
 	"github.com/akbarnes/dupver/src/dupver"
 	"github.com/spf13/cobra"
 )
@@ -46,7 +46,6 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("init called")
 		workDirPath := WorkDirPath
 
 		if len(args) >= 1 {
@@ -54,10 +53,9 @@ to quickly create a Cobra application.`,
 		}
 
 		// TODO: Read repoPath from environment variable if empty
-		dupver.InitWorkDir(workDirPath, ProjectName, RepoPath)		
+		dupver.InitWorkDir(workDirPath, ProjectName, RepoPath)
 	},
 }
-
 
 func init() {
 	rootCmd.AddCommand(initCmd)
@@ -71,5 +69,5 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// initCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	initCmd.Flags().StringVarP(&ProjectName, "project-name", "p", "", "project name")	
+	initCmd.Flags().StringVarP(&ProjectName, "project-name", "p", "", "project name")
 }

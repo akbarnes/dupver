@@ -46,9 +46,6 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("checkout called")
-
-
 		snapshotId := args[0]
 
 		cfg := dupver.ReadWorkDirConfig(WorkDirPath)
@@ -57,7 +54,7 @@ to quickly create a Cobra application.`,
 
 		if len(OutFile) == 0 {
 			timeStr := dupver.TimeToPath(snap.Time)
-			OutFile = fmt.Sprintf("%s-%s-%s.tar", cfg.WorkDirName, timeStr, snap.ID	[0:16])
+			OutFile = fmt.Sprintf("%s-%s-%s.tar", cfg.WorkDirName, timeStr, snap.ID[0:16])
 		}
 
 		verbosity := 1
@@ -68,8 +65,13 @@ to quickly create a Cobra application.`,
 			verbosity = 0
 		}
 
-		dupver.UnpackFile(OutFile, cfg.RepoPath, snap.ChunkIDs, verbosity) 
-		fmt.Printf("Wrote to %s\n", OutFile)		
+		dupver.UnpackFile(OutFile, cfg.RepoPath, snap.ChunkIDs, verbosity)
+
+		if verbosity >= 1 {
+			fmt.Printf("Wrote to %s\n", OutFile)
+		} else {
+			fmt.Printf(OutFile)
+		}
 	},
 }
 
@@ -85,5 +87,5 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// checkoutCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	checkoutCmd.Flags().StringVarP(&OutFile, "output", "o", "", "Output tar file")	
+	checkoutCmd.Flags().StringVarP(&OutFile, "output", "o", "", "Output tar file")
 }

@@ -27,8 +27,6 @@ POSSIBILITY OF SUCH DAMAGE.
 package cmd
 
 import (
-	"fmt"
-	
 	"github.com/akbarnes/dupver/src/dupver"
 	"github.com/spf13/cobra"
 )
@@ -44,14 +42,13 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("init called")
 		repoPath := RepoPath
 
 		if len(args) >= 1 {
 			repoPath = args[0]
-		} 
-		
-		dupver.InitRepo(repoPath)			
+		}
+
+		dupver.InitRepo(repoPath)
 	},
 }
 

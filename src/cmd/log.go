@@ -27,7 +27,7 @@ POSSIBILITY OF SUCH DAMAGE.
 package cmd
 
 import (
-	"fmt"
+	// "fmt"
 
 	"github.com/akbarnes/dupver/src/dupver"
 	"github.com/spf13/cobra"
@@ -44,7 +44,6 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("log called")
 		snapshotId := ""
 
 		if len(args) >= 1 {
@@ -52,7 +51,7 @@ to quickly create a Cobra application.`,
 		}
 
 		cfg := dupver.ReadWorkDirConfig(WorkDirPath)
-		cfg = dupver.UpdateRepoPath(cfg, RepoPath)	
+		cfg = dupver.UpdateRepoPath(cfg, RepoPath)
 		dupver.PrintSnapshots(dupver.ListSnapshots(cfg), snapshotId)
 	},
 }
