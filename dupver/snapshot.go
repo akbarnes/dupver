@@ -1,4 +1,4 @@
-	package main
+package dupver
 
 import (
 	"os"
@@ -17,7 +17,7 @@ import (
 	"errors"
 )
 
-type commit struct {
+type Commit struct {
 	TarFileName string
 	ID string
 	Message string
@@ -48,7 +48,7 @@ func CommitFile(filePath string, msg string, verbosity int) string {
 	var myWorkDirConfig workDirConfig
 	t := time.Now()
 
-	var mySnapshot commit
+	var mySnapshot Commit
 	mySnapshot.ID = RandHexString(SNAPSHOT_ID_LEN)
 	mySnapshot.Time = t.Format("2006/01/02 15:04:05")
 	mySnapshot.TarFileName = filePath
@@ -81,7 +81,7 @@ func CommitFile(filePath string, msg string, verbosity int) string {
 }
 
 
-func UpdateTags(mySnapshot commit, tagName string) commit {
+func UpdateTags(mySnapshot Commit, tagName string) Commit {
 	if len(tagName) > 0 {
 		mySnapshot.Tags = []string{tagName}
 	}
@@ -90,7 +90,7 @@ func UpdateTags(mySnapshot commit, tagName string) commit {
 }
 
 
-func UpdateMessage(mySnapshot commit, msg string, filePath string) commit {
+func UpdateMessage(mySnapshot Commit, msg string, filePath string) Commit {
 	if len(msg) == 0 {
 		msg =  strings.Replace(filePath[0:len(filePath)-4], ".\\", "", -1)
 	}
@@ -145,7 +145,7 @@ func ReadTarIndex(tarFile *os.File) ([]fileInfo, workDirConfig) {
 
 
 		if strings.HasSuffix(hdr.Name, ".dupver/config.toml") {
-			fmt.Printf("Matched config path %s\n", configPath)
+			fmt.Printf("Reading config file %s\n", hdr.Name)
 			if _, err := toml.DecodeReader(tr, &myConfig); err != nil {
 				panic(fmt.Sprintf("Error decoding repo configuration file %s while reading tar file index", configPath))
 			}
@@ -193,7 +193,7 @@ func ReadTarIndex(tarFile *os.File) ([]fileInfo, workDirConfig) {
 }
 
 
-func WriteSnapshot(snapshotPath string, mySnapshot commit) {
+func WriteSnapshot(snapshotPath string, mySnapshot Commit) {
 	f, err := os.Create(snapshotPath)
 
 	if err != nil {
@@ -259,7 +259,7 @@ func ReadTrees(repoPath string) map[string]string {
 }
 
 
-func ReadSnapshot(snapshot string, cfg workDirConfig) commit {
+func ReadSnapshot(snapshot string, cfg workDirConfig) Commit {
 	snapshotPaths := ListSnapshots(cfg)
 
 	for _, snapshotPath := range snapshotPaths {
@@ -272,12 +272,12 @@ func ReadSnapshot(snapshot string, cfg workDirConfig) commit {
 	}
 
 	log.Fatal(fmt.Sprintf("Error: Could not find snapshot %s in repo", snapshot))
-	return commit{}
+	return Commit{}
 }
 
 
-func ReadSnapshotFile(snapshotPath string) (commit) {
-	var mySnapshot commit
+func ReadSnapshotFile(snapshotPath string) (Commit) {
+	var mySnapshot Commit
 	f, err := os.Open(snapshotPath)
 
 	if err != nil {
@@ -295,7 +295,7 @@ func ReadSnapshotFile(snapshotPath string) (commit) {
 	return mySnapshot
 }
 
-func ReadSnapshotId(snapshotId string, cfg workDirConfig) (commit, error) {
+func ReadSnapshotId(snapshotId string, cfg workDirConfig) (Commit, error) {
 	snapshotPaths := ListSnapshots(cfg)
 
 	for _, snapshotPath := range snapshotPaths {
@@ -307,7 +307,7 @@ func ReadSnapshotId(snapshotId string, cfg workDirConfig) (commit, error) {
 		}
 	}	
 
-	return commit{}, errors.New(fmt.Sprintf("Could not find snapshot %s", snapshotId))
+	return Commit{}, errors.New(fmt.Sprintf("Could not find snapshot %s", snapshotId))
 }
 
 
@@ -360,7 +360,7 @@ func PrintSnapshots(snapshotPaths[] string, snapshot string) {
 
 
 
-func PrintSnapshot(mySnapshot commit, maxFiles int) {			
+func PrintSnapshot(mySnapshot Commit, maxFiles int) {			
 	fmt.Printf("Time: %s\n", mySnapshot.Time)
 	fmt.Printf("ID: %s\n", mySnapshot.ID[0:8])
 
@@ -387,7 +387,7 @@ func PrintSnapshot(mySnapshot commit, maxFiles int) {
 }
 
 
-func WorkDirStatus(workDir string, snapshot commit, verbosity int) {
+func WorkDirStatus(workDir string, snapshot Commit, verbosity int) {
 	workDirPrefix := ""
 
 	if len(workDir) == 0 {

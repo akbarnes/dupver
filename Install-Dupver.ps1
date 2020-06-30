@@ -1,5 +1,6 @@
 $InstallDupver = $true
-    
+
+go get -u -v github.com/spf13/cobra/cobra
 go get github.com/restic/chunker
 go get github.com/BurntSushi/toml
 
