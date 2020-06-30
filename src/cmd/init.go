@@ -28,16 +28,17 @@ package cmd
 
 import (
 	"fmt"
-	"log"
-
-	"github.com/akbarnes/dupver/dupver"
+	
+	"github.com/akbarnes/dupver/src/dupver"
 	"github.com/spf13/cobra"
 )
 
-// statusCmd represents the status command
-var statusCmd = &cobra.Command{
-	Use:   "status",
-	Short: "Print file modification status of the project working directory",
+var ProjectName string
+
+// initCmd represents the init command
+var initCmd = &cobra.Command{
+	Use:   "init",
+	Short: "Initialize a project working directory",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
 
@@ -45,51 +46,30 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("status called")
-		snapshotId := ""
+		fmt.Println("init called")
+		workDirPath := WorkDirPath
 
 		if len(args) >= 1 {
-			snapshotId = args[0]
+			workDirPath = args[0]
 		}
 
-		cfg := dupver.ReadWorkDirConfig(WorkDirPath)
-		cfg = dupver.UpdateRepoPath(cfg, RepoPath)
-		var mySnapshot dupver.Commit
-		
-		if len(snapshotId) == 0 {
-			snapshotPaths := dupver.ListSnapshots(cfg)
-			mySnapshot = dupver.ReadSnapshotFile(snapshotPaths[len(snapshotPaths) - 1])
-		} else {
-			var err error
-			mySnapshot, err = dupver.ReadSnapshotId(snapshotId, cfg)
-			
-			if err != nil {
-				log.Fatal(fmt.Sprintf("Error reading snapshot %s", snapshotId))
-			}
-		}	
-
-		verbosity := 1
-
-		if Verbose {
-			verbosity = 2
-		} else if Quiet {
-			verbosity = 0
-		}
-
-		dupver.WorkDirStatus(WorkDirPath, mySnapshot, verbosity)		
+		// TODO: Read repoPath from environment variable if empty
+		dupver.InitWorkDir(workDirPath, ProjectName, RepoPath)		
 	},
 }
 
+
 func init() {
-	rootCmd.AddCommand(statusCmd)
+	rootCmd.AddCommand(initCmd)
 
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// statusCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// initCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// statusCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// initCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	initCmd.Flags().StringVarP(&ProjectName, "project-name", "p", "", "project name")	
 }

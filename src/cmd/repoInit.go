@@ -28,19 +28,15 @@ package cmd
 
 import (
 	"fmt"
-	"log"
-
-	"github.com/akbarnes/dupver/dupver"
+	
+	"github.com/akbarnes/dupver/src/dupver"
 	"github.com/spf13/cobra"
 )
 
-var Message string
-
-
-// commitCmd represents the commit command
-var commitCmd = &cobra.Command{
-	Use:   "commit",
-	Short: "Commit a tar file into the repository",
+// initCmd represents the init command
+var repoInitCmd = &cobra.Command{
+	Use:   "init",
+	Short: "Initialize a repository",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
 
@@ -48,36 +44,27 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("commit called")
-
-		verbosity := 1
-
-		if Verbose {
-			verbosity = 2
-		} else if Quiet {
-			verbosity = 0
-		}		
+		fmt.Println("init called")
+		repoPath := RepoPath
 
 		if len(args) >= 1 {
-			commitFile := args[0]
-			dupver.CommitFile(commitFile, Message, verbosity)	
-		} else {
-			log.Fatal("Input file name is required")
-		}	
+			repoPath = args[0]
+		} 
+		
+		dupver.InitRepo(repoPath)			
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(commitCmd)
+	repoCmd.AddCommand(repoInitCmd)
 
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// commitCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// initCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// commitCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	commitCmd.Flags().StringVarP(&Message, "message", "m", "", "Commit message")	
+	// initCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

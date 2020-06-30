@@ -28,17 +28,16 @@ package cmd
 
 import (
 	"fmt"
+	"log"
 
-	"github.com/akbarnes/dupver/dupver"
+	"github.com/akbarnes/dupver/src/dupver"
 	"github.com/spf13/cobra"
 )
 
-var OutFile string
-
-// checkoutCmd represents the checkout command
-var checkoutCmd = &cobra.Command{
-	Use:   "checkout",
-	Short: "Checkout commit to a tar file",
+// statusCmd represents the status command
+var statusCmd = &cobra.Command{
+	Use:   "status",
+	Short: "Print file modification status of the project working directory",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
 
@@ -46,19 +45,28 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("checkout called")
+		fmt.Println("status called")
+		snapshotId := ""
 
-
-		snapshotId := args[0]
+		if len(args) >= 1 {
+			snapshotId = args[0]
+		}
 
 		cfg := dupver.ReadWorkDirConfig(WorkDirPath)
 		cfg = dupver.UpdateRepoPath(cfg, RepoPath)
-		snap := dupver.ReadSnapshot(snapshotId, cfg)
-
-		if len(OutFile) == 0 {
-			timeStr := dupver.TimeToPath(snap.Time)
-			OutFile = fmt.Sprintf("%s-%s-%s.tar", cfg.WorkDirName, timeStr, snap.ID	[0:16])
-		}
+		var mySnapshot dupver.Commit
+		
+		if len(snapshotId) == 0 {
+			snapshotPaths := dupver.ListSnapshots(cfg)
+			mySnapshot = dupver.ReadSnapshotFile(snapshotPaths[len(snapshotPaths) - 1])
+		} else {
+			var err error
+			mySnapshot, err = dupver.ReadSnapshotId(snapshotId, cfg)
+			
+			if err != nil {
+				log.Fatal(fmt.Sprintf("Error reading snapshot %s", snapshotId))
+			}
+		}	
 
 		verbosity := 1
 
@@ -68,22 +76,20 @@ to quickly create a Cobra application.`,
 			verbosity = 0
 		}
 
-		dupver.UnpackFile(OutFile, cfg.RepoPath, snap.ChunkIDs, verbosity) 
-		fmt.Printf("Wrote to %s\n", OutFile)		
+		dupver.WorkDirStatus(WorkDirPath, mySnapshot, verbosity)		
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(checkoutCmd)
+	rootCmd.AddCommand(statusCmd)
 
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// checkoutCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// statusCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// checkoutCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	checkoutCmd.Flags().StringVarP(&OutFile, "output", "o", "", "Output tar file")	
+	// statusCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

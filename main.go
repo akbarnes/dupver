@@ -26,7 +26,7 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 package main
 
-import "github.com/akbarnes/dupver/cmd"
+import "github.com/akbarnes/dupver/src/cmd"
 
 func main() {
 	cmd.Execute()

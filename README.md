@@ -19,13 +19,7 @@ Dupver has not been tested on repository sizes more than
 a few GB, but it is expected to scale up to the low 100's of GB. 
 
 ## Setup
-[Binary releases](https://github.com/akbarnes/dupver/releases) are provided for MacOS/Linux/Windows. Copy them somewhere in your path. Building from source requires the chunker and toml libraries. Install them and build
-```
-go get -u -v github.com/spf13/cobra/cobra
-go get github.com/restic/chunker
-go get github.com/BurntSushi/toml
-go build dupver.go
-```
+[Binary releases](https://github.com/akbarnes/dupver/releases) are provided for MacOS/Linux/Windows. Copy them somewhere in your path. To build from source run `go build` or `go install`.
 
 Copy the executable somewhere in your path. Build scripts for 
 MacOS/Linux/Windows are included, see

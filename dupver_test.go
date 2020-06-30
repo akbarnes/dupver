@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"os/exec"
 	"log"
-	"./dupver"
+	"github.com/akbarnes/dupver/src/dupver"
 )
 
 func TestWorkRepoInit(t *testing.T) {
