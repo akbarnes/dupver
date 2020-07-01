@@ -21,14 +21,6 @@ a few GB, but it is expected to scale up to the low 100's of GB.
 ## Setup
 [Binary releases](https://github.com/akbarnes/dupver/releases) are provided for MacOS/Linux/Windows. Copy them somewhere in your path. To build from source run `go build` or `go install`.
 
-Copy the executable somewhere in your path. Build scripts for 
-MacOS/Linux/Windows are included, see
-
-* `setup` (MacOS, Linux)
-* `Install-Dupver.ps1` (Windows)
-
-You will need to edit them to set your desired install folder.
-
 ## Usage
 
 ### Initialize repository
