@@ -1,20 +1,22 @@
 package dupver
 
 import (
-    "fmt"
+	"fmt"
 	"log"
+
 	// "bufio"
 	// "io"
-	"strings"
 	"os"
 	"path"
-    // "archive/tar"
+	"strings"
+
+	// "archive/tar"
 	"github.com/BurntSushi/toml"
 )
 
 type workDirConfig struct {
 	WorkDirName string
-	RepoPath string
+	RepoPath    string
 }
 
 func FolderToWorkDirName(folder string) string {
@@ -27,12 +29,12 @@ func InitWorkDir(workDirFolder string, workDirName string, repoPath string) {
 
 	if len(workDirFolder) == 0 {
 		fmt.Printf("Creating folder %s\n", ".dupver")
-		 os.Mkdir(".dupver", 0777)
-		 configPath = path.Join(".dupver", "config.toml")
+		os.Mkdir(".dupver", 0777)
+		configPath = path.Join(".dupver", "config.toml")
 	} else {
 		fmt.Printf("Creating folder %s\n", path.Join(workDirFolder, ".dupver"))
-		 os.MkdirAll(path.Join(workDirFolder, ".dupver"), 0777)
-		 configPath = path.Join(workDirFolder, ".dupver", "config.toml")
+		os.MkdirAll(path.Join(workDirFolder, ".dupver"), 0777)
+		configPath = path.Join(workDirFolder, ".dupver", "config.toml")
 	}
 
 	if len(workDirName) == 0 || workDirName == "." {
@@ -54,7 +56,7 @@ func InitWorkDir(workDirFolder string, workDirName string, repoPath string) {
 	if len(repoPath) == 0 {
 		repoPath = path.Join(GetHome(), ".dupver_repo")
 		fmt.Printf("Repo path not specified, setting to %s\n", repoPath)
-	}		
+	}
 
 	var myConfig workDirConfig
 	myConfig.RepoPath = repoPath
@@ -62,16 +64,19 @@ func InitWorkDir(workDirFolder string, workDirName string, repoPath string) {
 	SaveWorkDirConfig(configPath, myConfig)
 }
 
-func UpdateWorkDirName(myWorkDirConfig workDirConfig, workDirName string)  workDirConfig{
+func UpdateWorkDirName(myWorkDirConfig workDirConfig, workDirName string) workDirConfig {
 	if len(workDirName) > 0 {
 		myWorkDirConfig.WorkDirName = workDirName
-	} 
+	}
 
 	return myWorkDirConfig
 }
 
-
 func SaveWorkDirConfig(configPath string, myConfig workDirConfig) {
+	if _, err := os.Stat(configPath); err == nil {
+		log.Fatal("Refusing to write existing project workdir config " + configPath)
+	}
+
 	f, _ := os.Create(configPath)
 	myEncoder := toml.NewEncoder(f)
 	myEncoder.Encode(myConfig)
@@ -90,7 +95,6 @@ func ReadWorkDirConfig(workDir string) workDirConfig {
 	return ReadWorkDirConfigFile(configPath)
 }
 
-
 func ReadWorkDirConfigFile(filePath string) workDirConfig {
 	var myConfig workDirConfig
 
@@ -99,7 +103,6 @@ func ReadWorkDirConfigFile(filePath string) workDirConfig {
 	if err != nil {
 		log.Fatal(fmt.Sprintf("Could not open project working directory config file %s", filePath))
 	}
-	
 
 	_, err = toml.DecodeReader(f, &myConfig)
 
@@ -111,4 +114,3 @@ func ReadWorkDirConfigFile(filePath string) workDirConfig {
 
 	return myConfig
 }
-
