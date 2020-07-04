@@ -401,7 +401,7 @@ func WorkDirStatus(workDir string, snapshot Commit, verbosity int) {
 			panic(err)
 		}
 
-		workDirPrefix = path.Base(cwd)
+		workDirPrefix = filepath.Clean(filepath.Base(cwd))
 	}
 
 	if verbosity >= 2 {
@@ -467,7 +467,7 @@ func WorkDirStatus(workDir string, snapshot Commit, verbosity int) {
 	filepath.Walk(workDir, CompareAgainstSnapshot)
 
 	for file, deleted := range deletedFiles {
-		if strings.HasPrefix(path.Base(file), "._") {
+		if strings.HasPrefix(filepath.Clean(filepath.Base(file)), "._") {
 			continue
 		}
 
