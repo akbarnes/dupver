@@ -1,44 +1,48 @@
 package dupver
 
 import (
-	"archive/tar"
-	"bufio"
-	"crypto/sha256"
-	"encoding/json"
-	"errors"
-	"fmt"
-	"io"
-	"log"
 	"os"
+	"io"
+	"bufio"
+	"log"
+	"fmt"
 	"path"
 	"path/filepath"
-	"strings"
 	"time"
-
+	"crypto/sha256"
+	"strings"
 	"github.com/BurntSushi/toml"
+	"encoding/json"
+	"archive/tar"
+	"errors"
 )
 
 type Commit struct {
 	TarFileName string
-	ID          string
-	Message     string
-	Time        string
-	Files       []fileInfo
-	ChunkIDs    []string
+	ID string
+	Message string
+	Time string
+	Files []fileInfo
+	// ChunkPacks map[string]string
+	ChunkIDs []string
+	// PackIndexes []packIndex
+	Tags []string
 }
 
+
 type fileInfo struct {
-	Path    string
+	Path string
 	ModTime string
-	Size    int64
-	Hash    string
+	Size int64
+	Hash string
 	// Permissions int
 }
 
-const SNAPSHOT_ID_LEN int = 40
+const SNAPSHOT_ID_LEN int = 40 
 const PACK_ID_LEN int = 64
 const CHUNK_ID_LEN int = 64
 const TREE_ID_LEN int = 40
+
 
 func CommitFile(filePath string, msg string, verbosity int) string {
 	var myWorkDirConfig workDirConfig
@@ -48,70 +52,81 @@ func CommitFile(filePath string, msg string, verbosity int) string {
 	mySnapshot.ID = RandHexString(SNAPSHOT_ID_LEN)
 	mySnapshot.Time = t.Format("2006/01/02 15:04:05")
 	mySnapshot.TarFileName = filePath
-	mySnapshot = UpdateMessage(mySnapshot, msg, filePath)
-	mySnapshot.Files, myWorkDirConfig = ReadTarFileIndex(filePath, verbosity)
+	// mySnapshot = UpdateTags(mySnapshot, tagName)
+	mySnapshot = UpdateMessage(mySnapshot, msg, filePath)		
+	mySnapshot.Files, myWorkDirConfig = ReadTarFileIndex(filePath)
 
-	if verbosity >= 1 {
+	if verbosity >= 2 {
 		fmt.Printf("Repo config: %s\n", myWorkDirConfig.RepoPath)
 	}
 
 	myRepoConfig := ReadRepoConfigFile(path.Join(myWorkDirConfig.RepoPath, "config.toml"))
-
+	
 	chunkIDs, chunkPacks := PackFile(filePath, myWorkDirConfig.RepoPath, myRepoConfig.ChunkerPolynomial, verbosity)
 	mySnapshot.ChunkIDs = chunkIDs
 
 	snapshotFolder := path.Join(myWorkDirConfig.RepoPath, "snapshots", myWorkDirConfig.WorkDirName)
-	snapshotBasename := fmt.Sprintf("%s-%s", t.Format("2006-01-02-T15-04-05"), mySnapshot.ID[0:40])
+	snapshotBasename := fmt.Sprintf("%s-%s", t.Format("2006-01-02-T15-04-05"), mySnapshot.ID[0:40])		
 	os.Mkdir(snapshotFolder, 0777)
-	snapshotPath := path.Join(snapshotFolder, snapshotBasename+".json")
+	snapshotPath := path.Join(snapshotFolder, snapshotBasename + ".json")
 	WriteSnapshot(snapshotPath, mySnapshot)
 
 	treeFolder := path.Join(myWorkDirConfig.RepoPath, "trees")
 	treeBasename := mySnapshot.ID[0:40]
 	os.Mkdir(treeFolder, 0777)
-	treePath := path.Join(treeFolder, treeBasename+".json")
+	treePath := path.Join(treeFolder, treeBasename + ".json")
 	WriteTree(treePath, chunkPacks)
 
 	if verbosity >= 1 {
-		fmt.Printf("Created snapshot %s (%s)\n", mySnapshot.ID[0:16], mySnapshot.ID)
-	} else {
-		fmt.Println(mySnapshot.ID)
+		fmt.Printf("Created snapshot %s\n", mySnapshot.ID[0:16])
 	}
+
 	return mySnapshot.ID
 }
 
+
+func UpdateTags(mySnapshot Commit, tagName string) Commit {
+	if len(tagName) > 0 {
+		mySnapshot.Tags = []string{tagName}
+	}
+
+	return mySnapshot
+}
+
+
 func UpdateMessage(mySnapshot Commit, msg string, filePath string) Commit {
 	if len(msg) == 0 {
-		msg = strings.Replace(filePath[0:len(filePath)-4], ".\\", "", -1)
+		msg =  strings.Replace(filePath[0:len(filePath)-4], ".\\", "", -1)
 	}
 
 	mySnapshot.Message = msg
 	return mySnapshot
 }
 
-func ReadTarFileIndex(filePath string, verbosity int) ([]fileInfo, workDirConfig) {
+
+func ReadTarFileIndex(filePath string) ([]fileInfo, workDirConfig) {
 	tarFile, err := os.Open(filePath)
 
 	if err != nil {
 		log.Fatal(fmt.Sprintf("Error: Could not open input tar file %s when reading index", filePath))
 	}
 
-	files, myConfig := ReadTarIndex(tarFile, verbosity)
+	files, myConfig := ReadTarIndex(tarFile)
 	tarFile.Close()
 
 	return files, myConfig
 }
 
-func ReadTarIndex(tarFile *os.File, verbosity int) ([]fileInfo, workDirConfig) {
+
+func ReadTarIndex(tarFile *os.File) ([]fileInfo, workDirConfig) {
 	files := []fileInfo{}
 	var myConfig workDirConfig
 	// var baseFolder string
 	var configPath string
 	maxFiles := 10
 
-	if verbosity >= 1 {
-		fmt.Println("Files:")
-	}
+	fmt.Println("Files:")
+
 
 	// Open and iterate through the files in the archive.
 	tr := tar.NewReader(tarFile)
@@ -132,11 +147,9 @@ func ReadTarIndex(tarFile *os.File, verbosity int) ([]fileInfo, workDirConfig) {
 		// 	// fmt.Printf("Base folder: %s\nConfig path: %s\n", baseFolder, configPath)
 		// }
 
-		if strings.HasSuffix(hdr.Name, ".dupver/config.toml") {
-			if verbosity >= 1 {
-				fmt.Printf("Reading config file %s\n", hdr.Name)
-			}
 
+		if strings.HasSuffix(hdr.Name, ".dupver/config.toml") {
+			fmt.Printf("Reading config file %s\n", hdr.Name)
 			if _, err := toml.DecodeReader(tr, &myConfig); err != nil {
 				panic(fmt.Sprintf("Error decoding repo configuration file %s while reading tar file index", configPath))
 			}
@@ -146,10 +159,10 @@ func ReadTarIndex(tarFile *os.File, verbosity int) ([]fileInfo, workDirConfig) {
 
 		var myFileInfo fileInfo
 
-		bytes := make([]byte, hdr.Size)
+	    bytes := make([]byte, hdr.Size)
 
-		bufr := bufio.NewReader(tr)
-		_, err = bufr.Read(bytes)
+	    bufr := bufio.NewReader(tr)
+	    _, err = bufr.Read(bytes)
 
 		// Name              |   256B | unlimited | unlimited
 		// Linkname          |   100B | unlimited | unlimited
@@ -162,26 +175,28 @@ func ReadTarIndex(tarFile *os.File, verbosity int) ([]fileInfo, workDirConfig) {
 		// ChangeTime        |    n/a | unlimited |     int89
 		// Devmajor/Devminor | uint21 |    uint21 |    uint57
 
-		myFileInfo.Path = hdr.Name
-		myFileInfo.Size = hdr.Size
+	    myFileInfo.Path = hdr.Name
+	    myFileInfo.Size = hdr.Size
 		myFileInfo.Hash = fmt.Sprintf("%02x", sha256.Sum256(bytes))
 		myFileInfo.ModTime = hdr.ModTime.Format("2006/01/02 15:04:05")
 
 		i++
 
-		if i <= maxFiles && verbosity >= 1 {
+		if i <= maxFiles {
 			fmt.Printf("%2d: %s\n", i, hdr.Name)
 		}
 
 		files = append(files, myFileInfo)
 	}
 
-	if i > maxFiles && maxFiles > 0 && verbosity >= 1 {
-		fmt.Printf("...\nSkipping %d more files\n", i-maxFiles)
+	if i > maxFiles && maxFiles > 0 {
+		fmt.Printf("...\nSkipping %d more files\n", i - maxFiles)
 	}
 
+	// fmt.Println(myConfig)
 	return files, myConfig
 }
+
 
 func WriteSnapshot(snapshotPath string, mySnapshot Commit) {
 	f, err := os.Create(snapshotPath)
@@ -194,6 +209,7 @@ func WriteSnapshot(snapshotPath string, mySnapshot Commit) {
 	myEncoder.Encode(mySnapshot)
 	f.Close()
 }
+
 
 func WriteTree(treePath string, chunkPacks map[string]string) {
 	f, err := os.Create(treePath)
@@ -208,33 +224,35 @@ func WriteTree(treePath string, chunkPacks map[string]string) {
 	f.Close()
 }
 
+
 func ReadTrees(repoPath string) map[string]string {
 	treesGlob := path.Join(repoPath, "trees", "*.json")
 	// fmt.Println(treesGlob)
 	treePaths, err := filepath.Glob(treesGlob)
-
+	
 	if err != nil {
 		panic(fmt.Sprintf("Error reading trees %s", treesGlob))
 	}
 
-	chunkPacks := make(map[string]string)
+	chunkPacks := make(map[string]string)	
 
+	
 	for _, treePath := range treePaths {
-		treePacks := make(map[string]string)
-
+		treePacks := make(map[string]string)	
+		
 		f, err := os.Open(treePath)
 
 		if err != nil {
 			panic(fmt.Sprintf("Error: could not read tree file %s", treePath))
 		}
-
+	
 		myDecoder := json.NewDecoder(f)
-
+	
 		if err := myDecoder.Decode(&treePacks); err != nil {
 			panic(fmt.Sprintf("Error: could not decode tree file %s", treePath))
-		}
+		}	
 
-		// TODO: handle supersedes to allow repacking files
+		// TODO: handle supersedes to allow repacking files			
 		for k, v := range treePacks {
 			chunkPacks[k] = v
 		}
@@ -245,12 +263,13 @@ func ReadTrees(repoPath string) map[string]string {
 	return chunkPacks
 }
 
+
 func ReadSnapshot(snapshot string, cfg workDirConfig) Commit {
 	snapshotPaths := ListSnapshots(cfg)
 
 	for _, snapshotPath := range snapshotPaths {
 		n := len(snapshotPath)
-		snapshotId := snapshotPath[n-SNAPSHOT_ID_LEN-5 : n-5]
+		snapshotId := snapshotPath[n-SNAPSHOT_ID_LEN-5:n-5]
 
 		if snapshotId[0:len(snapshot)] == snapshot {
 			return ReadSnapshotFile(snapshotPath)
@@ -261,7 +280,8 @@ func ReadSnapshot(snapshot string, cfg workDirConfig) Commit {
 	return Commit{}
 }
 
-func ReadSnapshotFile(snapshotPath string) Commit {
+
+func ReadSnapshotFile(snapshotPath string) (Commit) {
 	var mySnapshot Commit
 	f, err := os.Open(snapshotPath)
 
@@ -271,9 +291,10 @@ func ReadSnapshotFile(snapshotPath string) Commit {
 
 	myDecoder := json.NewDecoder(f)
 
+
 	if err := myDecoder.Decode(&mySnapshot); err != nil {
 		panic(fmt.Sprintf("Error:could not decode snapshot file %s", snapshotPath))
-	}
+	}	
 
 	f.Close()
 	return mySnapshot
@@ -284,19 +305,20 @@ func ReadSnapshotId(snapshotId string, cfg workDirConfig) (Commit, error) {
 
 	for _, snapshotPath := range snapshotPaths {
 		n := len(snapshotPath)
-		sid := snapshotPath[n-SNAPSHOT_ID_LEN-5 : n-5]
-
+		sid := snapshotPath[n-SNAPSHOT_ID_LEN-5:n-5]
+	
 		if sid[0:8] == snapshotId {
 			return ReadSnapshotFile(snapshotPath), nil
 		}
-	}
+	}	
 
 	return Commit{}, errors.New(fmt.Sprintf("Could not find snapshot %s", snapshotId))
 }
 
+
 func GetRevIndex(revision int, numCommits int) int {
 	revIndex := numCommits - 1
-
+	
 	if revision > 0 {
 		revIndex = revision - 1
 	} else if revision < 0 {
@@ -318,58 +340,57 @@ func ListSnapshots(cfg workDirConfig) []string {
 	return snapshotPaths
 }
 
-func PrintSnapshots(cfg workDirConfig, snapshot string, verbosity int) {
-	// fmt.Printf("Verbosity = %d\n", verbosity)
-	snapshotPaths := ListSnapshots(cfg)
+func PrintSnapshots(snapshotPaths[] string, snapshot string) {
 	// print a specific revision
 	if len(snapshot) == 0 {
-		if verbosity >= 1 {
-			fmt.Println("Snapshot History")
-		}
+		fmt.Printf("Snapshot History\n")
 
 		for _, snapshotPath := range snapshotPaths {
 			// fmt.Printf("Path: %s\n", snapshotPath)
-			PrintSnapshot(ReadSnapshotFile(snapshotPath), 10, verbosity)
-		}
+			PrintSnapshot(ReadSnapshotFile(snapshotPath), 10)
+		}			
 	} else {
-		if verbosity >= 1 {
-			fmt.Println("Snapshot")
-		}
+		fmt.Println("Snapshot")
 
 		for _, snapshotPath := range snapshotPaths {
 			n := len(snapshotPath)
-			snapshotId := snapshotPath[n-SNAPSHOT_ID_LEN-5 : n-5]
-
+			snapshotId := snapshotPath[n-SNAPSHOT_ID_LEN-5:n-5]
+		
 			if snapshotId[0:8] == snapshot {
-				PrintSnapshot(ReadSnapshotFile(snapshotPath), 0, verbosity)
+				PrintSnapshot(ReadSnapshotFile(snapshotPath), 0)
 			}
-		}
+		}	
 	}
 }
 
-func PrintSnapshot(mySnapshot Commit, maxFiles int, verbosity int) {
-	if verbosity <= 0 {
-		fmt.Printf("%s\n", mySnapshot.ID)
-		return
-	}
 
+
+func PrintSnapshot(mySnapshot Commit, maxFiles int) {			
 	fmt.Printf("Time: %s\n", mySnapshot.Time)
-	fmt.Printf("ID: %s (%s)\n", mySnapshot.ID[0:8], mySnapshot.ID)
+	fmt.Printf("ID: %s\n", mySnapshot.ID[0:8])
 
 	if len(mySnapshot.Message) > 0 {
 		fmt.Printf("Message: %s\n", mySnapshot.Message)
 	}
 
+	if len(mySnapshot.Tags) > 0 {
+		fmt.Printf("Tags:\n")
+		for _,  tag := range mySnapshot.Tags {
+			fmt.Printf("  %s\n", tag)
+		}
+	}
+
 	fmt.Printf("Files:\n")
 	for i, file := range mySnapshot.Files {
-		fmt.Printf("  %d: %s\n", i+1, file.Path)
+		fmt.Printf("  %d: %s\n", i + 1, file.Path)
 
 		if i > maxFiles && maxFiles > 0 {
-			fmt.Printf("  ...\n  Skipping %d more files\n", len(mySnapshot.Files)-maxFiles)
+			fmt.Printf("  ...\n  Skipping %d more files\n", len(mySnapshot.Files) - maxFiles)
 			break
 		}
 	}
 }
+
 
 func WorkDirStatus(workDir string, snapshot Commit, verbosity int) {
 	workDirPrefix := ""
@@ -382,23 +403,24 @@ func WorkDirStatus(workDir string, snapshot Commit, verbosity int) {
 			panic(err)
 		}
 
-		workDirPrefix = filepath.Clean(filepath.Base(cwd))
+		workDirPrefix = path.Base(cwd)
 	}
 
 	if verbosity >= 2 {
 		fmt.Printf("Comparing changes for wd \"%s\" (prefix: \"%s\"\n", workDir, workDirPrefix)
 	}
+	
 
-	const colorReset string = "\033[0m"
-	const colorRed string = "\033[31m"
-	const colorGreen string = "\033[32m"
-	const colorYellow string = "\033[33m"
-	const colorBlue string = "\033[34m"
-	const colorPurple string = "\033[35m"
-	const colorCyan string = "\033[36m"
-	const colorWhite string = "\033[37m"
+    const colorReset string = "\033[0m"
+    const colorRed string = "\033[31m"
+    const colorGreen string = "\033[32m"
+    const colorYellow string = "\033[33m"
+    const colorBlue string = "\033[34m"
+    const colorPurple string = "\033[35m"
+    const colorCyan string = "\033[36m"
+    const colorWhite string = "\033[37m"
 
-	myFileInfo := make(map[string]fileInfo)
+	myFileInfo := make(map[string]fileInfo)	
 	deletedFiles := make(map[string]bool)
 	changes := false
 
@@ -406,6 +428,8 @@ func WorkDirStatus(workDir string, snapshot Commit, verbosity int) {
 		myFileInfo[fi.Path] = fi
 		deletedFiles[fi.Path] = true
 	}
+
+	
 
 	var CompareAgainstSnapshot = func(curPath string, info os.FileInfo, err error) error {
 		// fmt.Printf("Comparing path %s\n", path)
@@ -429,7 +453,7 @@ func WorkDirStatus(workDir string, snapshot Commit, verbosity int) {
 			if snapshotInfo.ModTime != info.ModTime().Format("2006/01/02 15:04:05") {
 				if !info.IsDir() {
 					fmt.Printf("%sM %s%s\n", colorCyan, curPath, colorReset)
-					// fmt.Printf("M %s\n", curPath)
+					// fmt.Printf("M %s\n", curPath)					
 					changes = true
 				}
 			} else if verbosity >= 2 {
@@ -440,15 +464,18 @@ func WorkDirStatus(workDir string, snapshot Commit, verbosity int) {
 			changes = true
 		}
 
+		
 		return nil
 	}
+
+
 
 	// fmt.Printf("No changes detected in %s for commit %s\n", workDir, snapshot.ID)
 
 	filepath.Walk(workDir, CompareAgainstSnapshot)
 
 	for file, deleted := range deletedFiles {
-		if strings.HasPrefix(filepath.Clean(filepath.Base(file)), "._") {
+		if strings.HasPrefix(path.Base(file), "._") {
 			continue
 		}
 
@@ -460,5 +487,5 @@ func WorkDirStatus(workDir string, snapshot Commit, verbosity int) {
 
 	if !changes && verbosity >= 1 {
 		fmt.Printf("No changes detected\n")
-	}
+	}	
 }
