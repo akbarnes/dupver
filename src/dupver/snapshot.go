@@ -55,7 +55,11 @@ func CommitFile(filePath string, msg string, verbosity int) string {
 	// mySnapshot = UpdateTags(mySnapshot, tagName)
 	mySnapshot = UpdateMessage(mySnapshot, msg, filePath)		
 	mySnapshot.Files, myWorkDirConfig = ReadTarFileIndex(filePath)
-	fmt.Printf("Repo config: %s\n", myWorkDirConfig.RepoPath)
+
+	if verbosity >= 2 {
+		fmt.Printf("Repo config: %s\n", myWorkDirConfig.RepoPath)
+	}
+
 	myRepoConfig := ReadRepoConfigFile(path.Join(myWorkDirConfig.RepoPath, "config.toml"))
 	
 	chunkIDs, chunkPacks := PackFile(filePath, myWorkDirConfig.RepoPath, myRepoConfig.ChunkerPolynomial, verbosity)
@@ -189,6 +193,7 @@ func ReadTarIndex(tarFile *os.File) ([]fileInfo, workDirConfig) {
 		fmt.Printf("...\nSkipping %d more files\n", i - maxFiles)
 	}
 
+	// fmt.Println(myConfig)
 	return files, myConfig
 }
 
