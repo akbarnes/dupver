@@ -57,6 +57,10 @@ to quickly create a Cobra application.`,
 
 		if len(snapshotId) == 0 {
 			snapshotPaths := dupver.ListSnapshots(cfg)
+
+			if len(snapshotPaths) == 0 {
+				log.Fatal("Nothing to compare against, no commits yet")
+			}
 			mySnapshot = dupver.ReadSnapshotFile(snapshotPaths[len(snapshotPaths)-1])
 		} else {
 			var err error

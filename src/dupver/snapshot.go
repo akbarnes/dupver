@@ -24,10 +24,7 @@ type Commit struct {
 	Message     string
 	Time        string
 	Files       []fileInfo
-	// ChunkPacks map[string]string
-	ChunkIDs []string
-	// PackIndexes []packIndex
-	Tags []string
+	ChunkIDs    []string
 }
 
 type fileInfo struct {
@@ -51,7 +48,6 @@ func CommitFile(filePath string, msg string, verbosity int) string {
 	mySnapshot.ID = RandHexString(SNAPSHOT_ID_LEN)
 	mySnapshot.Time = t.Format("2006/01/02 15:04:05")
 	mySnapshot.TarFileName = filePath
-	// mySnapshot = UpdateTags(mySnapshot, tagName)
 	mySnapshot = UpdateMessage(mySnapshot, msg, filePath)
 	mySnapshot.Files, myWorkDirConfig = ReadTarFileIndex(filePath, verbosity)
 
@@ -82,14 +78,6 @@ func CommitFile(filePath string, msg string, verbosity int) string {
 		fmt.Println(mySnapshot.ID)
 	}
 	return mySnapshot.ID
-}
-
-func UpdateTags(mySnapshot Commit, tagName string) Commit {
-	if len(tagName) > 0 {
-		mySnapshot.Tags = []string{tagName}
-	}
-
-	return mySnapshot
 }
 
 func UpdateMessage(mySnapshot Commit, msg string, filePath string) Commit {
@@ -370,13 +358,6 @@ func PrintSnapshot(mySnapshot Commit, maxFiles int, verbosity int) {
 
 	if len(mySnapshot.Message) > 0 {
 		fmt.Printf("Message: %s\n", mySnapshot.Message)
-	}
-
-	if len(mySnapshot.Tags) > 0 {
-		fmt.Printf("Tags:\n")
-		for _, tag := range mySnapshot.Tags {
-			fmt.Printf("  %s\n", tag)
-		}
 	}
 
 	fmt.Printf("Files:\n")
