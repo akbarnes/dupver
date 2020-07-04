@@ -337,6 +337,10 @@ func PrintSnapshots(cfg workDirConfig, snapshot string, verbosity int) {
 		}
 
 		for _, snapshotPath := range snapshotPaths {
+			// if i >= 1 {
+			// 	fmt.Println("\n")
+			// }
+
 			n := len(snapshotPath)
 			snapshotId := snapshotPath[n-SNAPSHOT_ID_LEN-5 : n-5]
 
@@ -360,15 +364,17 @@ func PrintSnapshot(mySnapshot Commit, maxFiles int, verbosity int) {
 		fmt.Printf("Message: %s\n", mySnapshot.Message)
 	}
 
-	fmt.Printf("Files:\n")
-	for i, file := range mySnapshot.Files {
-		fmt.Printf("  %d: %s\n", i+1, file.Path)
+	fmt.Printf("\n")
 
-		if i > maxFiles && maxFiles > 0 {
-			fmt.Printf("  ...\n  Skipping %d more files\n", len(mySnapshot.Files)-maxFiles)
-			break
-		}
-	}
+	// fmt.Printf("Files:\n")
+	// for i, file := range mySnapshot.Files {
+	// 	fmt.Printf("  %d: %s\n", i+1, file.Path)
+
+	// 	if i > maxFiles && maxFiles > 0 {
+	// 		fmt.Printf("  ...\n  Skipping %d more files\n", len(mySnapshot.Files)-maxFiles)
+	// 		break
+	// 	}
+	// }
 }
 
 func WorkDirStatus(workDir string, snapshot Commit, verbosity int) {
@@ -382,7 +388,7 @@ func WorkDirStatus(workDir string, snapshot Commit, verbosity int) {
 			panic(err)
 		}
 
-		workDirPrefix = filepath.Clean(filepath.Base(cwd))
+		workDirPrefix = filepath.Base(cwd)
 	}
 
 	if verbosity >= 2 {
@@ -448,7 +454,7 @@ func WorkDirStatus(workDir string, snapshot Commit, verbosity int) {
 	filepath.Walk(workDir, CompareAgainstSnapshot)
 
 	for file, deleted := range deletedFiles {
-		if strings.HasPrefix(filepath.Clean(filepath.Base(file)), "._") {
+		if strings.HasPrefix(filepath.Base(file), "._") {
 			continue
 		}
 

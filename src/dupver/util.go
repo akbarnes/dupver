@@ -120,7 +120,7 @@ func WriteRandomTar(buf *os.File, workDirFolder string, repoPath string) {
 		configPath = path.Join(workDirFolder, ".dupver", "config.toml")
 	}
 
-	workDirName := strings.ToLower(filepath.Clean(filepath.Base(workDirFolder)))
+	workDirName := strings.ToLower(filepath.Base(workDirFolder))
 
 	if len(repoPath) == 0 {
 		repoPath = path.Join(GetHome(), ".dupver_repo")

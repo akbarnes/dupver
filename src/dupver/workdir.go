@@ -52,7 +52,7 @@ func InitWorkDir(workDirFolder string, workDirName string, repoPath string, verb
 				log.Fatal(err)
 			}
 			// _, folder := path.Split(dir)
-			folder := filepath.Clean(filepath.Base(dir))
+			folder := filepath.Base(dir)
 			fmt.Printf("%s -> %s\n", dir, folder)
 			workDirName = FolderToWorkDirName(folder)
 		} else {

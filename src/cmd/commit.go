@@ -27,8 +27,13 @@ POSSIBILITY OF SUCH DAMAGE.
 package cmd
 
 import (
-	// "fmt"
+	"fmt"
 	"log"
+	"path"
+	"path/filepath"
+	"strings"
+	"os"
+	"os/exec"
 
 	"github.com/akbarnes/dupver/src/dupver"
 	"github.com/spf13/cobra"
@@ -36,14 +41,41 @@ import (
 
 var Message string
 
-func CompressTar(commitPath string, tarPath string) {
+func CreateTar(parentPath string, commitPath string, verbosity int) string {
+	tarFile := dupver.RandHexString(40) + ".tar"
+	tarFolder := path.Join(dupver.GetHome(), "temp")
+	tarPath := path.Join(tarFolder, tarFile)
+
+	// InitRepo(workDir)
+	if verbosity >= 1 {
+		fmt.Printf("Tar path: %s\n", tarPath)
+		fmt.Printf("Creating folder %s\n", tarFolder)
+	}
+
+	os.Mkdir(tarFolder, 0777)	
+
+	CompressTar(parentPath, commitPath, tarPath)
+	return tarPath
+}
+
+func CompressTar(parentPath string, commitPath string, tarPath string) string {
 	if len(tarPath) == 0 {
 		tarPath = commitPath + ".tar"
 	}
 
-	cmd := exec.Command("diff", fileName, outputFileName)
-	log.Printf("Running command and waiting for it to finish...")
-	output, err := cmd.Output()	
+	cleanCommitPath := filepath.Clean(commitPath)
+
+	tarCmd := exec.Command("tar", "cfv", tarPath, cleanCommitPath)
+	tarCmd.Dir = parentPath
+	log.Printf("Running tar cfv %s %s", tarPath, cleanCommitPath)
+	output, err := tarCmd.CombinedOutput()	
+
+	if err != nil {
+		log.Fatal(fmt.Sprintf("Tar command failed\nOutput:\n%s\nError:\n%s\n", output, err))	
+	} else {
+		fmt.Printf("Ran tar command with output:\n%s\n", output)
+	}
+
 	return tarPath
 }
 
@@ -65,12 +97,39 @@ to quickly create a Cobra application.`,
 			tarFile := commitFile
 
 			if !strings.HasSuffix(commitFile, "tar") {
-				tarFile = CompressTar(commitFile, "")
+				containingFolder := filepath.Dir(commitFile)
+				fmt.Printf("%s -> %s, %s\n", commitFile, containingFolder, commitFile)
+				tarFile = CreateTar(containingFolder, commitFile, verbosity)
+
+				if len(Message) == 0 {
+					Message = filepath.Base(commitFile)
+
+					if verbosity >= 1 {
+						fmt.Printf("Message not specified, setting to: %s\n", Message)
+					}
+				}
 			}
 
 			dupver.CommitFile(tarFile, Message, verbosity)
 		} else {
-			tarFile = CompressTar(commitFile, "")
+			dir, err := os.Getwd()
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			containingFolder := filepath.Dir(dir)
+			workdirFolder := filepath.Base(dir)
+			fmt.Printf("%s -> %s, %s\n", dir, containingFolder, workdirFolder)
+
+			if len(Message) == 0 {
+				Message = workdirFolder
+
+				if verbosity >= 1 {
+					fmt.Printf("Message not specified, setting to: %s\n", Message)
+				}				
+			}
+
+			tarFile := CreateTar(containingFolder, workdirFolder, verbosity)
 			dupver.CommitFile(tarFile, Message, verbosity)			
 		}
 	},
