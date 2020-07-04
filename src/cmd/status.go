@@ -67,14 +67,7 @@ to quickly create a Cobra application.`,
 			}
 		}
 
-		verbosity := 1
-
-		if Verbose {
-			verbosity = 2
-		} else if Quiet {
-			verbosity = 0
-		}
-
+		verbosity := dupver.SetVerbosity(Verbose, Quiet)
 		dupver.WorkDirStatus(WorkDirPath, mySnapshot, verbosity)
 	},
 }

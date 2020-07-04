@@ -52,7 +52,8 @@ to quickly create a Cobra application.`,
 
 		cfg := dupver.ReadWorkDirConfig(WorkDirPath)
 		cfg = dupver.UpdateRepoPath(cfg, RepoPath)
-		dupver.PrintSnapshots(dupver.ListSnapshots(cfg), snapshotId)
+		verbosity := dupver.SetVerbosity(Verbose, Quiet)
+		dupver.PrintSnapshots(cfg, snapshotId, verbosity)
 	},
 }
 

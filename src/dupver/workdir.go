@@ -23,16 +23,23 @@ func FolderToWorkDirName(folder string) string {
 	return strings.ReplaceAll(strings.ToLower(folder), " ", "-")
 }
 
-func InitWorkDir(workDirFolder string, workDirName string, repoPath string) {
+func InitWorkDir(workDirFolder string, workDirName string, repoPath string, verbosity int) {
 	var configPath string
-	fmt.Printf("Workdir %s, name %s, repo %s\n", workDirFolder, workDirName, repoPath)
+
+	if verbosity >= 2 {
+		fmt.Printf("Workdir %s, name %s, repo %s\n", workDirFolder, workDirName, repoPath)
+	}
 
 	if len(workDirFolder) == 0 {
-		fmt.Printf("Creating folder %s\n", ".dupver")
+		if verbosity >= 1 {
+			fmt.Printf("Creating folder %s\n", ".dupver")
+		}
 		os.Mkdir(".dupver", 0777)
 		configPath = path.Join(".dupver", "config.toml")
 	} else {
-		fmt.Printf("Creating folder %s\n", path.Join(workDirFolder, ".dupver"))
+		if verbosity >= 1 {
+			fmt.Printf("Creating folder %s\n", path.Join(workDirFolder, ".dupver"))
+		}
 		os.MkdirAll(path.Join(workDirFolder, ".dupver"), 0777)
 		configPath = path.Join(workDirFolder, ".dupver", "config.toml")
 	}
@@ -50,12 +57,21 @@ func InitWorkDir(workDirFolder string, workDirName string, repoPath string) {
 			workDirName = FolderToWorkDirName(workDirFolder)
 		}
 
-		fmt.Printf("Workdir name not specified, setting to %s\n", workDirName)
+		if verbosity >= 1 {
+			fmt.Printf("Workdir name not specified, setting to %s\n", workDirName)
+		}
 	}
 
 	if len(repoPath) == 0 {
 		repoPath = path.Join(GetHome(), ".dupver_repo")
-		fmt.Printf("Repo path not specified, setting to %s\n", repoPath)
+
+		if verbosity >= 1 {
+			fmt.Printf("Repo path not specified, setting to %s\n", repoPath)
+		}
+	}
+
+	if verbosity == 0 {
+		fmt.Println(workDirName)
 	}
 
 	var myConfig workDirConfig
