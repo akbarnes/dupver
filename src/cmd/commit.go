@@ -36,6 +36,17 @@ import (
 
 var Message string
 
+func CompressTar(commitPath string, tarPath string) {
+	if len(tarPath) == 0 {
+		tarPath = commitPath + ".tar"
+	}
+
+	cmd := exec.Command("diff", fileName, outputFileName)
+	log.Printf("Running command and waiting for it to finish...")
+	output, err := cmd.Output()	
+	return tarPath
+}
+
 // commitCmd represents the commit command
 var commitCmd = &cobra.Command{
 	Use:   "commit",
@@ -51,9 +62,16 @@ to quickly create a Cobra application.`,
 
 		if len(args) >= 1 {
 			commitFile := args[0]
-			dupver.CommitFile(commitFile, Message, verbosity)
+			tarFile := commitFile
+
+			if !strings.HasSuffix(commitFile, "tar") {
+				tarFile = CompressTar(commitFile, "")
+			}
+
+			dupver.CommitFile(tarFile, Message, verbosity)
 		} else {
-			log.Fatal("Input file name is required")
+			tarFile = CompressTar(commitFile, "")
+			dupver.CommitFile(tarFile, Message, verbosity)			
 		}
 	},
 }
