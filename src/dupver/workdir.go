@@ -3,6 +3,7 @@ package dupver
 import (
 	"fmt"
 	"log"
+	"path/filepath"
 
 	// "bufio"
 	// "io"
@@ -51,10 +52,15 @@ func InitWorkDir(workDirFolder string, workDirName string, repoPath string, verb
 				log.Fatal(err)
 			}
 			// _, folder := path.Split(dir)
-			folder := path.Base(dir)
+			folder := filepath.Clean(filepath.Base(dir))
+			fmt.Printf("%s -> %s\n", dir, folder)
 			workDirName = FolderToWorkDirName(folder)
 		} else {
 			workDirName = FolderToWorkDirName(workDirFolder)
+		}
+
+		if workDirName == "." || workDirName == fmt.Sprintf("%c", filepath.Separator) {
+			log.Fatal("Invalid project name: " + workDirName)
 		}
 
 		if verbosity >= 1 {
