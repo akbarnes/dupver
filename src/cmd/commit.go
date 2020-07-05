@@ -29,7 +29,7 @@ package cmd
 import (
 	"fmt"
 	"log"
-	"path"
+	// "path"
 	"path/filepath"
 	"strings"
 	"os"
@@ -113,7 +113,7 @@ to quickly create a Cobra application.`,
 			}
 
 			myHead := dupver.CommitFile(tarFile, parentIds, Message, verbosity)
-			headPath := filefilepath.Join(containingFolder, ".dupver", "head.json")
+			headPath := filepath.Join(containingFolder, ".dupver", "head.json")
 			dupver.WriteHead(headPath, myHead, verbosity)
 		} else {
 			dir, err := os.Getwd()
@@ -136,7 +136,7 @@ to quickly create a Cobra application.`,
 
 			tarFile := CreateTar(containingFolder, workdirFolder, verbosity)
 			myHead := dupver.CommitFile(tarFile, parentIds, Message, verbosity)	
-			headPath := filefilepath.Join(".dupver", "head.json")
+			headPath := filepath.Join(".dupver", "head.json")
 			dupver.WriteHead(headPath, myHead, verbosity)
 		}
 	},

@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"path"
+	// "path/filepath"
 
 	"github.com/BurntSushi/toml"
 	"github.com/restic/chunker"

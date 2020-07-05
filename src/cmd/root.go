@@ -30,7 +30,7 @@ import (
 	"fmt"
 	"github.com/spf13/cobra"
 	"os"
-	"path"
+	"path/filepath"
 
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/viper"
