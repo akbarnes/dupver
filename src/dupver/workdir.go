@@ -215,22 +215,23 @@ func WorkDirStatus(workDir string, snapshot Commit, verbosity int) {
 }
 
 
-func ReadTarFileIndex(filePath string, verbosity int) ([]fileInfo, workDirConfig) {
+func ReadTarFileIndex(filePath string, verbosity int) ([]fileInfo, workDirConfig, Head) {
 	tarFile, err := os.Open(filePath)
 
 	if err != nil {
 		log.Fatal(fmt.Sprintf("Error: Could not open input tar file %s when reading index", filePath))
 	}
 
-	files, myConfig := ReadTarIndex(tarFile, verbosity)
+	files, myConfig, myHead := ReadTarIndex(tarFile, verbosity)
 	tarFile.Close()
 
-	return files, myConfig
+	return files, myConfig, myHead
 }
 
-func ReadTarIndex(tarFile *os.File, verbosity int) ([]fileInfo, workDirConfig) {
+func ReadTarIndex(tarFile *os.File, verbosity int) ([]fileInfo, workDirConfig, Head) {
 	files := []fileInfo{}
 	var myConfig workDirConfig
+	var myHead Head
 	// var baseFolder string
 	var configPath string
 	maxFiles := 10
@@ -264,11 +265,23 @@ func ReadTarIndex(tarFile *os.File, verbosity int) ([]fileInfo, workDirConfig) {
 			}
 
 			if _, err := toml.DecodeReader(tr, &myConfig); err != nil {
-				panic(fmt.Sprintf("Error decoding repo configuration file %s while reading tar file index", configPath))
+				panic(fmt.Sprintf("Error decoding repo configuration file %s while reading tar file index", hdr.Name))
 			}
 
 			// fmt.Printf("Read config\nworkdir name: %s\nrepo path: %s\n", myConfig.WorkDirName, myConfig.RepoPath)
 		}
+
+		if strings.HasSuffix(hdr.Name, ".dupver/head.json") {
+			if verbosity >= 1 {
+				fmt.Printf("Reading head file %s\n", hdr.Name)
+			}
+
+			if _, err := json.DecodeReader(tr, &myHead); err != nil {
+				panic(fmt.Sprintf("Error decoding head file %s while reading tar file index", hdr.Name))
+			}
+
+			// fmt.Printf("Read config\nworkdir name: %s\nrepo path: %s\n", myConfig.WorkDirName, myConfig.RepoPath)
+		}		
 
 		var myFileInfo fileInfo
 

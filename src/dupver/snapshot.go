@@ -49,10 +49,11 @@ func CommitFile(filePath string, parentIds []string, msg string, verbosity int) 
 	t := time.Now()
 
 	var mySnapshot Commit
+	var myHead Head
 	mySnapshot.ID = RandHexString(SNAPSHOT_ID_LEN)
 	mySnapshot.Time = t.Format("2006/01/02 15:04:05")
 	mySnapshot = UpdateMessage(mySnapshot, msg, filePath)
-	mySnapshot.Files, myWorkDirConfig = ReadTarFileIndex(filePath, verbosity)
+	mySnapshot.Files, myWorkDirConfig, myHead = ReadTarFileIndex(filePath, verbosity)
 
 	if verbosity >= 2 {
 		fmt.Printf("Repo config: %s\n", myWorkDirConfig.RepoPath)
@@ -60,22 +61,20 @@ func CommitFile(filePath string, parentIds []string, msg string, verbosity int) 
 
 	myRepoConfig := ReadRepoConfigFile(path.Join(myWorkDirConfig.RepoPath, "config.toml"))
 	
-	branchFolder := path.Join(myWorkDirConfig.RepoPath, "branches", myWorkDirConfig.WorkDirName)
-	headPath := path.Join(branchFolder, "head.json")	
-	myHead := ReadHead(headPath)
 
 	if len(myHead.BranchName) == 0 {
 		myHead.BranchName = "main"
 	}
 
-
-
+	branchFolder := path.Join(myWorkDirConfig.RepoPath, "branches", myWorkDirConfig.WorkDirName)
 	branchPath := path.Join(branchFolder, myHead.BranchName + ".json")	
 	myBranch := ReadBranch(branchPath)
 
 	if verbosity >= 1 {
 		fmt.Printf("Branch: %s\nParent commit: %s\n", myHead.BranchName, myBranch.CommitID)
 	}	
+
+	headPath := path.Join(".dupver", "head.json")
 
 	mySnapshot.ParentIDs = append([]string{myHead.CommitID}, parentIds...)
 
