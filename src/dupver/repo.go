@@ -21,17 +21,12 @@ func InitRepo(repoPath string, verbosity int) {
 		fmt.Printf("Repo path not specified, setting to %s\n", repoPath)
 	}
 
-	// InitRepo(workDir)
-	if verbosity >= 1 {
-		fmt.Printf("Creating folder %s\n", repoPath)
-	}
-	os.Mkdir(repoPath, 0777)
+	CreateFolder(repoPath, verbosity)
+	CreateSubFolder(repoPath, "branches", verbosity)
+	CreateSubFolder(repoPath, "snapshots", verbosity)
+	CreateSubFolder(repoPath, "trees", verbosity)
+	CreateSubFolder(repoPath, "packs", verbosity)
 
-	packPath := path.Join(repoPath, "packs")
-	if verbosity >= 1 {
-		fmt.Printf("Creating folder %s\n", packPath)
-	}
-	os.Mkdir(packPath, 0777)
 
 	snapshotsPath := path.Join(repoPath, "snapshots")
 	if verbosity >= 1 {

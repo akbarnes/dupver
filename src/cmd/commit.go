@@ -40,6 +40,7 @@ import (
 )
 
 var Message string
+var ParentCommitIds string
 
 func CreateTar(parentPath string, commitPath string, verbosity int) string {
 	tarFile := dupver.RandHexString(40) + ".tar"
@@ -91,6 +92,7 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		verbosity := dupver.SetVerbosity(Verbose, Quiet)
+		parentIds := strings.Split(ParentCommitIds, ",")
 
 		if len(args) >= 1 {
 			commitFile := args[0]
@@ -110,7 +112,7 @@ to quickly create a Cobra application.`,
 				}
 			}
 
-			dupver.CommitFile(tarFile, Message, verbosity)
+			dupver.CommitFile(tarFile, parentIds, Message, verbosity)
 		} else {
 			dir, err := os.Getwd()
 			if err != nil {
@@ -129,8 +131,9 @@ to quickly create a Cobra application.`,
 				}				
 			}
 
+
 			tarFile := CreateTar(containingFolder, workdirFolder, verbosity)
-			dupver.CommitFile(tarFile, Message, verbosity)			
+			dupver.CommitFile(tarFile, parentIds, Message, verbosity)			
 		}
 	},
 }
@@ -148,4 +151,5 @@ func init() {
 	// is called directly, e.g.:
 	// commitCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 	commitCmd.Flags().StringVarP(&Message, "message", "m", "", "Commit message")
+	commitCmd.Flags().StringVarP(&ParentCommitIds, "parent", "p", "", "Comma separated list of parent commit ID(s)")
 }

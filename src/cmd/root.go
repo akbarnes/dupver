@@ -41,6 +41,7 @@ var RepoPath string
 var WorkDirPath string
 var Verbose bool
 var Quiet bool
+var Monochrome bool
 
 
 // rootCmd represents the base command when called without any subcommands
@@ -79,6 +80,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVarP(&WorkDirPath, "workdir-path", "d", "", "project working directory path")
 	rootCmd.PersistentFlags().BoolVarP(&Verbose, "verbose", "v", false, "verbose output")
 	rootCmd.PersistentFlags().BoolVarP(&Quiet, "quiet", "q", false, "quiet output")		
+	rootCmd.PersistentFlags().BoolVarP(&Monochrome, "monochrome", "M", false, "monochrome output")		
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.

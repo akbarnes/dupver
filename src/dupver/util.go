@@ -40,6 +40,19 @@ func SetVerbosity(verbose bool, quiet bool) int {
 	return 1
 }
 
+func CreateFolder(folderName string, verbosity int) {
+	if verbosity >= 1 {
+		fmt.Printf("Creating folder %s\n", folderName)
+	}
+	os.MkdirAll(folderName, 0777)		
+}
+
+func CreateSubFolder(parentFolder string, subFolder string, verbosity int) {
+	folderPath := path.Join(parentFolder, subFolder)
+	CreateFolder(folderPath, verbosity)
+}
+
+
 func GetHome() string {
 	for _, e := range os.Environ() {
 		pair := strings.SplitN(e, "=", 2)
