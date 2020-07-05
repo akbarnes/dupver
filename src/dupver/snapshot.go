@@ -13,13 +13,18 @@ import (
 	)
 
 type Commit struct {
-	TarFileName string
+	// TarFileName string
 	ID          string
 	Message     string
 	Time        string
 	ParentIDs   []string
 	Files       []fileInfo
 	ChunkIDs    []string
+}
+
+type Head struct {
+	BranchName string
+	CommitID string // use this for detached head, but do I need this?
 }
 
 type Branch struct {
@@ -65,8 +70,12 @@ func CommitFile(filePath string, parentIds []string, msg string, verbosity int) 
 	snapshotPath := path.Join(snapshotFolder, snapshotBasename + ".json")
 	WriteSnapshot(snapshotPath, mySnapshot)
 
+	headFolder := path.Join(myWorkDirConfig.RepoPath, "branches", myWorkDirConfig.WorkDirName)
+	headPath := path.Join(headFolder, "head.json")
+	WriteHead(headPath, "head", mySnapshot.ID)	
+
 	branchFolder := path.Join(myWorkDirConfig.RepoPath, "branches", myWorkDirConfig.WorkDirName)
-	branchPath := path.Join(branchFolder,  "head.json")
+	branchPath := path.Join(branchFolder,  "main.json")
 	WriteBranch(branchPath, mySnapshot.ID)
 
 	treeFolder := path.Join(myWorkDirConfig.RepoPath, "trees")
@@ -102,6 +111,20 @@ func WriteSnapshot(snapshotPath string, mySnapshot Commit) {
 	myEncoder := json.NewEncoder(f)
 	myEncoder.SetIndent("", "  ")
 	myEncoder.Encode(mySnapshot)
+	f.Close()
+}
+
+func WriteHead(headPath string, branchName string, commitId string) {
+	myHead := Head{BranchName: branchName, CommitID: commitId}
+
+	f, err := os.Create(headPath)
+
+	if err != nil {
+		panic(fmt.Sprintf("Error: Could not create head file %s", headPath))
+	}
+	myEncoder := json.NewEncoder(f)
+	myEncoder.SetIndent("", "  ")
+	myEncoder.Encode(myHead)
 	f.Close()
 }
 
