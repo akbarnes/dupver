@@ -23,7 +23,9 @@ a few GB, but it is expected to scale up to the low 100's of GB.
 
 ## TODO
 - [ ] check that branch cannot be called head. this check may not be needed anymore
-- [ ] fix writing head from outside of wd
+- [x] fix writing head from outside of wd
+- [ ] remove auto-generated tar files after chunking
+- [ ] use toml for heads and branches?
 
 ## Usage
 
