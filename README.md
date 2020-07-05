@@ -21,6 +21,9 @@ a few GB, but it is expected to scale up to the low 100's of GB.
 ## Setup
 [Binary releases](https://github.com/akbarnes/dupver/releases) are provided for MacOS/Linux/Windows. Copy them somewhere in your path. To build from source run `go build` or `go install`.
 
+## TODO
+- [ ] check that branch cannot be called head
+
 ## Usage
 
 ### Initialize repository

@@ -51,7 +51,6 @@ func CommitFile(filePath string, parentIds []string, msg string, verbosity int) 
 	var mySnapshot Commit
 	mySnapshot.ID = RandHexString(SNAPSHOT_ID_LEN)
 	mySnapshot.Time = t.Format("2006/01/02 15:04:05")
-	mySnapshot.ParentIDs = parentIds
 	mySnapshot = UpdateMessage(mySnapshot, msg, filePath)
 	mySnapshot.Files, myWorkDirConfig = ReadTarFileIndex(filePath, verbosity)
 
@@ -60,6 +59,25 @@ func CommitFile(filePath string, parentIds []string, msg string, verbosity int) 
 	}
 
 	myRepoConfig := ReadRepoConfigFile(path.Join(myWorkDirConfig.RepoPath, "config.toml"))
+	
+	branchFolder := path.Join(myWorkDirConfig.RepoPath, "branches", myWorkDirConfig.WorkDirName)
+	headPath := path.Join(branchFolder, "head.json")	
+	myHead := ReadHead(headPath)
+
+	if len(myHead.BranchName) == 0 {
+		myHead.BranchName = "main"
+	}
+
+
+
+	branchPath := path.Join(branchFolder, myHead.BranchName + ".json")	
+	myBranch := ReadBranch(branchPath)
+
+	if verbosity >= 1 {
+		fmt.Printf("Branch: %s\nParent commit: %s\n", myHead.BranchName, myBranch.CommitID)
+	}	
+
+	mySnapshot.ParentIDs = append([]string{myHead.CommitID}, parentIds...)
 
 	chunkIDs, chunkPacks := PackFile(filePath, myWorkDirConfig.RepoPath, myRepoConfig.ChunkerPolynomial, verbosity)
 	mySnapshot.ChunkIDs = chunkIDs
@@ -70,13 +88,12 @@ func CommitFile(filePath string, parentIds []string, msg string, verbosity int) 
 	snapshotPath := path.Join(snapshotFolder, snapshotBasename + ".json")
 	WriteSnapshot(snapshotPath, mySnapshot)
 
-	headFolder := path.Join(myWorkDirConfig.RepoPath, "branches", myWorkDirConfig.WorkDirName)
-	headPath := path.Join(headFolder, "head.json")
-	WriteHead(headPath, "head", mySnapshot.ID)	
+	// Do I really need to track commit id in head??
+	myHead.CommitID = mySnapshot.ID
+	myBranch.CommitID = mySnapshot.ID
 
-	branchFolder := path.Join(myWorkDirConfig.RepoPath, "branches", myWorkDirConfig.WorkDirName)
-	branchPath := path.Join(branchFolder,  "main.json")
-	WriteBranch(branchPath, mySnapshot.ID)
+	WriteHead(headPath, myHead)
+	WriteBranch(branchPath, myBranch)
 
 	treeFolder := path.Join(myWorkDirConfig.RepoPath, "trees")
 	treeBasename := mySnapshot.ID[0:40]
@@ -114,9 +131,7 @@ func WriteSnapshot(snapshotPath string, mySnapshot Commit) {
 	f.Close()
 }
 
-func WriteHead(headPath string, branchName string, commitId string) {
-	myHead := Head{BranchName: branchName, CommitID: commitId}
-
+func WriteHead(headPath string, myHead Head) {
 	f, err := os.Create(headPath)
 
 	if err != nil {
@@ -128,9 +143,27 @@ func WriteHead(headPath string, branchName string, commitId string) {
 	f.Close()
 }
 
-func WriteBranch(branchPath string, commitId string) {
-	myBranch := Branch{CommitID: commitId}
+func ReadHead(headPath string) Head {
+	var myHead Head
+	f, err := os.Open(headPath)
 
+	if err != nil {
+		//panic(fmt.Sprintf("Error: Could not read head file %s", headPath))
+		fmt.Printf("No head file exists, returning defaut head struct\n")
+		return Head{BranchName: "main"}
+	}
+
+	myDecoder := json.NewDecoder(f)
+
+	if err := myDecoder.Decode(&myHead); err != nil {
+		panic(fmt.Sprintf("Error:could not decode head file %s", headPath))
+	}
+
+	f.Close()
+	return myHead
+}
+
+func WriteBranch(branchPath string, myBranch Branch) {
 	f, err := os.Create(branchPath)
 
 	if err != nil {
@@ -140,6 +173,26 @@ func WriteBranch(branchPath string, commitId string) {
 	myEncoder.SetIndent("", "  ")
 	myEncoder.Encode(myBranch)
 	f.Close()
+}
+
+func ReadBranch(branchPath string) Branch {
+	var myBranch Branch
+	f, err := os.Open(branchPath)
+
+	if err != nil {
+		//panic(fmt.Sprintf("Error: Could not read head file %s", headPath))
+		fmt.Printf("No branch file exists, returning default head struct\n")
+		return Branch{}
+	}
+
+	myDecoder := json.NewDecoder(f)
+
+	if err := myDecoder.Decode(&myBranch); err != nil {
+		panic(fmt.Sprintf("Error:could not decode branch file %s", branchPath))
+	}
+
+	f.Close()
+	return myBranch
 }
 
 func ReadSnapshot(snapshot string, cfg workDirConfig) Commit {
