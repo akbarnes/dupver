@@ -357,8 +357,8 @@ func PrintSnapshot(mySnapshot Commit, maxFiles int, verbosity int) {
 		return
 	}
 
+	fmt.Printf("%sID: %s (%s)%s\n", colorYellow, mySnapshot.ID[0:8], mySnapshot.ID, colorReset)
 	fmt.Printf("Time: %s\n", mySnapshot.Time)
-	fmt.Printf("ID: %s (%s)\n", mySnapshot.ID[0:8], mySnapshot.ID)
 
 	if len(mySnapshot.Message) > 0 {
 		fmt.Printf("Message: %s\n", mySnapshot.Message)
@@ -394,15 +394,6 @@ func WorkDirStatus(workDir string, snapshot Commit, verbosity int) {
 	if verbosity >= 2 {
 		fmt.Printf("Comparing changes for wd \"%s\" (prefix: \"%s\"\n", workDir, workDirPrefix)
 	}
-
-	const colorReset string = "\033[0m"
-	const colorRed string = "\033[31m"
-	const colorGreen string = "\033[32m"
-	const colorYellow string = "\033[33m"
-	const colorBlue string = "\033[34m"
-	const colorPurple string = "\033[35m"
-	const colorCyan string = "\033[36m"
-	const colorWhite string = "\033[37m"
 
 	myFileInfo := make(map[string]fileInfo)
 	deletedFiles := make(map[string]bool)
