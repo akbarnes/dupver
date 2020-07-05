@@ -11,6 +11,7 @@ import (
 	"path"
 	"strings"
 	"archive/tar"
+	"encoding/json"
 
 	"github.com/BurntSushi/toml"
 )
@@ -233,7 +234,7 @@ func ReadTarIndex(tarFile *os.File, verbosity int) ([]fileInfo, workDirConfig, H
 	var myConfig workDirConfig
 	var myHead Head
 	// var baseFolder string
-	var configPath string
+	// var configPath string
 	maxFiles := 10
 
 	if verbosity >= 1 {
@@ -276,7 +277,10 @@ func ReadTarIndex(tarFile *os.File, verbosity int) ([]fileInfo, workDirConfig, H
 				fmt.Printf("Reading head file %s\n", hdr.Name)
 			}
 
-			if _, err := json.DecodeReader(tr, &myHead); err != nil {
+
+			myDecoder := json.NewDecoder(tr)
+
+			if err := myDecoder.Decode(&myHead); err != nil {
 				panic(fmt.Sprintf("Error decoding head file %s while reading tar file index", hdr.Name))
 			}
 
@@ -319,5 +323,5 @@ func ReadTarIndex(tarFile *os.File, verbosity int) ([]fileInfo, workDirConfig, H
 		fmt.Printf("...\nSkipping %d more files\n", i-maxFiles)
 	}
 
-	return files, myConfig
+	return files, myConfig, myHead
 }

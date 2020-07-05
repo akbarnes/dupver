@@ -101,7 +101,7 @@ func initConfig() {
 		}
 
 		// Search config in home directory with name ".main" (without extension).
-		viper.AddConfigPath(path.Join(home, ".dupver"))
+		viper.AddConfigPath(filepath.Join(home, ".dupver"))
 		viper.SetConfigName("global_config.toml")
 	}
 

@@ -20,22 +20,22 @@ func TestWorkRepoInit(t *testing.T) {
 	repoId := dupver.RandString(16, dupver.HexChars)
 	repoFolder := ".dupver_repo_" + repoId
 
-	repoPath := path.Join(homeDir, "temp", repoFolder)
+	repoPath := filepath.Join(homeDir, "temp", repoFolder)
 	dupver.InitRepo(repoPath)
 
-	snapshotsPath := path.Join(repoPath, "snapshots")
+	snapshotsPath := filepath.Join(repoPath, "snapshots")
 	if _, err := os.Stat(snapshotsPath); err != nil {
 		// path/to/whatever exists
 		t.Error("Did not create snapshots folder", snapshotsPath)
 	} 
 
-	treesPath := path.Join(repoPath, "trees")
+	treesPath := filepath.Join(repoPath, "trees")
 	if _, err := os.Stat(treesPath); err != nil {
 		// path/to/whatever exists
 		t.Error("Did not create trees folder", treesPath)
 	} 	
 
-	cfg := dupver.ReadRepoConfigFile(path.Join(repoPath, "config.toml"))
+	cfg := dupver.ReadRepoConfigFile(filepath.Join(repoPath, "config.toml"))
 
 	if cfg.Version != 2 {
 		t.Error("Invalid repository version", cfg.Version)
@@ -57,14 +57,14 @@ func TestWorkDirInit(t *testing.T) {
 
 	workDirId := dupver.RandString(16, dupver.HexChars)
 	workDirFolder := "Test_" + workDirId
-	// workDirPath := path.Join("temp", workDirFolder)
+	// workDirPath := filepath.Join("temp", workDirFolder)
 	err := os.MkdirAll(workDirFolder, 0777)	
 
 	if err != nil {
 		t.Error("Could not create workdir")
 	}
 
-	repoPath := path.Join(homeDir, ".dupver_repo")
+	repoPath := filepath.Join(homeDir, ".dupver_repo")
 
 	workDirName := ""
 	dupver.InitWorkDir(workDirFolder, workDirName, repoPath)
@@ -93,7 +93,7 @@ func TestCommit(t *testing.T) {
 	homeDir := dupver.GetHome()
 	repoId := dupver.RandString(16, dupver.HexChars)
 	repoFolder := ".dupver_repo_" + repoId
-	repoPath := path.Join(homeDir, "temp", repoFolder)
+	repoPath := filepath.Join(homeDir, "temp", repoFolder)
 	dupver.InitRepo(repoPath)	
 
     // ----------- Create a workdir ----------- //    

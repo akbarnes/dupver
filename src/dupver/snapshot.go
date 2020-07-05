@@ -44,7 +44,7 @@ const PACK_ID_LEN int = 64
 const CHUNK_ID_LEN int = 64
 const TREE_ID_LEN int = 40
 
-func CommitFile(filePath string, parentIds []string, msg string, verbosity int) string {
+func CommitFile(filePath string, parentIds []string, msg string, verbosity int) Head {
 	var myWorkDirConfig workDirConfig
 	t := time.Now()
 
@@ -74,7 +74,6 @@ func CommitFile(filePath string, parentIds []string, msg string, verbosity int) 
 		fmt.Printf("Branch: %s\nParent commit: %s\n", myHead.BranchName, myBranch.CommitID)
 	}	
 
-	headPath := path.Join(".dupver", "head.json")
 
 	mySnapshot.ParentIDs = append([]string{myHead.CommitID}, parentIds...)
 
@@ -91,8 +90,7 @@ func CommitFile(filePath string, parentIds []string, msg string, verbosity int) 
 	myHead.CommitID = mySnapshot.ID
 	myBranch.CommitID = mySnapshot.ID
 
-	WriteHead(headPath, myHead)
-	WriteBranch(branchPath, myBranch)
+	WriteBranch(branchPath, myBranch, verbosity)
 
 	treeFolder := path.Join(myWorkDirConfig.RepoPath, "trees")
 	treeBasename := mySnapshot.ID[0:40]
@@ -105,7 +103,8 @@ func CommitFile(filePath string, parentIds []string, msg string, verbosity int) 
 	} else {
 		fmt.Println(mySnapshot.ID)
 	}
-	return mySnapshot.ID
+
+	return myHead
 }
 
 func UpdateMessage(mySnapshot Commit, msg string, filePath string) Commit {
@@ -130,7 +129,11 @@ func WriteSnapshot(snapshotPath string, mySnapshot Commit) {
 	f.Close()
 }
 
-func WriteHead(headPath string, myHead Head) {
+func WriteHead(headPath string, myHead Head, verbosity int) {
+	if verbosity >= 2 {
+		fmt.Println("Writing head to " +  headPath)
+	}
+
 	f, err := os.Create(headPath)
 
 	if err != nil {
@@ -162,8 +165,10 @@ func ReadHead(headPath string) Head {
 	return myHead
 }
 
-func WriteBranch(branchPath string, myBranch Branch) {
+func WriteBranch(branchPath string, myBranch Branch, verbosity int) {
 	f, err := os.Create(branchPath)
+	dir := filepath.Dir(branchPath)
+	CreateFolder(dir, verbosity)
 
 	if err != nil {
 		panic(fmt.Sprintf("Error: Could not create branch file %s", branchPath))

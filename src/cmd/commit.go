@@ -44,8 +44,8 @@ var ParentCommitIds string
 
 func CreateTar(parentPath string, commitPath string, verbosity int) string {
 	tarFile := dupver.RandHexString(40) + ".tar"
-	tarFolder := path.Join(dupver.GetHome(), "temp")
-	tarPath := path.Join(tarFolder, tarFile)
+	tarFolder := filepath.Join(dupver.GetHome(), "temp")
+	tarPath := filepath.Join(tarFolder, tarFile)
 
 	// InitRepo(workDir)
 	if verbosity >= 1 {
@@ -97,9 +97,9 @@ to quickly create a Cobra application.`,
 		if len(args) >= 1 {
 			commitFile := args[0]
 			tarFile := commitFile
+			containingFolder := filepath.Dir(commitFile)
 
 			if !strings.HasSuffix(commitFile, "tar") {
-				containingFolder := filepath.Dir(commitFile)
 				fmt.Printf("%s -> %s, %s\n", commitFile, containingFolder, commitFile)
 				tarFile = CreateTar(containingFolder, commitFile, verbosity)
 
@@ -112,7 +112,9 @@ to quickly create a Cobra application.`,
 				}
 			}
 
-			dupver.CommitFile(tarFile, parentIds, Message, verbosity)
+			myHead := dupver.CommitFile(tarFile, parentIds, Message, verbosity)
+			headPath := filefilepath.Join(containingFolder, ".dupver", "head.json")
+			dupver.WriteHead(headPath, myHead, verbosity)
 		} else {
 			dir, err := os.Getwd()
 			if err != nil {
@@ -133,7 +135,9 @@ to quickly create a Cobra application.`,
 
 
 			tarFile := CreateTar(containingFolder, workdirFolder, verbosity)
-			dupver.CommitFile(tarFile, parentIds, Message, verbosity)			
+			myHead := dupver.CommitFile(tarFile, parentIds, Message, verbosity)	
+			headPath := filefilepath.Join(".dupver", "head.json")
+			dupver.WriteHead(headPath, myHead, verbosity)
 		}
 	},
 }
