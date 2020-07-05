@@ -25,6 +25,11 @@ type Commit struct {
 	Time        string
 	Files       []fileInfo
 	ChunkIDs    []string
+	ParentIDs   []string
+}
+
+type Branch struct {
+	CommitID string
 }
 
 type fileInfo struct {
