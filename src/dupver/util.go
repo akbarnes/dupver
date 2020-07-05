@@ -13,6 +13,15 @@ import (
 	// "github.com/BurntSushi/toml"
 )
 
+const colorReset string = "\033[0m"
+const colorRed string = "\033[31m"
+const colorGreen string = "\033[32m"
+const colorYellow string = "\033[33m"
+const colorBlue string = "\033[34m"
+const colorPurple string = "\033[35m"
+const colorCyan string = "\033[36m"
+const colorWhite string = "\033[37m"
+
 func Check(e error) {
 	if e != nil {
 		panic(e)
@@ -120,7 +129,7 @@ func WriteRandomTar(buf *os.File, workDirFolder string, repoPath string) {
 		configPath = path.Join(workDirFolder, ".dupver", "config.toml")
 	}
 
-	workDirName := strings.ToLower(filepath.Clean(filepath.Base(workDirFolder)))
+	workDirName := strings.ToLower(filepath.Base(workDirFolder))
 
 	if len(repoPath) == 0 {
 		repoPath = path.Join(GetHome(), ".dupver_repo")

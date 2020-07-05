@@ -56,7 +56,7 @@ func CommitFile(filePath string, msg string, verbosity int) string {
 	mySnapshot = UpdateMessage(mySnapshot, msg, filePath)
 	mySnapshot.Files, myWorkDirConfig = ReadTarFileIndex(filePath, verbosity)
 
-	if verbosity >= 1 {
+	if verbosity >= 2 {
 		fmt.Printf("Repo config: %s\n", myWorkDirConfig.RepoPath)
 	}
 
@@ -342,6 +342,10 @@ func PrintSnapshots(cfg workDirConfig, snapshot string, verbosity int) {
 		}
 
 		for _, snapshotPath := range snapshotPaths {
+			// if i >= 1 {
+			// 	fmt.Println("\n")
+			// }
+
 			n := len(snapshotPath)
 			snapshotId := snapshotPath[n-SNAPSHOT_ID_LEN-5 : n-5]
 
@@ -358,22 +362,24 @@ func PrintSnapshot(mySnapshot Commit, maxFiles int, verbosity int) {
 		return
 	}
 
+	fmt.Printf("%sID: %s (%s)%s\n", colorYellow, mySnapshot.ID[0:8], mySnapshot.ID, colorReset)
 	fmt.Printf("Time: %s\n", mySnapshot.Time)
-	fmt.Printf("ID: %s (%s)\n", mySnapshot.ID[0:8], mySnapshot.ID)
 
 	if len(mySnapshot.Message) > 0 {
 		fmt.Printf("Message: %s\n", mySnapshot.Message)
 	}
 
-	fmt.Printf("Files:\n")
-	for i, file := range mySnapshot.Files {
-		fmt.Printf("  %d: %s\n", i+1, file.Path)
+	fmt.Printf("\n")
 
-		if i > maxFiles && maxFiles > 0 {
-			fmt.Printf("  ...\n  Skipping %d more files\n", len(mySnapshot.Files)-maxFiles)
-			break
-		}
-	}
+	// fmt.Printf("Files:\n")
+	// for i, file := range mySnapshot.Files {
+	// 	fmt.Printf("  %d: %s\n", i+1, file.Path)
+
+	// 	if i > maxFiles && maxFiles > 0 {
+	// 		fmt.Printf("  ...\n  Skipping %d more files\n", len(mySnapshot.Files)-maxFiles)
+	// 		break
+	// 	}
+	// }
 }
 
 func WorkDirStatus(workDir string, snapshot Commit, verbosity int) {
@@ -387,21 +393,12 @@ func WorkDirStatus(workDir string, snapshot Commit, verbosity int) {
 			panic(err)
 		}
 
-		workDirPrefix = filepath.Clean(filepath.Base(cwd))
+		workDirPrefix = filepath.Base(cwd)
 	}
 
 	if verbosity >= 2 {
 		fmt.Printf("Comparing changes for wd \"%s\" (prefix: \"%s\"\n", workDir, workDirPrefix)
 	}
-
-	const colorReset string = "\033[0m"
-	const colorRed string = "\033[31m"
-	const colorGreen string = "\033[32m"
-	const colorYellow string = "\033[33m"
-	const colorBlue string = "\033[34m"
-	const colorPurple string = "\033[35m"
-	const colorCyan string = "\033[36m"
-	const colorWhite string = "\033[37m"
 
 	myFileInfo := make(map[string]fileInfo)
 	deletedFiles := make(map[string]bool)
@@ -453,7 +450,7 @@ func WorkDirStatus(workDir string, snapshot Commit, verbosity int) {
 	filepath.Walk(workDir, CompareAgainstSnapshot)
 
 	for file, deleted := range deletedFiles {
-		if strings.HasPrefix(filepath.Clean(filepath.Base(file)), "._") {
+		if strings.HasPrefix(filepath.Base(file), "._") {
 			continue
 		}
 
