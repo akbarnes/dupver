@@ -130,6 +130,9 @@ func WriteSnapshot(snapshotPath string, mySnapshot Commit) {
 }
 
 func WriteHead(headPath string, myHead Head, verbosity int) {
+	dir := filepath.Dir(headPath)
+	CreateFolder(dir, verbosity)
+
 	if verbosity >= 2 {
 		fmt.Println("Writing head to " +  headPath)
 	}
@@ -139,6 +142,7 @@ func WriteHead(headPath string, myHead Head, verbosity int) {
 	if err != nil {
 		panic(fmt.Sprintf("Error: Could not create head file %s", headPath))
 	}
+
 	myEncoder := json.NewEncoder(f)
 	myEncoder.SetIndent("", "  ")
 	myEncoder.Encode(myHead)
@@ -166,9 +170,9 @@ func ReadHead(headPath string) Head {
 }
 
 func WriteBranch(branchPath string, myBranch Branch, verbosity int) {
-	f, err := os.Create(branchPath)
 	dir := filepath.Dir(branchPath)
 	CreateFolder(dir, verbosity)
+	f, err := os.Create(branchPath)
 
 	if err != nil {
 		panic(fmt.Sprintf("Error: Could not create branch file %s", branchPath))

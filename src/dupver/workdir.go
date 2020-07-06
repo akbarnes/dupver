@@ -3,7 +3,7 @@ package dupver
 import (
 	"fmt"
 	"log"
-	"path"
+	// "path"
 	"path/filepath"
 	// "io"
 	// "bufio"
@@ -33,10 +33,10 @@ func InitWorkDir(workDirFolder string, workDirName string, repoPath string, verb
 
 	if len(workDirFolder) == 0 {
 		CreateFolder(".dupver", verbosity)
-		configPath = path.Join(".dupver", "config.toml")
+		configPath = filepath.Join(".dupver", "config.toml")
 	} else {
 		CreateSubFolder(workDirFolder, ".dupver", verbosity)
-		configPath = path.Join(workDirFolder, ".dupver", "config.toml")
+		configPath = filepath.Join(workDirFolder, ".dupver", "config.toml")
 	}
 
 	if len(workDirName) == 0 || workDirName == "." {
@@ -63,7 +63,7 @@ func InitWorkDir(workDirFolder string, workDirName string, repoPath string, verb
 	}
 
 	if len(repoPath) == 0 {
-		repoPath = path.Join(GetHome(), ".dupver_repo")
+		repoPath = filepath.Join(GetHome(), ".dupver_repo")
 
 		if verbosity >= 1 {
 			fmt.Printf("Repo path not specified, setting to %s\n", repoPath)
@@ -103,9 +103,9 @@ func ReadWorkDirConfig(workDir string) workDirConfig {
 	var configPath string
 
 	if len(workDir) == 0 {
-		configPath = path.Join(".dupver", "config.toml")
+		configPath = filepath.Join(".dupver", "config.toml")
 	} else {
-		configPath = path.Join(workDir, ".dupver", "config.toml")
+		configPath = filepath.Join(workDir, ".dupver", "config.toml")
 	}
 
 	return ReadWorkDirConfigFile(configPath)
@@ -161,7 +161,7 @@ func WorkDirStatus(workDir string, snapshot Commit, verbosity int) {
 	var CompareAgainstSnapshot = func(curPath string, info os.FileInfo, err error) error {
 		// fmt.Printf("Comparing path %s\n", path)
 		if len(workDirPrefix) > 0 {
-			curPath = path.Join(workDirPrefix, curPath)
+			curPath = filepath.Join(workDirPrefix, curPath)
 		}
 
 		curPath = strings.ReplaceAll(curPath, "\\", "/")
