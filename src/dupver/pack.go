@@ -49,7 +49,7 @@ func WritePacks(f *os.File, repoPath string, poly chunker.Pol, verbosity int) ([
 	stillReadingInput := true
 
 	totalDataSize := 0
-	totalPackNum := 0
+	newPackNum := 0
 	totalChunkNum := 0
 	dupChunkNum := 0
 
@@ -59,12 +59,12 @@ func WritePacks(f *os.File, repoPath string, poly chunker.Pol, verbosity int) ([
 		os.MkdirAll(packFolderPath, 0777)
 		packPath := path.Join(packFolderPath, packId + ".zip")	
 
-		totalPackNum++		
+		newPackNum++		
 
 		if verbosity >= 2 {
-			fmt.Printf("Creating pack file %3d: %s\n", totalPackNum, packPath)	
+			fmt.Printf("Creating pack file %3d: %s\n", newPackNum, packPath)	
 		} else if verbosity == 1 {
-			fmt.Printf("Creating pack number: %3d, ID: %s\n", totalPackNum, packId[0:16])	
+			fmt.Printf("Creating pack number: %3d, ID: %s\n", newPackNum, packId[0:16])	
 		}
 
 		zipFile, err := os.Create(packPath)
@@ -143,7 +143,7 @@ func WritePacks(f *os.File, repoPath string, poly chunker.Pol, verbosity int) ([
 		newChunkNum := totalChunkNum - dupChunkNum
 		fmt.Printf("%0.2f MB raw data stored\n", float64(totalDataSize)/1e6)
 		fmt.Printf("%d new, %d duplicate, %d total chunks\n", newChunkNum, dupChunkNum, totalChunkNum)
-		fmt.Printf("%d packs stored, %0.2f chunks/pack\n", totalPackNum, float64(totalChunkNum)/float64(totalPackNum))
+		fmt.Printf("%d packs stored, %0.2f chunks/pack\n", newPackNum, float64(newChunkNum)/float64(newPackNum))
 	}
 
 	return chunkIDs, newChunkPacks 
