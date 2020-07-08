@@ -12,11 +12,9 @@
 /data/*
 /SyntheticUSA/*
 /dupver.code-workspace
-dupver
+/dupver
     
-/glob.go
 /dupver-linux-x64
 /Test_*/
 .DS_Store
 *.orig
-/main2.go
