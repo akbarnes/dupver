@@ -48,7 +48,7 @@ to quickly create a Cobra application.`,
 		cfg := dupver.ReadWorkDirConfig(WorkDirPath)
 		cfg = dupver.UpdateRepoPath(cfg, RepoPath)
 
-		headPath := filepath.Join(WorkDirPath, ".dupver", "head.json")
+		headPath := filepath.Join(WorkDirPath, ".dupver", "head.toml")
 		myHead := dupver.ReadHead(headPath)
 		snapshotId := myHead.CommitID
 		numSnapshots := 0

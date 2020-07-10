@@ -100,9 +100,7 @@ func ReadRepoConfigFile(filePath string) repoConfig {
 		panic(fmt.Sprintf("Error opening repo config %s", filePath))
 	}
 
-	_, err = toml.DecodeReader(f, &myConfig)
-
-	if err != nil {
+	if _, err := toml.DecodeReader(f, &myConfig); err != nil {
 		panic(fmt.Sprintf("Error decoding repo config %s", filePath))
 	}
 

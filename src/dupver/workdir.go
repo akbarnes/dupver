@@ -10,7 +10,7 @@ import (
 	"os"
 	"strings"
 	// "crypto/sha256"
-	"encoding/json"
+	// "encoding/json"
 
 	"github.com/BurntSushi/toml"
 )
@@ -120,9 +120,7 @@ func ReadWorkDirConfigFile(filePath string) workDirConfig {
 		log.Fatal(fmt.Sprintf("Could not open project working directory config file %s", filePath))
 	}
 
-	_, err = toml.DecodeReader(f, &myConfig)
-
-	if err != nil {
+	if _, err = toml.DecodeReader(f, &myConfig); err != nil {
 		log.Fatal(fmt.Sprintf("Could not decode TOML in project working directory config file %s", filePath))
 	}
 
@@ -228,10 +226,9 @@ func WriteHead(headPath string, myHead Head, verbosity int) {
 		panic(fmt.Sprintf("Error: Could not create head file %s", headPath))
 	}
 
-	myEncoder := json.NewEncoder(f)
-	myEncoder.SetIndent("", "  ")
+	myEncoder := toml.NewEncoder(f)
 	myEncoder.Encode(myHead)
-	f.Close()
+	f.Close()	
 }
 
 func ReadHead(headPath string) Head {
@@ -243,10 +240,7 @@ func ReadHead(headPath string) Head {
 		fmt.Printf("No head file exists, returning defaut head struct\n")
 		return Head{BranchName: "main"}
 	}
-
-	myDecoder := json.NewDecoder(f)
-
-	if err := myDecoder.Decode(&myHead); err != nil {
+	if _, err := toml.DecodeReader(f, &myHead); err != nil {
 		panic(fmt.Sprintf("Error:could not decode head file %s", headPath))
 	}
 

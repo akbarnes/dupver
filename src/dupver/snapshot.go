@@ -10,6 +10,8 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/BurntSushi/toml"
 	)
 
 type Commit struct {
@@ -67,7 +69,7 @@ func CommitFile(filePath string, parentIds []string, msg string, verbosity int) 
 	}
 
 	branchFolder := path.Join(myWorkDirConfig.RepoPath, "branches", myWorkDirConfig.WorkDirName)
-	branchPath := path.Join(branchFolder, myHead.BranchName + ".json")	
+	branchPath := path.Join(branchFolder, myHead.BranchName + ".toml")	
 	myBranch := ReadBranch(branchPath)
 
 	if verbosity >= 1 {
@@ -137,10 +139,10 @@ func WriteBranch(branchPath string, myBranch Branch, verbosity int) {
 	if err != nil {
 		panic(fmt.Sprintf("Error: Could not create branch file %s", branchPath))
 	}
-	myEncoder := json.NewEncoder(f)
-	myEncoder.SetIndent("", "  ")
+
+	myEncoder := toml.NewEncoder(f)
 	myEncoder.Encode(myBranch)
-	f.Close()
+	f.Close()	
 }
 
 func ReadBranch(branchPath string) Branch {
@@ -153,9 +155,7 @@ func ReadBranch(branchPath string) Branch {
 		return Branch{}
 	}
 
-	myDecoder := json.NewDecoder(f)
-
-	if err := myDecoder.Decode(&myBranch); err != nil {
+	if _, err := toml.DecodeReader(f, &myBranch); err != nil {
 		panic(fmt.Sprintf("Error:could not decode branch file %s", branchPath))
 	}
 

@@ -31,12 +31,12 @@ with open(snapshots[0]) as f:
 
 cid = s['ID']
 
-if 'ParentIDs' in s:
+if 'ParentIDs' in s and s['ParentIDs'] is not None:
     print(f"Non-empty parent id {s['ParentIDs']} in first file")
 else:
     print('No parent ids')
     s['ParentIDs'] = []
-    s.pop('Tags')
+    s.pop('Tags', 'ignore_missing')
     new_snapshot_path = os.path.join(cfg['RepoPath'], 'snapshots', cfg['WorkDirName'], f"{cid}.json")
     print(f"Writing to {new_snapshot_path}")
 
@@ -55,20 +55,18 @@ for i in range(1,len(snapshots)):
 
     cid = s['ID']
 
-    if 'ParentIDs' in s:
-        if len(s['ParentIDs'] == 2) and len(s['ParentIds'][1]) == 0:
+    if 'ParentIDs' in s and s['ParentIDs'] is not None:
+        if isinstance(s['ParentIDs'], list) and len(s['ParentIDs']) == 2 and len(s['ParentIDs'][1]) == 0:
             print(f"Removing empty id from {s['ParentIDs']}")
             s['ParentIDs'] = [s['ParentIDs'][0]]
         else:            
-            print(f"Non-empty parent id {s['ParentIDs']}, skipping")
-            pid = cid
-            continue
+            print(f"Non-empty parent id {s['ParentIDs']}, not changing")
     else:
         print('No parent ids')
         s['ParentIDs'] = [pid]
 
     # save as cid
-    s.pop('Tags')
+    s.pop('Tags', 'ignore_missing')
     new_snapshot_path = os.path.join(cfg['RepoPath'], 'snapshots', cfg['WorkDirName'], f"{cid}.json")
     print(f"Writing to {new_snapshot_path}")
 
@@ -77,20 +75,20 @@ for i in range(1,len(snapshots)):
 
     pid = cid
 
-    # now create head, branch
-    h = {'CommitID': cid, 'BranchName': 'main'}
-    b = {'CommitID': cid}
+# now create head, branch
+h = {'CommitID': cid, 'BranchName': 'main'}
+b = {'CommitID': cid}
 
-    with open('.dupver/head.toml','w') as f:
-        toml.dump(h, f)
+with open('.dupver/head.toml','w') as f:
+    toml.dump(h, f)
 
-    branch_folder = os.path.join(cfg['RepoPath'], 'branches', cfg['WorkDirName'])
-    branch_path = os.path.join(branch_folder, "main.toml")
+branch_folder = os.path.join(cfg['RepoPath'], 'branches', cfg['WorkDirName'])
+branch_path = os.path.join(branch_folder, "main.toml")
 
-    if not os.path.exists(branch_folder):
-        os.makedirs(branch_folder)    
+if not os.path.exists(branch_folder):
+    os.makedirs(branch_folder)    
 
-    print(f"Writing to {branch_path}")
-    with open(branch_path, 'w') as f:
-        toml.dump(b, f)
+print(f"Writing to {branch_path}")
+with open(branch_path, 'w') as f:
+    toml.dump(b, f)
 

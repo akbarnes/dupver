@@ -13,6 +13,7 @@
 /SyntheticUSA/*
 /dupver.code-workspace
 /dupver
+/bin/*
     
 /dupver-linux-x64
 /Test_*/
