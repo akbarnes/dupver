@@ -81,7 +81,7 @@ func CommitFile(filePath string, parentIds []string, msg string, verbosity int) 
 	mySnapshot.ChunkIDs = chunkIDs
 
 	snapshotFolder := path.Join(myWorkDirConfig.RepoPath, "snapshots", myWorkDirConfig.WorkDirName)
-	snapshotBasename := fmt.Sprintf("%s-%s", t.Format("2006-01-02-T15-04-05"), mySnapshot.ID[0:40])
+	snapshotBasename := fmt.Sprintf("%s", mySnapshot.ID[0:40])
 	os.Mkdir(snapshotFolder, 0777)
 	snapshotPath := path.Join(snapshotFolder, snapshotBasename + ".json")
 	WriteSnapshot(snapshotPath, mySnapshot)
@@ -236,17 +236,19 @@ func ListSnapshots(cfg workDirConfig) []string {
 	return snapshotPaths
 }
 
-func PrintSnapshots(cfg workDirConfig, snapshotId string, numSnapshots int, verbosity int) {
+func PrintSnapshots(cfg workDirConfig, snapshotId string, maxSnapshots int, verbosity int) {
 	// fmt.Printf("Verbosity = %d\n", verbosity)
 	// print a specific revision
-	remainingSnapshots := numSnapshots
+	snapshotCount := 0
+	repoPath := cfg.RepoPath
+	projectName := cfg.WorkDirName
 
-	if len(numSnapshots) == 0 && verbosity >= 1 {
+	if maxSnapshots != 0 && verbosity >= 1 {
 		fmt.Println("Snapshot History")
 	}
 
-	for  {
-		
+	for  {	
+		snapshotPath := filepath.Join(repoPath, "snapshots", projectName, snapshotId + ".json")
 		mySnapshot := ReadSnapshotFile(snapshotPath)
 		PrintSnapshot(mySnapshot, 0, verbosity)
 		parents := mySnapshot.ParentIDs
@@ -254,7 +256,48 @@ func PrintSnapshots(cfg workDirConfig, snapshotId string, numSnapshots int, verb
 		if len(parents) == 0 || len(parents[0]) == 0 {
 			break
 		} else {
-			
+			snapshotId = parents[0]
+		}
+
+		if maxSnapshots > 0 {
+			snapshotCount++
+
+			if snapshotCount >= maxSnapshots {
+				break
+			}
+		}
+	}
+}
+
+func PrintAllSnapshots(cfg workDirConfig, snapshot string, verbosity int) {
+	// fmt.Printf("Verbosity = %d\n", verbosity)
+	snapshotPaths := ListSnapshots(cfg)
+	// print a specific revision
+	if len(snapshot) == 0 {
+		if verbosity >= 1 {
+			fmt.Println("Snapshot History")
+		}
+
+		for _, snapshotPath := range snapshotPaths {
+			// fmt.Printf("Path: %s\n", snapshotPath)
+			PrintSnapshot(ReadSnapshotFile(snapshotPath), 10, verbosity)
+		}
+	} else {
+		if verbosity >= 1 {
+			fmt.Println("Snapshot")
+		}
+
+		for _, snapshotPath := range snapshotPaths {
+			// if i >= 1 {
+			// 	fmt.Println("\n")
+			// }
+
+			n := len(snapshotPath)
+			snapshotId := snapshotPath[n-SNAPSHOT_ID_LEN-5 : n-5]
+
+			if snapshotId[0:8] == snapshot {
+				PrintSnapshot(ReadSnapshotFile(snapshotPath), 0, verbosity)
+			}
 		}
 	}
 }

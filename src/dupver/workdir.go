@@ -10,7 +10,7 @@ import (
 	"os"
 	"strings"
 	// "crypto/sha256"
-	// "encoding/json"
+	"encoding/json"
 
 	"github.com/BurntSushi/toml"
 )

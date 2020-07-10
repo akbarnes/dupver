@@ -28,6 +28,7 @@ package cmd
 
 import (
 	// "fmt"
+	"path/filepath"
 
 	"github.com/akbarnes/dupver/src/dupver"
 	"github.com/spf13/cobra"
@@ -56,18 +57,17 @@ to quickly create a Cobra application.`,
 		if len(args) >= 1 {
 			snapshotId = args[0]
 			numSnapshots = 1
-			snapshotPaths := ListSnapshots(cfg)
+			snapshotPaths := dupver.ListSnapshots(cfg)
 
 			for  _,  snapshotPath := range snapshotPaths {
-				sid := snapshotPath[n-SNAPSHOT_ID_LEN-5 : n-5]
-
 				n := len(snapshotId) - 1
+				sid := snapshotPath[n-dupver.SNAPSHOT_ID_LEN-5 : n-5]
 
 				if len(sid) < len(snapshotId) {
 					n = len(sid) - 1
 				}
 
-				if snapshotId[0:n] == shid[0:n] {
+				if snapshotId[0:n] == sid[0:n] {
 					snapshotId = sid
 					break
 				}
