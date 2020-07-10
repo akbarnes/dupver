@@ -2,6 +2,8 @@
 
 for f in *.json
     set f2 (echo $f | cut -c 22-67)
-    echo "mv '$f' '$f2'"
-    mv "$f" "$f2"
+    echo "cp -p $f $f2"
+    echo "rm $f"
+    cp -p "$f" "$f2"
+    # rm "$f"
 end

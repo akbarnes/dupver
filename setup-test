@@ -3,4 +3,10 @@ go install
 echo "Done building"
 
 cp dupver-test.fish $HOME/Data/
-echo "Copied test script"
+
+chmod 755 rename-snapshots.fish
+cp rename-snapshots.fish $HOME/.local/bin
+
+chmod 755 make-head.fish
+cp make-head.fish $HOME/.local/bin
+echo "Copied test scripts"
