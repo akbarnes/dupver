@@ -129,46 +129,6 @@ func WriteSnapshot(snapshotPath string, mySnapshot Commit) {
 	f.Close()
 }
 
-func WriteHead(headPath string, myHead Head, verbosity int) {
-	dir := filepath.Dir(headPath)
-	CreateFolder(dir, verbosity)
-
-	if verbosity >= 2 {
-		fmt.Println("Writing head to " +  headPath)
-	}
-
-	f, err := os.Create(headPath)
-
-	if err != nil {
-		panic(fmt.Sprintf("Error: Could not create head file %s", headPath))
-	}
-
-	myEncoder := json.NewEncoder(f)
-	myEncoder.SetIndent("", "  ")
-	myEncoder.Encode(myHead)
-	f.Close()
-}
-
-func ReadHead(headPath string) Head {
-	var myHead Head
-	f, err := os.Open(headPath)
-
-	if err != nil {
-		//panic(fmt.Sprintf("Error: Could not read head file %s", headPath))
-		fmt.Printf("No head file exists, returning defaut head struct\n")
-		return Head{BranchName: "main"}
-	}
-
-	myDecoder := json.NewDecoder(f)
-
-	if err := myDecoder.Decode(&myHead); err != nil {
-		panic(fmt.Sprintf("Error:could not decode head file %s", headPath))
-	}
-
-	f.Close()
-	return myHead
-}
-
 func WriteBranch(branchPath string, myBranch Branch, verbosity int) {
 	dir := filepath.Dir(branchPath)
 	CreateFolder(dir, verbosity)
@@ -276,35 +236,25 @@ func ListSnapshots(cfg workDirConfig) []string {
 	return snapshotPaths
 }
 
-func PrintSnapshots(cfg workDirConfig, snapshot string, verbosity int) {
+func PrintSnapshots(cfg workDirConfig, snapshotId string, numSnapshots int, verbosity int) {
 	// fmt.Printf("Verbosity = %d\n", verbosity)
-	snapshotPaths := ListSnapshots(cfg)
 	// print a specific revision
-	if len(snapshot) == 0 {
-		if verbosity >= 1 {
-			fmt.Println("Snapshot History")
-		}
+	remainingSnapshots := numSnapshots
 
-		for _, snapshotPath := range snapshotPaths {
-			// fmt.Printf("Path: %s\n", snapshotPath)
-			PrintSnapshot(ReadSnapshotFile(snapshotPath), 10, verbosity)
-		}
-	} else {
-		if verbosity >= 1 {
-			fmt.Println("Snapshot")
-		}
+	if len(numSnapshots) == 0 && verbosity >= 1 {
+		fmt.Println("Snapshot History")
+	}
 
-		for _, snapshotPath := range snapshotPaths {
-			// if i >= 1 {
-			// 	fmt.Println("\n")
-			// }
+	for  {
+		
+		mySnapshot := ReadSnapshotFile(snapshotPath)
+		PrintSnapshot(mySnapshot, 0, verbosity)
+		parents := mySnapshot.ParentIDs
 
-			n := len(snapshotPath)
-			snapshotId := snapshotPath[n-SNAPSHOT_ID_LEN-5 : n-5]
-
-			if snapshotId[0:8] == snapshot {
-				PrintSnapshot(ReadSnapshotFile(snapshotPath), 0, verbosity)
-			}
+		if len(parents) == 0 || len(parents[0]) == 0 {
+			break
+		} else {
+			
 		}
 	}
 }

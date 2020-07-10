@@ -214,3 +214,44 @@ func WorkDirStatus(workDir string, snapshot Commit, verbosity int) {
 	}
 }
 
+func WriteHead(headPath string, myHead Head, verbosity int) {
+	dir := filepath.Dir(headPath)
+	CreateFolder(dir, verbosity)
+
+	if verbosity >= 2 {
+		fmt.Println("Writing head to " +  headPath)
+	}
+
+	f, err := os.Create(headPath)
+
+	if err != nil {
+		panic(fmt.Sprintf("Error: Could not create head file %s", headPath))
+	}
+
+	myEncoder := json.NewEncoder(f)
+	myEncoder.SetIndent("", "  ")
+	myEncoder.Encode(myHead)
+	f.Close()
+}
+
+func ReadHead(headPath string) Head {
+	var myHead Head
+	f, err := os.Open(headPath)
+
+	if err != nil {
+		//panic(fmt.Sprintf("Error: Could not read head file %s", headPath))
+		fmt.Printf("No head file exists, returning defaut head struct\n")
+		return Head{BranchName: "main"}
+	}
+
+	myDecoder := json.NewDecoder(f)
+
+	if err := myDecoder.Decode(&myHead); err != nil {
+		panic(fmt.Sprintf("Error:could not decode head file %s", headPath))
+	}
+
+	f.Close()
+	return myHead
+}
+
+
