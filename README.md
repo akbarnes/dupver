@@ -3,13 +3,17 @@
 # Dupver
 Dupver is a minimalist deduplicating version control system in Go based on 
 the Restic chunking library. It is most similar to the binary
-version control system Boar https://bitbucket.org/mats_ekberg/boar/wiki/Home.
+version control system Boar https://bitbucket.org/mats_ekberg/boar/wiki/Home, 
+and to a lesser extent the commercial offering Perforce,
+though it borrows design conventions from the deduplicating backup
+applications Duplicacy, Restic and Borg.
 Dupver does not track files, rather it stores snapshots more like
 a backup program. Rather than traverse directories itself, Dupver
 uses an (uncompressed) tar file as input. Not that *only* tar files
 are accepted as input as Dupver relies on the tar container to
  1. provide the list of files in the snapshot
  2. store metadata such as file modification times and permissions
+ 
 Dupver uses a centralized repository to take advantage of deduplication 
 between working directories. This means that dupver working 
 directories can also be git repositories or subdirectories of git
