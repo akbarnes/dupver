@@ -48,7 +48,8 @@ to quickly create a Cobra application.`,
 			repoPath = args[0]
 		}
 
-		dupver.InitRepo(repoPath)
+		verbosity := dupver.SetVerbosity(Verbose, Quiet)
+		dupver.InitRepo(repoPath, verbosity)
 	},
 }
 

@@ -25,6 +25,17 @@ a few GB, but it is expected to scale up to the low 100's of GB.
 ## Setup
 [Binary releases](https://github.com/akbarnes/dupver/releases) are provided for MacOS/Linux/Windows. Copy them somewhere in your path. To build from source run `go build` or `go install`.
 
+## Update repos to v0.4 format
+1. Add prev pointers to snapshot files
+2. Add branch & head pointers
+3. Convert snapshot filenames to drop date
+
+## TODO
+- [ ] check that branch cannot be called head. this check may not be needed anymore
+- [x] fix writing head from outside of wd
+- [ ] remove auto-generated tar files after chunking
+- [ ] use toml for heads and branches?
+
 ## Usage
 
 ### Initialize repository

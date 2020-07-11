@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"path"
+	// "path/filepath"
 
 	"github.com/BurntSushi/toml"
 	"github.com/restic/chunker"
@@ -15,29 +16,38 @@ type repoConfig struct {
 	ChunkerPolynomial chunker.Pol
 }
 
-func InitRepo(repoPath string) {
+func InitRepo(repoPath string, verbosity int) {
 	if len(repoPath) == 0 {
 		repoPath = path.Join(GetHome(), ".dupver_repo")
 		fmt.Printf("Repo path not specified, setting to %s\n", repoPath)
 	}
 
-	// InitRepo(workDir)
-	fmt.Printf("Creating folder %s\n", repoPath)
-	os.Mkdir(repoPath, 0777)
+	CreateFolder(repoPath, verbosity)
+	CreateSubFolder(repoPath, "branches", verbosity)
+	CreateSubFolder(repoPath, "snapshots", verbosity)
+	CreateSubFolder(repoPath, "trees", verbosity)
+	CreateSubFolder(repoPath, "packs", verbosity)
 
-	packPath := path.Join(repoPath, "packs")
-	fmt.Printf("Creating folder %s\n", packPath)
-	os.Mkdir(packPath, 0777)
 
 	snapshotsPath := path.Join(repoPath, "snapshots")
-	fmt.Printf("Creating folder %s\n", snapshotsPath)
+	if verbosity >= 1 {
+		fmt.Printf("Creating folder %s\n", snapshotsPath)
+	}
 	os.MkdirAll(snapshotsPath, 0777)
 
 	treesPath := path.Join(repoPath, "trees")
-	fmt.Printf("Creating folder %s\n", treesPath)
+	if verbosity >= 1 {
+		fmt.Printf("Creating folder %s\n", treesPath)
+	}
 	os.Mkdir(treesPath, 0777)
 
 	p, err := chunker.RandomPolynomial()
+
+	if verbosity >= 1 {
+		fmt.Printf("Chunker polynomial: %d\n", p)
+	} else {
+		fmt.Println(p)
+	}
 
 	if err != nil {
 		panic("Error creating random polynomical while initializing repo")
@@ -47,7 +57,7 @@ func InitRepo(repoPath string) {
 	myConfig.Version = 2
 	myConfig.ChunkerPolynomial = p
 
-	SaveRepoConfig(repoPath, myConfig)
+	SaveRepoConfig(repoPath, myConfig, verbosity)
 }
 
 func UpdateRepoPath(myWorkDirConfig workDirConfig, repoPath string) workDirConfig {
@@ -58,7 +68,7 @@ func UpdateRepoPath(myWorkDirConfig workDirConfig, repoPath string) workDirConfi
 	return myWorkDirConfig
 }
 
-func SaveRepoConfig(repoPath string, myConfig repoConfig) {
+func SaveRepoConfig(repoPath string, myConfig repoConfig, verbosity int) {
 	// TODO: add a check to make sure I don't over`write` existing
 	configPath := path.Join(repoPath, "config.toml")
 
@@ -66,7 +76,9 @@ func SaveRepoConfig(repoPath string, myConfig repoConfig) {
 		log.Fatal("Refusing to write existing repo config " + configPath)
 	}
 
-	fmt.Printf("Creating config %s\n", configPath)
+	if verbosity >= 1 {
+		fmt.Printf("Creating config %s\n", configPath)
+	}
 
 	f, err := os.Create(configPath)
 
@@ -88,9 +100,7 @@ func ReadRepoConfigFile(filePath string) repoConfig {
 		panic(fmt.Sprintf("Error opening repo config %s", filePath))
 	}
 
-	_, err = toml.DecodeReader(f, &myConfig)
-
-	if err != nil {
+	if _, err := toml.DecodeReader(f, &myConfig); err != nil {
 		panic(fmt.Sprintf("Error decoding repo config %s", filePath))
 	}
 

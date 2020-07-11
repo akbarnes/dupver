@@ -28,6 +28,7 @@ package cmd
 
 import (
 	// "fmt"
+	"path/filepath"
 
 	"github.com/akbarnes/dupver/src/dupver"
 	"github.com/spf13/cobra"
@@ -44,15 +45,37 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		snapshotId := ""
-
-		if len(args) >= 1 {
-			snapshotId = args[0]
-		}
-
 		cfg := dupver.ReadWorkDirConfig(WorkDirPath)
 		cfg = dupver.UpdateRepoPath(cfg, RepoPath)
-		dupver.PrintSnapshots(dupver.ListSnapshots(cfg), snapshotId)
+
+		headPath := filepath.Join(WorkDirPath, ".dupver", "head.toml")
+		myHead := dupver.ReadHead(headPath)
+		snapshotId := myHead.CommitID
+		numSnapshots := 0
+
+		// TODO: Yeesh...move this messinto a function
+		if len(args) >= 1 {
+			snapshotId = args[0]
+			numSnapshots = 1
+			snapshotPaths := dupver.ListSnapshots(cfg)
+
+			for  _,  snapshotPath := range snapshotPaths {
+				n := len(snapshotId) - 1
+				sid := snapshotPath[n-dupver.SNAPSHOT_ID_LEN-5 : n-5]
+
+				if len(sid) < len(snapshotId) {
+					n = len(sid) - 1
+				}
+
+				if snapshotId[0:n] == sid[0:n] {
+					snapshotId = sid
+					break
+				}
+			}
+		}
+
+		verbosity := dupver.SetVerbosity(Verbose, Quiet)
+		dupver.PrintSnapshots(cfg, snapshotId, numSnapshots, verbosity)
 	},
 }
 

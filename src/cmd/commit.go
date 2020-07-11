@@ -27,14 +27,58 @@ POSSIBILITY OF SUCH DAMAGE.
 package cmd
 
 import (
-	// "fmt"
+	"fmt"
 	"log"
+	// "path"
+	"path/filepath"
+	"strings"
+	"os"
+	"os/exec"
 
 	"github.com/akbarnes/dupver/src/dupver"
 	"github.com/spf13/cobra"
 )
 
 var Message string
+var ParentCommitIds string
+
+func CreateTar(parentPath string, commitPath string, verbosity int) string {
+	tarFile := dupver.RandHexString(40) + ".tar"
+	tarFolder := filepath.Join(dupver.GetHome(), "temp")
+	tarPath := filepath.Join(tarFolder, tarFile)
+
+	// InitRepo(workDir)
+	if verbosity >= 1 {
+		fmt.Printf("Tar path: %s\n", tarPath)
+		fmt.Printf("Creating folder %s\n", tarFolder)
+	}
+
+	os.Mkdir(tarFolder, 0777)	
+
+	CompressTar(parentPath, commitPath, tarPath)
+	return tarPath
+}
+
+func CompressTar(parentPath string, commitPath string, tarPath string) string {
+	if len(tarPath) == 0 {
+		tarPath = commitPath + ".tar"
+	}
+
+	cleanCommitPath := filepath.Clean(commitPath)
+
+	tarCmd := exec.Command("tar", "cfv", tarPath, cleanCommitPath)
+	tarCmd.Dir = parentPath
+	log.Printf("Running tar cfv %s %s", tarPath, cleanCommitPath)
+	output, err := tarCmd.CombinedOutput()	
+
+	if err != nil {
+		log.Fatal(fmt.Sprintf("Tar command failed\nOutput:\n%s\nError:\n%s\n", output, err))	
+	} else {
+		fmt.Printf("Ran tar command with output:\n%s\n", output)
+	}
+
+	return tarPath
+}
 
 // commitCmd represents the commit command
 var commitCmd = &cobra.Command{
@@ -47,19 +91,53 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		verbosity := 1
-
-		if Verbose {
-			verbosity = 2
-		} else if Quiet {
-			verbosity = 0
-		}
+		verbosity := dupver.SetVerbosity(Verbose, Quiet)
+		parentIds := strings.Split(ParentCommitIds, ",")
 
 		if len(args) >= 1 {
 			commitFile := args[0]
-			dupver.CommitFile(commitFile, Message, verbosity)
+			tarFile := commitFile
+			containingFolder := filepath.Dir(commitFile)
+
+			if !strings.HasSuffix(commitFile, "tar") {
+				fmt.Printf("%s -> %s, %s\n", commitFile, containingFolder, commitFile)
+				tarFile = CreateTar(containingFolder, commitFile, verbosity)
+
+				if len(Message) == 0 {
+					Message = filepath.Base(commitFile)
+
+					if verbosity >= 1 {
+						fmt.Printf("Message not specified, setting to: %s\n", Message)
+					}
+				}
+			}
+
+			myHead := dupver.CommitFile(tarFile, parentIds, Message, verbosity)
+			headPath := filepath.Join(containingFolder, ".dupver", "head.toml")
+			dupver.WriteHead(headPath, myHead, verbosity)
 		} else {
-			log.Fatal("Input file name is required")
+			dir, err := os.Getwd()
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			containingFolder := filepath.Dir(dir)
+			workdirFolder := filepath.Base(dir)
+			fmt.Printf("%s -> %s, %s\n", dir, containingFolder, workdirFolder)
+
+			if len(Message) == 0 {
+				Message = workdirFolder
+
+				if verbosity >= 1 {
+					fmt.Printf("Message not specified, setting to: %s\n", Message)
+				}				
+			}
+
+
+			tarFile := CreateTar(containingFolder, workdirFolder, verbosity)
+			myHead := dupver.CommitFile(tarFile, parentIds, Message, verbosity)	
+			headPath := filepath.Join(".dupver", "head.toml")
+			dupver.WriteHead(headPath, myHead, verbosity)
 		}
 	},
 }
@@ -77,4 +155,5 @@ func init() {
 	// is called directly, e.g.:
 	// commitCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 	commitCmd.Flags().StringVarP(&Message, "message", "m", "", "Commit message")
+	commitCmd.Flags().StringVarP(&ParentCommitIds, "parent", "p", "", "Comma separated list of parent commit ID(s)")
 }

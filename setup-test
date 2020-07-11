@@ -3,4 +3,5 @@ go install
 echo "Done building"
 
 cp dupver-test.fish $HOME/Data/
-echo "Copied test script"
+chmod 755 $HOME/Data/dupver-test.fish
+echo "Copied test scripts"

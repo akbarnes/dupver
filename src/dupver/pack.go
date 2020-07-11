@@ -49,7 +49,9 @@ func WritePacks(f *os.File, repoPath string, poly chunker.Pol, verbosity int) ([
 	stillReadingInput := true
 
 	totalDataSize := 0
-	totalPackNum := 0
+	dupDataSize := 0
+
+	newPackNum := 0
 	totalChunkNum := 0
 	dupChunkNum := 0
 
@@ -59,12 +61,12 @@ func WritePacks(f *os.File, repoPath string, poly chunker.Pol, verbosity int) ([
 		os.MkdirAll(packFolderPath, 0777)
 		packPath := path.Join(packFolderPath, packId + ".zip")	
 
-		totalPackNum++		
+		newPackNum++		
 
 		if verbosity >= 2 {
-			fmt.Printf("Creating pack file %3d: %s\n", totalPackNum, packPath)	
+			fmt.Printf("Creating pack file %3d: %s\n", newPackNum, packPath)	
 		} else if verbosity == 1 {
-			fmt.Printf("Creating pack number: %3d, ID: %s\n", totalPackNum, packId[0:16])	
+			fmt.Printf("Creating pack number: %3d, ID: %s\n", newPackNum, packId[0:16])	
 		}
 
 		zipFile, err := os.Create(packPath)
@@ -93,7 +95,6 @@ func WritePacks(f *os.File, repoPath string, poly chunker.Pol, verbosity int) ([
 			i++
 			chunkId := fmt.Sprintf("%064x", sha256.Sum256(chunk.Data))
 			chunkIDs = append(chunkIDs, chunkId)
-			curPackSize += chunk.Length
 
 			totalDataSize += int(chunk.Length)
 			totalChunkNum++
@@ -104,6 +105,7 @@ func WritePacks(f *os.File, repoPath string, poly chunker.Pol, verbosity int) ([
 				}
 
 				dupChunkNum++
+				dupDataSize += int(chunk.Length)
 			} else {	
 				if verbosity >= 2 {
 					fmt.Printf("Chunk %d: chunk size %d kB, total size %d kB, ", i, chunk.Length/1024, curPackSize/1024)
@@ -123,6 +125,7 @@ func WritePacks(f *os.File, repoPath string, poly chunker.Pol, verbosity int) ([
 				}
 
 				writer.Write(chunk.Data)	
+				curPackSize += chunk.Length
 			}		
 		}	
 
@@ -141,9 +144,15 @@ func WritePacks(f *os.File, repoPath string, poly chunker.Pol, verbosity int) ([
 
 	if verbosity >= 1 {
 		newChunkNum := totalChunkNum - dupChunkNum
-		fmt.Printf("%0.2f MB raw data stored\n", float64(totalDataSize)/1e6)
+		newDataSize := totalDataSize - dupDataSize
+
+		newMb := float64(newDataSize)/1e6
+		dupMb := float64(dupDataSize)/1e6
+		totalMb := float64(totalDataSize)/1e6
+
+		fmt.Printf("%0.2f new, %0.2f duplicatate, %0.2f total MB raw data stored\n", newMb, dupMb, totalMb)
 		fmt.Printf("%d new, %d duplicate, %d total chunks\n", newChunkNum, dupChunkNum, totalChunkNum)
-		fmt.Printf("%d packs stored, %0.2f chunks/pack\n", totalPackNum, float64(totalChunkNum)/float64(totalPackNum))
+		fmt.Printf("%d packs stored, %0.2f chunks/pack\n", newPackNum, float64(newChunkNum)/float64(newPackNum))
 	}
 
 	return chunkIDs, newChunkPacks 
