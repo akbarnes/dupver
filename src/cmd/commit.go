@@ -39,6 +39,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var Add bool
 var Message string
 var ParentCommitIds string
 
@@ -91,7 +92,7 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		verbosity := dupver.SetVerbosity(Verbose, Quiet)
+		verbosity := dupver.CalculateVerbosity(Verbose, Quiet)
 		parentIds := strings.Split(ParentCommitIds, ",")
 
 		if len(args) >= 1 {
@@ -155,5 +156,6 @@ func init() {
 	// is called directly, e.g.:
 	// commitCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 	commitCmd.Flags().StringVarP(&Message, "message", "m", "", "Commit message")
+	commitCmd.Flags().BoolVarP(&Add, "add", "a", false, "Unused, but added for git compatibility")
 	commitCmd.Flags().StringVarP(&ParentCommitIds, "parent", "p", "", "Comma separated list of parent commit ID(s)")
 }

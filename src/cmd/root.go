@@ -42,6 +42,7 @@ var WorkDirPath string
 var Verbose bool
 var Quiet bool
 var Monochrome bool
+var Color bool
 
 
 // rootCmd represents the base command when called without any subcommands

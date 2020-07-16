@@ -236,21 +236,21 @@ func ListSnapshots(cfg workDirConfig) []string {
 	return snapshotPaths
 }
 
-func PrintSnapshots(cfg workDirConfig, snapshotId string, maxSnapshots int, verbosity int) {
+func PrintSnapshots(cfg workDirConfig, snapshotId string, maxSnapshots int, opts Options) {
 	// fmt.Printf("Verbosity = %d\n", verbosity)
 	// print a specific revision
 	snapshotCount := 0
 	repoPath := cfg.RepoPath
 	projectName := cfg.WorkDirName
 
-	if maxSnapshots != 0 && verbosity >= 1 {
+	if maxSnapshots != 0 && opts.Verbosity >= 1 {
 		fmt.Println("Snapshot History")
 	}
 
 	for  {	
 		snapshotPath := filepath.Join(repoPath, "snapshots", projectName, snapshotId + ".json")
 		mySnapshot := ReadSnapshotFile(snapshotPath)
-		PrintSnapshot(mySnapshot, 0, verbosity)
+		PrintSnapshot(mySnapshot, 0, opts)
 		parents := mySnapshot.ParentIDs
 
 		if len(parents) == 0 || len(parents[0]) == 0 {
@@ -269,21 +269,21 @@ func PrintSnapshots(cfg workDirConfig, snapshotId string, maxSnapshots int, verb
 	}
 }
 
-func PrintAllSnapshots(cfg workDirConfig, snapshot string, verbosity int) {
-	// fmt.Printf("Verbosity = %d\n", verbosity)
+func PrintAllSnapshots(cfg workDirConfig, snapshot string, opts Options) {
+	// fmt.Printf("Verbosity = %d\n", opts.Verbosity)
 	snapshotPaths := ListSnapshots(cfg)
 	// print a specific revision
 	if len(snapshot) == 0 {
-		if verbosity >= 1 {
+		if opts.Verbosity >= 1 {
 			fmt.Println("Snapshot History")
 		}
 
 		for _, snapshotPath := range snapshotPaths {
 			// fmt.Printf("Path: %s\n", snapshotPath)
-			PrintSnapshot(ReadSnapshotFile(snapshotPath), 10, verbosity)
+			PrintSnapshot(ReadSnapshotFile(snapshotPath), 10, opts)
 		}
 	} else {
-		if verbosity >= 1 {
+		if opts.Verbosity >= 1 {
 			fmt.Println("Snapshot")
 		}
 
@@ -296,19 +296,29 @@ func PrintAllSnapshots(cfg workDirConfig, snapshot string, verbosity int) {
 			snapshotId := snapshotPath[n-SNAPSHOT_ID_LEN-5 : n-5]
 
 			if snapshotId[0:8] == snapshot {
-				PrintSnapshot(ReadSnapshotFile(snapshotPath), 0, verbosity)
+				PrintSnapshot(ReadSnapshotFile(snapshotPath), 0, opts)
 			}
 		}
 	}
 }
 
-func PrintSnapshot(mySnapshot Commit, maxFiles int, verbosity int) {
-	if verbosity <= 0 {
+func PrintSnapshot(mySnapshot Commit, maxFiles int, opts Options) {
+	if opts.Verbosity <= 0 {
 		fmt.Printf("%s\n", mySnapshot.ID)
 		return
 	}
 
-	fmt.Printf("%sID: %s (%s)%s\n", colorYellow, mySnapshot.ID[0:8], mySnapshot.ID, colorReset)
+	if opts.Color {
+		fmt.Printf("%s", colorYellow)
+	}
+
+	fmt.Printf("ID: %s (%s)\n", mySnapshot.ID[0:8], mySnapshot.ID)
+
+	if opts.Color {
+		fmt.Printf("%s", colorReset)
+	}
+
+	fmt.Printf("\n")
 	fmt.Printf("Time: %s\n", mySnapshot.Time)
 
 	if len(mySnapshot.Message) > 0 {

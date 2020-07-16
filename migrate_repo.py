@@ -37,11 +37,12 @@ else:
     print('No parent ids')
     s['ParentIDs'] = []
     s.pop('Tags', 'ignore_missing')
-    new_snapshot_path = os.path.join(cfg['RepoPath'], 'snapshots', cfg['WorkDirName'], f"{cid}.json")
-    print(f"Writing to {new_snapshot_path}")
+    
+new_snapshot_path = os.path.join(cfg['RepoPath'], 'snapshots', cfg['WorkDirName'], f"{cid}.json")
+print(f"Writing snapshot 1 to {new_snapshot_path}")
 
-    with open(new_snapshot_path, 'w') as f:
-        json.dump(s, f, indent=2)
+with open(new_snapshot_path, 'w') as f:
+    json.dump(s, f, indent=2)
 
 pid = cid
 
@@ -68,7 +69,7 @@ for i in range(1,len(snapshots)):
     # save as cid
     s.pop('Tags', 'ignore_missing')
     new_snapshot_path = os.path.join(cfg['RepoPath'], 'snapshots', cfg['WorkDirName'], f"{cid}.json")
-    print(f"Writing to {new_snapshot_path}")
+    print(f"Writing snapshot {i+1} to {new_snapshot_path}")
 
     with open(new_snapshot_path, 'w') as f:
         json.dump(s, f, indent=2)
@@ -79,7 +80,9 @@ for i in range(1,len(snapshots)):
 h = {'CommitID': cid, 'BranchName': 'main'}
 b = {'CommitID': cid}
 
-with open('.dupver/head.toml','w') as f:
+head_path = '.dupver/head.toml'
+print(f"Writing head to {head_path}")
+with open(head_path,'w') as f:
     toml.dump(h, f)
 
 branch_folder = os.path.join(cfg['RepoPath'], 'branches', cfg['WorkDirName'])
@@ -88,7 +91,7 @@ branch_path = os.path.join(branch_folder, "main.toml")
 if not os.path.exists(branch_folder):
     os.makedirs(branch_folder)    
 
-print(f"Writing to {branch_path}")
+print(f"Writing branch to {branch_path}")
 with open(branch_path, 'w') as f:
     toml.dump(b, f)
 

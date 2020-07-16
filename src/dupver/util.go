@@ -22,13 +22,18 @@ const colorPurple string = "\033[35m"
 const colorCyan string = "\033[36m"
 const colorWhite string = "\033[37m"
 
+type Options struct {
+	Verbosity int
+	Color bool
+}
+
 func Check(e error) {
 	if e != nil {
 		panic(e)
 	}
 }
 
-func SetVerbosity(verbose bool, quiet bool) int {
+func CalculateVerbosity(verbose bool, quiet bool) int {
 	if quiet {
 		return 0
 	}
@@ -38,6 +43,11 @@ func SetVerbosity(verbose bool, quiet bool) int {
 	}
 
 	return 1
+}
+
+func SetVerbosity(opts Options, verbose bool, quiet bool) Options {
+	opts.Verbosity = CalculateVerbosity(verbose, quiet)
+	return opts
 }
 
 func CreateFolder(folderName string, verbosity int) {

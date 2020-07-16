@@ -57,7 +57,7 @@ to quickly create a Cobra application.`,
 			OutFile = fmt.Sprintf("%s-%s-%s.tar", cfg.WorkDirName, timeStr, snap.ID[0:16])
 		}
 
-		verbosity := dupver.SetVerbosity(Verbose, Quiet)
+		verbosity := dupver.CalculateVerbosity(Verbose, Quiet)
 		dupver.UnpackFile(OutFile, cfg.RepoPath, snap.ChunkIDs, verbosity)
 
 		if verbosity >= 1 {
