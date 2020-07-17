@@ -57,21 +57,7 @@ to quickly create a Cobra application.`,
 		if len(args) >= 1 {
 			snapshotId = args[0]
 			numSnapshots = 1
-			snapshotPaths := dupver.ListSnapshots(cfg)
-
-			for  _,  snapshotPath := range snapshotPaths {
-				n := len(snapshotId) - 1
-				sid := snapshotPath[n-dupver.SNAPSHOT_ID_LEN-5 : n-5]
-
-				if len(sid) < len(snapshotId) {
-					n = len(sid) - 1
-				}
-
-				if snapshotId[0:n] == sid[0:n] {
-					snapshotId = sid
-					break
-				}
-			}
+			snapshotId = dupver.GetFullSnapshotId(snapshotId, cfg)
 		}
 
 		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Verbose, Quiet)

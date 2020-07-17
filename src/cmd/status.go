@@ -27,8 +27,9 @@ POSSIBILITY OF SUCH DAMAGE.
 package cmd
 
 import (
-	"fmt"
-	"log"
+	// "fmt"
+	// "log"
+	"path/filepath"
 
 	"github.com/akbarnes/dupver/src/dupver"
 	"github.com/spf13/cobra"
@@ -45,32 +46,19 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		snapshotId := ""
+		cfg := dupver.ReadWorkDirConfig(WorkDirPath)
+		cfg = dupver.UpdateRepoPath(cfg, RepoPath)
+
+		headPath := filepath.Join(WorkDirPath, ".dupver", "head.toml")
+		myHead := dupver.ReadHead(headPath)
+		snapshotId := myHead.CommitID
 
 		if len(args) >= 1 {
 			snapshotId = args[0]
+			snapshotId = dupver.GetFullSnapshotId(snapshotId, cfg)
 		}
 
-		cfg := dupver.ReadWorkDirConfig(WorkDirPath)
-		cfg = dupver.UpdateRepoPath(cfg, RepoPath)
-		var mySnapshot dupver.Commit
-
-		if len(snapshotId) == 0 {
-			snapshotPaths := dupver.ListSnapshots(cfg)
-
-			if len(snapshotPaths) == 0 {
-				log.Fatal("Nothing to compare against, no commits yet")
-			}
-			mySnapshot = dupver.ReadSnapshotFile(snapshotPaths[len(snapshotPaths)-1])
-		} else {
-			var err error
-			mySnapshot, err = dupver.ReadSnapshotId(snapshotId, cfg)
-
-			if err != nil {
-				log.Fatal(fmt.Sprintf("Error reading snapshot %s", snapshotId))
-			}
-		}
-
+		mySnapshot := dupver.ReadSnapshot(snapshotId, cfg)
 		verbosity := dupver.CalculateVerbosity(Verbose, Quiet)
 		dupver.WorkDirStatus(WorkDirPath, mySnapshot, verbosity)
 	},

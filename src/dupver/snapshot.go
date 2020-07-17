@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
+	// "log"
 	"os"
 	"path"
 	"path/filepath"
@@ -101,7 +101,9 @@ func CommitFile(filePath string, parentIds []string, msg string, verbosity int) 
 	WriteTree(treePath, chunkPacks)
 
 	if verbosity >= 1 {
+		fmt.Printf("%s", colorGreen)
 		fmt.Printf("Created snapshot %s (%s)\n", mySnapshot.ID[0:16], mySnapshot.ID)
+		fmt.Printf("%s", colorReset)
 	} else {
 		fmt.Println(mySnapshot.ID)
 	}
@@ -163,20 +165,31 @@ func ReadBranch(branchPath string) Branch {
 	return myBranch
 }
 
-func ReadSnapshot(snapshot string, cfg workDirConfig) Commit {
+func GetFullSnapshotId(snapshotId string, cfg workDirConfig) string {
 	snapshotPaths := ListSnapshots(cfg)
 
-	for _, snapshotPath := range snapshotPaths {
-		n := len(snapshotPath)
-		snapshotId := snapshotPath[n-SNAPSHOT_ID_LEN-5 : n-5]
+	for  _,  snapshotPath := range snapshotPaths {
+		n := len(snapshotId) - 1
+		sid := snapshotPath[n-SNAPSHOT_ID_LEN-5 : n-5]
 
-		if snapshotId[0:len(snapshot)] == snapshot {
-			return ReadSnapshotFile(snapshotPath)
+		if len(sid) < len(snapshotId) {
+			n = len(sid) - 1
+		}
+
+		if snapshotId[0:n] == sid[0:n] {
+			snapshotId = sid
+			break
 		}
 	}
 
-	log.Fatal(fmt.Sprintf("Error: Could not find snapshot %s in repo", snapshot))
-	return Commit{}
+	// TODO: return an error if no match
+	return snapshotId
+}
+
+func ReadSnapshot(snapshot string, cfg workDirConfig) Commit {
+	snapshotsFolder := path.Join(cfg.RepoPath, "snapshots", cfg.WorkDirName)
+	snapshotPath := path.Join(snapshotsFolder, snapshot + ".json")
+	return ReadSnapshotFile(snapshotPath)
 }
 
 func ReadSnapshotFile(snapshotPath string) Commit {
@@ -309,7 +322,7 @@ func PrintSnapshot(mySnapshot Commit, maxFiles int, opts Options) {
 	}
 
 	if opts.Color {
-		fmt.Printf("%s", colorYellow)
+		fmt.Printf("%s", colorGreen)
 	}
 
 	fmt.Printf("ID: %s (%s)\n", mySnapshot.ID[0:8], mySnapshot.ID)
