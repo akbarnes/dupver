@@ -3,7 +3,7 @@ package dupver
 import (
 	"fmt"
 	"log"
-	// "path"
+	"path"
 	"path/filepath"
 	// "io"
 	// "bufio"
@@ -176,7 +176,7 @@ func WorkDirStatus(workDir string, snapshot Commit, verbosity int) {
 			// check(err)
 
 			if snapshotInfo.ModTime != info.ModTime().Format("2006/01/02 15:04:05") {
-				if !info.IsDir() {
+				if !info.IsDir() && !strings.HasPrefix(curPath, path.Join(workDirPrefix, ".dupver")) {
 					fmt.Printf("%sM %s%s\n", colorCyan, curPath, colorReset)
 					// fmt.Printf("M %s\n", curPath)
 					changes = true
@@ -184,7 +184,7 @@ func WorkDirStatus(workDir string, snapshot Commit, verbosity int) {
 			} else if verbosity >= 2 {
 				fmt.Printf("%sU %s%s\n", colorWhite, curPath, colorReset)
 			}
-		} else {
+		} else if !strings.HasPrefix(curPath, path.Join(workDirPrefix, ".dupver")) {
 			fmt.Printf("%s+ %s%s\n", colorGreen, curPath, colorReset)
 			changes = true
 		}
