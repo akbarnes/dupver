@@ -93,7 +93,14 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		verbosity := dupver.CalculateVerbosity(Verbose, Quiet)
-		parentIds := strings.Split(ParentCommitIds, ",")
+		parentIds := []string{}
+		unfilteredParentIds := strings.Split(ParentCommitIds, ",")
+
+		for i := range unfilteredParentIds {
+			if len(unfilteredParentIds[i]) > 0 {
+				parentIds = append(parentIds, unfilteredParentIds[i])
+			}
+		}
 
 		if len(args) >= 1 {
 			commitFile := args[0]

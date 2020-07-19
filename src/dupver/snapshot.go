@@ -63,19 +63,19 @@ func CommitFile(filePath string, parentIds []string, msg string, verbosity int) 
 
 	myRepoConfig := ReadRepoConfigFile(path.Join(myWorkDirConfig.RepoPath, "config.toml"))
 	
+	if verbosity >= 1 {
+		fmt.Println("Head:")
+		fmt.Println(myHead)
+		fmt.Printf("Branch: %s\nParent commit: %s\n", myHead.BranchName, myHead.CommitID)
+	}
 
 	if len(myHead.BranchName) == 0 {
 		myHead.BranchName = "main"
-	}
+	}		
 
 	branchFolder := path.Join(myWorkDirConfig.RepoPath, "branches", myWorkDirConfig.WorkDirName)
 	branchPath := path.Join(branchFolder, myHead.BranchName + ".toml")	
 	myBranch := ReadBranch(branchPath)
-
-	if verbosity >= 1 {
-		fmt.Printf("Branch: %s\nParent commit: %s\n", myHead.BranchName, myBranch.CommitID)
-	}	
-
 
 	mySnapshot.ParentIDs = append([]string{myHead.CommitID}, parentIds...)
 
@@ -325,7 +325,7 @@ func PrintSnapshot(mySnapshot Commit, maxFiles int, opts Options) {
 		fmt.Printf("%s", colorGreen)
 	}
 
-	fmt.Printf("ID: %s (%s)\n", mySnapshot.ID[0:8], mySnapshot.ID)
+	fmt.Printf("ID: %s (%s)", mySnapshot.ID[0:8], mySnapshot.ID)
 
 	if opts.Color {
 		fmt.Printf("%s", colorReset)

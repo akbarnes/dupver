@@ -11,7 +11,7 @@ import (
 	// "path/filepath"
 	"strings"
 	"archive/tar"
-	"encoding/json"
+	// "encoding/json"
 
 	"github.com/BurntSushi/toml"
 )
@@ -73,15 +73,13 @@ func ReadTarIndex(tarFile *os.File, verbosity int) ([]fileInfo, workDirConfig, H
 			// fmt.Printf("Read config\nworkdir name: %s\nrepo path: %s\n", myConfig.WorkDirName, myConfig.RepoPath)
 		}
 
-		if strings.HasSuffix(hdr.Name, ".dupver/head.json") {
+		if strings.HasSuffix(hdr.Name, ".dupver/head.toml") {
 			if verbosity >= 1 {
 				fmt.Printf("Reading head file %s\n", hdr.Name)
 			}
 
 
-			myDecoder := json.NewDecoder(tr)
-
-			if err := myDecoder.Decode(&myHead); err != nil {
+			if _, err := toml.DecodeReader(tr, &myHead); err != nil {
 				panic(fmt.Sprintf("Error decoding head file %s while reading tar file index", hdr.Name))
 			}
 
