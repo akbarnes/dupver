@@ -3,7 +3,7 @@ package main
 import (
 	"testing"
 	"os"
-	"path"
+	"path/filepath"
 	"fmt"
 	"os/exec"
 	"log"
@@ -11,6 +11,7 @@ import (
 )
 
 func TestWorkRepoInit(t *testing.T) {
+	verbosity := 2
 	homeDir := dupver.GetHome()
 
 	if len(homeDir) == 0 {
@@ -21,7 +22,7 @@ func TestWorkRepoInit(t *testing.T) {
 	repoFolder := ".dupver_repo_" + repoId
 
 	repoPath := filepath.Join(homeDir, "temp", repoFolder)
-	dupver.InitRepo(repoPath)
+	dupver.InitRepo(repoPath, verbosity)
 
 	snapshotsPath := filepath.Join(repoPath, "snapshots")
 	if _, err := os.Stat(snapshotsPath); err != nil {
@@ -49,6 +50,7 @@ func TestWorkRepoInit(t *testing.T) {
 }
 
 func TestWorkDirInit(t *testing.T) {
+	verbosity := 2
 	homeDir := dupver.GetHome()
 
 	if len(homeDir) == 0 {
@@ -67,7 +69,7 @@ func TestWorkDirInit(t *testing.T) {
 	repoPath := filepath.Join(homeDir, ".dupver_repo")
 
 	workDirName := ""
-	dupver.InitWorkDir(workDirFolder, workDirName, repoPath)
+	dupver.InitWorkDir(workDirFolder, workDirName, repoPath, verbosity)
 
 	cfg :=dupver.ReadWorkDirConfig(workDirFolder)
 
@@ -94,7 +96,7 @@ func TestCommit(t *testing.T) {
 	repoId := dupver.RandString(16, dupver.HexChars)
 	repoFolder := ".dupver_repo_" + repoId
 	repoPath := filepath.Join(homeDir, "temp", repoFolder)
-	dupver.InitRepo(repoPath)	
+	dupver.InitRepo(repoPath, verbosity)	
 
     // ----------- Create a workdir ----------- //    
 	workDirId := dupver.RandString(16, dupver.HexChars)
@@ -106,7 +108,7 @@ func TestCommit(t *testing.T) {
 	}
 
 	workDirName := ""
-	dupver.InitWorkDir(workDirFolder, workDirName, repoPath)
+	dupver.InitWorkDir(workDirFolder, workDirName, repoPath, verbosity)
 
 	// ----------- Create tar file with random data ----------- //    
 	// TODO: add random permutes to data
@@ -114,18 +116,18 @@ func TestCommit(t *testing.T) {
 	fmt.Printf("Created tar file %s\n", fileName)
 
 	// ----------- Commit the tar file  ----------- //    
-	snapshot := dupver.CommitFile(fileName, msg, verbosity)
+	snapshot := dupver.CommitFile(fileName, []string{}, msg, verbosity)
 
 	// ----------- Commit the tar file  ----------- //   
+	opts := dupver.Options{Color: true, Verbosity: 2}
 	myWorkDirConfig := dupver.ReadWorkDirConfig(workDirFolder)
-	dupver.PrintSnapshots(dupver.ListSnapshots(myWorkDirConfig), "")
-	dupver.PrintSnapshots(dupver.ListSnapshots(myWorkDirConfig), snapshot)
+	dupver.PrintSnapshots(myWorkDirConfig, snapshot.CommitID, 0, opts)
 
 
 	// ----------- Checkout the tar file  ----------- //    
-	mySnapshot := dupver.ReadSnapshot(snapshot, myWorkDirConfig)
+	mySnapshot := dupver.ReadSnapshot(snapshot.CommitID, myWorkDirConfig)
 	timeStr := dupver.TimeToPath(mySnapshot.Time)
-	outputFileName := fmt.Sprintf("%s-%s-%s.tar", myWorkDirConfig.WorkDirName, timeStr, snapshot[0:16])
+	outputFileName := fmt.Sprintf("%s-%s-%s.tar", myWorkDirConfig.WorkDirName, timeStr, snapshot.CommitID[0:16])
 
 	dupver.UnpackFile(outputFileName, myWorkDirConfig.RepoPath, mySnapshot.ChunkIDs, verbosity) 
 	fmt.Printf("Wrote to %s\n", outputFileName)
