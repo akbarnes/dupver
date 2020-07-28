@@ -24,18 +24,18 @@ func FolderToWorkDirName(folder string) string {
 	return strings.ReplaceAll(strings.ToLower(folder), " ", "-")
 }
 
-func InitWorkDir(workDirFolder string, workDirName string, repoPath string, verbosity int) {
+func InitWorkDir(workDirFolder string, workDirName string, repoPath string, opts Options) {
 	var configPath string
 
-	if verbosity >= 2 {
+	if opts.Verbosity >= 2 {
 		fmt.Printf("Workdir %s, name %s, repo %s\n", workDirFolder, workDirName, repoPath)
 	}
 
 	if len(workDirFolder) == 0 {
-		CreateFolder(".dupver", verbosity)
+		CreateFolder(".dupver", opts.Verbosity)
 		configPath = filepath.Join(".dupver", "config.toml")
 	} else {
-		CreateSubFolder(workDirFolder, ".dupver", verbosity)
+		CreateSubFolder(workDirFolder, ".dupver", opts.Verbosity)
 		configPath = filepath.Join(workDirFolder, ".dupver", "config.toml")
 	}
 
@@ -57,7 +57,7 @@ func InitWorkDir(workDirFolder string, workDirName string, repoPath string, verb
 			log.Fatal("Invalid project name: " + workDirName)
 		}
 
-		if verbosity >= 1 {
+		if opts.Verbosity >= 1 {
 			fmt.Printf("Workdir name not specified, setting to %s\n", workDirName)
 		}
 	}
@@ -65,12 +65,12 @@ func InitWorkDir(workDirFolder string, workDirName string, repoPath string, verb
 	if len(repoPath) == 0 {
 		repoPath = filepath.Join(GetHome(), ".dupver_repo")
 
-		if verbosity >= 1 {
+		if opts.Verbosity >= 1 {
 			fmt.Printf("Repo path not specified, setting to %s\n", repoPath)
 		}
 	}
 
-	if verbosity == 0 {
+	if opts.Verbosity == 0 {
 		fmt.Println(workDirName)
 	}
 

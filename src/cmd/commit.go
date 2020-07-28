@@ -92,7 +92,12 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		verbosity := dupver.CalculateVerbosity(Verbose, Quiet)
+		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Verbose, Quiet)
+		
+		if Monochrome || Quiet {
+			opts.Color = false
+		}
+		
 		parentIds := []string{}
 		unfilteredParentIds := strings.Split(ParentCommitIds, ",")
 
@@ -109,20 +114,20 @@ to quickly create a Cobra application.`,
 
 			if !strings.HasSuffix(commitFile, "tar") {
 				fmt.Printf("%s -> %s, %s\n", commitFile, containingFolder, commitFile)
-				tarFile = CreateTar(containingFolder, commitFile, verbosity)
+				tarFile = CreateTar(containingFolder, commitFile, opts.Verbosity)
 
 				if len(Message) == 0 {
 					Message = filepath.Base(commitFile)
 
-					if verbosity >= 1 {
+					if opts.Verbosity >= 1 {
 						fmt.Printf("Message not specified, setting to: %s\n", Message)
 					}
 				}
 			}
 
-			myHead := dupver.CommitFile(tarFile, parentIds, Message, verbosity)
+			myHead := dupver.CommitFile(tarFile, parentIds, Message, opts.Verbosity)
 			headPath := filepath.Join(containingFolder, ".dupver", "head.toml")
-			dupver.WriteHead(headPath, myHead, verbosity)
+			dupver.WriteHead(headPath, myHead, opts.Verbosity)
 		} else {
 			dir, err := os.Getwd()
 			if err != nil {
@@ -136,16 +141,16 @@ to quickly create a Cobra application.`,
 			if len(Message) == 0 {
 				Message = workdirFolder
 
-				if verbosity >= 1 {
+				if opts.Verbosity >= 1 {
 					fmt.Printf("Message not specified, setting to: %s\n", Message)
 				}				
 			}
 
 
-			tarFile := CreateTar(containingFolder, workdirFolder, verbosity)
-			myHead := dupver.CommitFile(tarFile, parentIds, Message, verbosity)	
+			tarFile := CreateTar(containingFolder, workdirFolder, opts.Verbosity)
+			myHead := dupver.CommitFile(tarFile, parentIds, Message, opts.Verbosity)	
 			headPath := filepath.Join(".dupver", "head.toml")
-			dupver.WriteHead(headPath, myHead, verbosity)
+			dupver.WriteHead(headPath, myHead, opts.Verbosity)
 		}
 	},
 }

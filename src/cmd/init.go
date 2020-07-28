@@ -53,8 +53,13 @@ to quickly create a Cobra application.`,
 		}
 
 		// TODO: Read repoPath from environment variable if empty
-		verbosity := dupver.CalculateVerbosity(Verbose, Quiet)
-		dupver.InitWorkDir(workDirPath, ProjectName, RepoPath, verbosity)
+		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Verbose, Quiet)
+		
+		if Monochrome || Quiet {
+			opts.Color = false
+		}
+
+		dupver.InitWorkDir(workDirPath, ProjectName, RepoPath, opts)
 	},
 }
 
