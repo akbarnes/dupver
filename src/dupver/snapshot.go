@@ -46,7 +46,7 @@ const PACK_ID_LEN int = 64
 const CHUNK_ID_LEN int = 64
 const TREE_ID_LEN int = 40
 
-func CommitFile(filePath string, parentIds []string, msg string, verbosity int) Head {
+func CommitFile(filePath string, parentIds []string, msg string, opts Options) Head {
 	var myWorkDirConfig workDirConfig
 	t := time.Now()
 
@@ -55,15 +55,15 @@ func CommitFile(filePath string, parentIds []string, msg string, verbosity int) 
 	mySnapshot.ID = RandHexString(SNAPSHOT_ID_LEN)
 	mySnapshot.Time = t.Format("2006/01/02 15:04:05")
 	mySnapshot = UpdateMessage(mySnapshot, msg, filePath)
-	mySnapshot.Files, myWorkDirConfig, myHead = ReadTarFileIndex(filePath, verbosity)
+	mySnapshot.Files, myWorkDirConfig, myHead = ReadTarFileIndex(filePath, opts.Verbosity)
 
-	if verbosity >= 2 {
+	if opts.Verbosity >= 2 {
 		fmt.Printf("Repo config: %s\n", myWorkDirConfig.RepoPath)
 	}
 
 	myRepoConfig := ReadRepoConfigFile(path.Join(myWorkDirConfig.RepoPath, "config.toml"))
 	
-	if verbosity >= 1 {
+	if opts.Verbosity >= 1 {
 		fmt.Println("Head:")
 		fmt.Println(myHead)
 		fmt.Printf("Branch: %s\nParent commit: %s\n", myHead.BranchName, myHead.CommitID)
@@ -79,7 +79,7 @@ func CommitFile(filePath string, parentIds []string, msg string, verbosity int) 
 
 	mySnapshot.ParentIDs = append([]string{myHead.CommitID}, parentIds...)
 
-	chunkIDs, chunkPacks := PackFile(filePath, myWorkDirConfig.RepoPath, myRepoConfig.ChunkerPolynomial, verbosity)
+	chunkIDs, chunkPacks := PackFile(filePath, myWorkDirConfig.RepoPath, myRepoConfig.ChunkerPolynomial, opts.Verbosity)
 	mySnapshot.ChunkIDs = chunkIDs
 
 	snapshotFolder := path.Join(myWorkDirConfig.RepoPath, "snapshots", myWorkDirConfig.WorkDirName)
@@ -92,7 +92,7 @@ func CommitFile(filePath string, parentIds []string, msg string, verbosity int) 
 	myHead.CommitID = mySnapshot.ID
 	myBranch.CommitID = mySnapshot.ID
 
-	WriteBranch(branchPath, myBranch, verbosity)
+	WriteBranch(branchPath, myBranch, opts.Verbosity)
 
 	treeFolder := path.Join(myWorkDirConfig.RepoPath, "trees")
 	treeBasename := mySnapshot.ID[0:40]
@@ -100,7 +100,7 @@ func CommitFile(filePath string, parentIds []string, msg string, verbosity int) 
 	treePath := path.Join(treeFolder, treeBasename+".json")
 	WriteTree(treePath, chunkPacks)
 
-	if verbosity >= 1 {
+	if opts.Verbosity >= 1 {
 		fmt.Printf("%s", colorGreen)
 		fmt.Printf("Created snapshot %s (%s)\n", mySnapshot.ID[0:16], mySnapshot.ID)
 		fmt.Printf("%s", colorReset)

@@ -16,34 +16,38 @@ type repoConfig struct {
 	ChunkerPolynomial chunker.Pol
 }
 
-func InitRepo(repoPath string, verbosity int) {
+func InitRepo(repoPath string, opts Options) {
 	if len(repoPath) == 0 {
 		repoPath = path.Join(GetHome(), ".dupver_repo")
 		fmt.Printf("Repo path not specified, setting to %s\n", repoPath)
 	}
 
-	CreateFolder(repoPath, verbosity)
-	CreateSubFolder(repoPath, "branches", verbosity)
-	CreateSubFolder(repoPath, "snapshots", verbosity)
-	CreateSubFolder(repoPath, "trees", verbosity)
-	CreateSubFolder(repoPath, "packs", verbosity)
+	CreateFolder(repoPath, opts.Verbosity)
+	CreateSubFolder(repoPath, "branches", opts.Verbosity)
+	CreateSubFolder(repoPath, "snapshots", opts.Verbosity)
+	CreateSubFolder(repoPath, "trees", opts.Verbosity)
+	CreateSubFolder(repoPath, "packs", opts.Verbosity)
 
 
 	snapshotsPath := path.Join(repoPath, "snapshots")
-	if verbosity >= 1 {
+
+	if opts.Verbosity >= 1 {
 		fmt.Printf("Creating folder %s\n", snapshotsPath)
 	}
+
 	os.MkdirAll(snapshotsPath, 0777)
 
 	treesPath := path.Join(repoPath, "trees")
-	if verbosity >= 1 {
+
+	if opts.Verbosity >= 1 {
 		fmt.Printf("Creating folder %s\n", treesPath)
 	}
+
 	os.Mkdir(treesPath, 0777)
 
 	p, err := chunker.RandomPolynomial()
 
-	if verbosity >= 1 {
+	if opts.Verbosity >= 1 {
 		fmt.Printf("Chunker polynomial: %d\n", p)
 	} else {
 		fmt.Println(p)
@@ -57,7 +61,7 @@ func InitRepo(repoPath string, verbosity int) {
 	myConfig.Version = 2
 	myConfig.ChunkerPolynomial = p
 
-	SaveRepoConfig(repoPath, myConfig, verbosity)
+	SaveRepoConfig(repoPath, myConfig, opts.Verbosity)
 }
 
 func UpdateRepoPath(myWorkDirConfig workDirConfig, repoPath string) workDirConfig {

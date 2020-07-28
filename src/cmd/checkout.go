@@ -46,6 +46,12 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Verbose, Quiet)
+		
+		if Monochrome || Quiet {
+			opts.Color = false
+		}
+
 		snapshotId := args[0]
 
 		cfg := dupver.ReadWorkDirConfig(WorkDirPath)
@@ -57,10 +63,9 @@ to quickly create a Cobra application.`,
 			OutFile = fmt.Sprintf("%s-%s-%s.tar", cfg.WorkDirName, timeStr, snap.ID[0:16])
 		}
 
-		verbosity := dupver.CalculateVerbosity(Verbose, Quiet)
-		dupver.UnpackFile(OutFile, cfg.RepoPath, snap.ChunkIDs, verbosity)
+		dupver.UnpackFile(OutFile, cfg.RepoPath, snap.ChunkIDs, opts)
 
-		if verbosity >= 1 {
+		if opts.Verbosity >= 1 {
 			fmt.Printf("Wrote to %s\n", OutFile)
 		} else {
 			fmt.Printf(OutFile)

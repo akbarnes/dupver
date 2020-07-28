@@ -43,13 +43,13 @@ var Add bool
 var Message string
 var ParentCommitIds string
 
-func CreateTar(parentPath string, commitPath string, verbosity int) string {
+func CreateTar(parentPath string, commitPath string, opts dupver.Options) string {
 	tarFile := dupver.RandHexString(40) + ".tar"
 	tarFolder := filepath.Join(dupver.GetHome(), "temp")
 	tarPath := filepath.Join(tarFolder, tarFile)
 
 	// InitRepo(workDir)
-	if verbosity >= 1 {
+	if opts.Verbosity >= 1 {
 		fmt.Printf("Tar path: %s\n", tarPath)
 		fmt.Printf("Creating folder %s\n", tarFolder)
 	}
@@ -114,7 +114,7 @@ to quickly create a Cobra application.`,
 
 			if !strings.HasSuffix(commitFile, "tar") {
 				fmt.Printf("%s -> %s, %s\n", commitFile, containingFolder, commitFile)
-				tarFile = CreateTar(containingFolder, commitFile, opts.Verbosity)
+				tarFile = CreateTar(containingFolder, commitFile, opts)
 
 				if len(Message) == 0 {
 					Message = filepath.Base(commitFile)
@@ -125,9 +125,9 @@ to quickly create a Cobra application.`,
 				}
 			}
 
-			myHead := dupver.CommitFile(tarFile, parentIds, Message, opts.Verbosity)
+			myHead := dupver.CommitFile(tarFile, parentIds, Message, opts)
 			headPath := filepath.Join(containingFolder, ".dupver", "head.toml")
-			dupver.WriteHead(headPath, myHead, opts.Verbosity)
+			dupver.WriteHead(headPath, myHead, opts)
 		} else {
 			dir, err := os.Getwd()
 			if err != nil {
@@ -147,10 +147,10 @@ to quickly create a Cobra application.`,
 			}
 
 
-			tarFile := CreateTar(containingFolder, workdirFolder, opts.Verbosity)
-			myHead := dupver.CommitFile(tarFile, parentIds, Message, opts.Verbosity)	
+			tarFile := CreateTar(containingFolder, workdirFolder, opts)
+			myHead := dupver.CommitFile(tarFile, parentIds, Message, opts)	
 			headPath := filepath.Join(".dupver", "head.toml")
-			dupver.WriteHead(headPath, myHead, opts.Verbosity)
+			dupver.WriteHead(headPath, myHead, opts)
 		}
 	},
 }

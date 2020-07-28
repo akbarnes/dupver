@@ -159,7 +159,7 @@ func WritePacks(f *os.File, repoPath string, poly chunker.Pol, verbosity int) ([
 }
 
 
-func UnpackFile(filePath string, repoPath string, chunkIds []string, verbosity int) {
+func UnpackFile(filePath string, repoPath string, chunkIds []string, opts Options) {
 	chunkPacks := ReadTrees(repoPath)
 
 	f, err := os.Create(filePath)
@@ -168,17 +168,17 @@ func UnpackFile(filePath string, repoPath string, chunkIds []string, verbosity i
 		log.Fatal(fmt.Sprintf("Could not create output file %s while unpacking", filePath))
 	}
 
-	ReadPacks(f, repoPath, chunkIds, chunkPacks, verbosity)
+	ReadPacks(f, repoPath, chunkIds, chunkPacks, opts)
 	f.Close()
 }
 
 
-func ReadPacks(tarFile *os.File, repoPath string, chunkIds []string, chunkPacks map[string]string, verbosity int) {
+func ReadPacks(tarFile *os.File, repoPath string, chunkIds []string, chunkPacks map[string]string, opts Options) {
 	for i, chunkId := range chunkIds {
 		packId := chunkPacks[chunkId]
 		packPath := path.Join(repoPath, "packs", packId[0:2], packId + ".zip")
 
-		if verbosity >= 2 {
+		if opts.Verbosity >= 2 {
 			fmt.Printf("Reading chunk %d %s \n from pack %s\n", i, chunkId, packPath)
 		}
 

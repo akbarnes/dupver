@@ -245,11 +245,11 @@ func WorkDirStatus(workDir string, snapshot Commit, opts Options) {
 	}
 }
 
-func WriteHead(headPath string, myHead Head, verbosity int) {
+func WriteHead(headPath string, myHead Head, opts Options) {
 	dir := filepath.Dir(headPath)
-	CreateFolder(dir, verbosity)
+	CreateFolder(dir, opts.Verbosity)
 
-	if verbosity >= 2 {
+	if opts.Verbosity >= 2 {
 		fmt.Println("Writing head to " +  headPath)
 	}
 
