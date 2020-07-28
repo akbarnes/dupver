@@ -129,7 +129,7 @@ func ReadWorkDirConfigFile(filePath string) workDirConfig {
 	return myConfig
 }
 
-func WorkDirStatus(workDir string, snapshot Commit, verbosity int) {
+func WorkDirStatus(workDir string, snapshot Commit, opts Options) {
 	workDirPrefix := ""
 
 	if len(workDir) == 0 {
@@ -143,7 +143,7 @@ func WorkDirStatus(workDir string, snapshot Commit, verbosity int) {
 		workDirPrefix = filepath.Base(cwd)
 	}
 
-	if verbosity >= 2 {
+	if opts.Verbosity >= 2 {
 		fmt.Printf("Comparing changes for wd \"%s\" (prefix: \"%s\"\n", workDir, workDirPrefix)
 	}
 
@@ -177,15 +177,39 @@ func WorkDirStatus(workDir string, snapshot Commit, verbosity int) {
 
 			if snapshotInfo.ModTime != info.ModTime().Format("2006/01/02 15:04:05") {
 				if !info.IsDir() && !strings.HasPrefix(curPath, path.Join(workDirPrefix, ".dupver")) {
-					fmt.Printf("%sM %s%s\n", colorCyan, curPath, colorReset)
+					if opts.Color {
+						fmt.Printf("%s", colorCyan)
+					}
+		
+					fmt.Printf("M %s\n", curPath)
+		
+					if opts.Color {
+						fmt.Printf("%s", colorReset)
+					}						
 					// fmt.Printf("M %s\n", curPath)
 					changes = true
 				}
-			} else if verbosity >= 2 {
-				fmt.Printf("%sU %s%s\n", colorWhite, curPath, colorReset)
+			} else if opts.Verbosity >= 2 {
+				if opts.Color {
+					fmt.Printf("%s", colorWhite)
+				}
+	
+				fmt.Printf("M %s\n", curPath)
+	
+				if opts.Color {
+					fmt.Printf("%s", colorReset)
+				}					
 			}
 		} else if !strings.HasPrefix(curPath, path.Join(workDirPrefix, ".dupver")) {
-			fmt.Printf("%s+ %s%s\n", colorGreen, curPath, colorReset)
+			if opts.Color {
+				fmt.Printf("%s", colorGreen)
+			}
+
+			fmt.Printf("+ %s\n", curPath)
+
+			if opts.Color {
+				fmt.Printf("%s", colorReset)
+			}			
 			changes = true
 		}
 
@@ -202,12 +226,21 @@ func WorkDirStatus(workDir string, snapshot Commit, verbosity int) {
 		}
 
 		if deleted {
-			fmt.Printf("%s- %s%s\n", colorRed, file, colorReset)
+			if opts.Color {
+				fmt.Printf("%s", colorRed)
+			}
+
+			fmt.Printf("- %s\n", file)
+
+			if opts.Color {
+				fmt.Printf("%s", colorReset)
+			}
+
 			changes = true
 		}
 	}
 
-	if !changes && verbosity >= 1 {
+	if !changes && opts.Verbosity >= 1 {
 		fmt.Printf("No changes detected\n")
 	}
 }

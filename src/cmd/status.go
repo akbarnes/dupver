@@ -59,8 +59,13 @@ to quickly create a Cobra application.`,
 		}
 
 		mySnapshot := dupver.ReadSnapshot(snapshotId, cfg)
-		verbosity := dupver.CalculateVerbosity(Verbose, Quiet)
-		dupver.WorkDirStatus(WorkDirPath, mySnapshot, verbosity)
+		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Verbose, Quiet)
+		
+		if Monochrome || Quiet {
+			opts.Color = false
+		}
+
+		dupver.WorkDirStatus(WorkDirPath, mySnapshot, opts)
 	},
 }
 
