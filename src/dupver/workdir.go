@@ -15,16 +15,29 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
+// "name": "default",
+// "id": "macbook-air-home",
+// "repository": "",
+// "storage": "/Volumes/Shared/Backups/Duplicacy/MBAir",
+// "encrypted": true,
+// "no_backup": false,
+// "no_restore": false,
+// "no_save_password": false,
+// "nobackup_file": "",
+// "keys": null
+
 type workDirConfig struct {
 	WorkDirName string
-	RepoPath    string
+	DefaultRepo string
+	RepoPath string
+	Repos map[string]string
 }
 
 func FolderToWorkDirName(folder string) string {
 	return strings.ReplaceAll(strings.ToLower(folder), " ", "-")
 }
 
-func InitWorkDir(workDirFolder string, workDirName string, repoPath string, opts Options) {
+func InitWorkDir(workDirFolder string, workDirName string, repoName string, repoPath string, opts Options) {
 	var configPath string
 
 	if opts.Verbosity >= 2 {
@@ -72,12 +85,29 @@ func InitWorkDir(workDirFolder string, workDirName string, repoPath string, opts
 
 	if opts.Verbosity == 0 {
 		fmt.Println(workDirName)
+	} else {
+		fmt.Printf("Repo name: [%s]\n", repoName)
 	}
 
 	var myConfig workDirConfig
+	// need to pass this as a parameter
+	myConfig.DefaultRepo = repoName
 	myConfig.RepoPath = repoPath
+	myRepos := make(map[string]string)
+	myRepos[repoName] = repoPath
+	myConfig.Repos = myRepos
 	myConfig.WorkDirName = workDirName
-	SaveWorkDirConfig(configPath, myConfig)
+	fmt.Println(myConfig)
+	SaveWorkDirConfig(configPath, myConfig, false)
+}
+
+var configPath string
+
+func AddRepoToWorkDir(workDirPath string, repoName string, repoPath string, opts Options) {
+	cfg := ReadWorkDirConfig(workDirPath)
+	cfg.Repos[repoName] = repoPath
+	configPath = filepath.Join(workDirPath, ".dupver", "config.toml")
+	SaveWorkDirConfig(configPath, cfg, true)
 }
 
 func UpdateWorkDirName(myWorkDirConfig workDirConfig, workDirName string) workDirConfig {
@@ -88,8 +118,8 @@ func UpdateWorkDirName(myWorkDirConfig workDirConfig, workDirName string) workDi
 	return myWorkDirConfig
 }
 
-func SaveWorkDirConfig(configPath string, myConfig workDirConfig) {
-	if _, err := os.Stat(configPath); err == nil {
+func SaveWorkDirConfig(configPath string, myConfig workDirConfig, forceWrite bool) {
+	if _, err := os.Stat(configPath); err == nil && !forceWrite {
 		log.Fatal("Refusing to write existing project workdir config " + configPath)
 	}
 

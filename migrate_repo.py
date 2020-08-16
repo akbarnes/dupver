@@ -1,13 +1,27 @@
 import json, argparse, os, os.path, toml
 from glob import glob
+from datetime import datetime 
+
 
 pwd = os.getcwd()
 _, workdir = os.path.split(pwd)
 
 print(f"Workdir: {pwd} -> {workdir}")
 
-with open(".dupver/config.toml") as f:
+cfg_path = ".dupver/config.toml"
+
+with open(cfg_path) as f:
     cfg = toml.load(f)
+
+time = datetime.now().strftime("%Y-%m-%dT%H-%M-%S")
+cfg_backup_path = f".dupver/config-{time}.toml"
+os.rename(cfg_path, cfg_backup_path)
+
+cfg['DefaultRepo'] = 'main'
+cfg['Repos'] = {'main': cfg['RepoPath']}
+
+with open(cfg_path, 'w') as f:
+    toml.dump(cfg, f)
 
 ## Update repos to v0.4 format
 # 1. Add prev pointers to snapshot files
@@ -94,4 +108,15 @@ if not os.path.exists(branch_folder):
 print(f"Writing branch to {branch_path}")
 with open(branch_path, 'w') as f:
     toml.dump(b, f)
+
+# ───────┬───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+#        │ File: .dupver/config.toml
+# ───────┼───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+#    1   │ WorkDirName = "altra-lone-peak-2.5s-ii"
+#    2   │ DefaultRepo = "main"
+#    3   │ RepoPath = "/Users/art/.dupver_repo"
+#    4   │ 
+#    5   │ [Repos]
+#    6   │   main = "/Users/art/.dupver_repo"
+
 

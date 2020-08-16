@@ -37,6 +37,7 @@ import (
 )
 
 var cfgFile string
+var RepoName string
 var RepoPath string
 var WorkDirPath string
 var Verbose bool
@@ -77,6 +78,7 @@ func init() {
 	// will be global for your application.
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.main.yaml)")
+	rootCmd.PersistentFlags().StringVarP(&RepoName, "repo-name", "n", "main", "repository name")
 	rootCmd.PersistentFlags().StringVarP(&RepoPath, "repo-path", "r", "", "repository path")
 	rootCmd.PersistentFlags().StringVarP(&WorkDirPath, "workdir-path", "d", "", "project working directory path")
 	rootCmd.PersistentFlags().BoolVarP(&Verbose, "verbose", "v", false, "verbose output")

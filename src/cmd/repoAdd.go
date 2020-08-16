@@ -27,14 +27,15 @@ POSSIBILITY OF SUCH DAMAGE.
 package cmd
 
 import (
-	"fmt"
+	// "fmt"
 
+	"github.com/akbarnes/dupver/src/dupver"
 	"github.com/spf13/cobra"
 )
 
 // repoAddCmd represents the repoAdd command
 var repoAddCmd = &cobra.Command{
-	Use:   "repoAdd",
+	Use:   "add",
 	Short: "A brief description of your command",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
@@ -43,7 +44,25 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("repoAdd called")
+		repoName := RepoName
+		repoPath := RepoPath
+
+		if len(args) >= 1 {
+			repoName = args[0]
+		}
+
+		if len(args) >= 2 {
+			repoPath = args[1]
+		}
+
+		// TODO: Read repoPath from environment variable if empty
+		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Verbose, Quiet)
+		
+		if Monochrome || Quiet {
+			opts.Color = false
+		}
+
+		dupver.AddRepoToWorkDir(WorkDirPath, repoName, repoPath, opts)
 	},
 }
 

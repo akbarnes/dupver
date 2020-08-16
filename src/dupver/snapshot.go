@@ -57,6 +57,18 @@ func CommitFile(filePath string, parentIds []string, msg string, opts Options) H
 	mySnapshot = UpdateMessage(mySnapshot, msg, filePath)
 	mySnapshot.Files, myWorkDirConfig, myHead = ReadTarFileIndex(filePath, opts.Verbosity)
 
+	if len(myWorkDirConfig.RepoPath) == 0 {
+		myWorkDirConfig.RepoPath = myWorkDirConfig.Repos[myWorkDirConfig.DefaultRepo]
+	}
+
+	if len(opts.RepoName) > 0 {
+		myWorkDirConfig.RepoPath = myWorkDirConfig.Repos[opts.RepoName]
+	}
+
+	if len(opts.RepoPath) > 0 {
+		myWorkDirConfig.RepoPath = opts.RepoPath
+	}
+
 	if opts.Verbosity >= 2 {
 		fmt.Printf("Repo config: %s\n", myWorkDirConfig.RepoPath)
 	}

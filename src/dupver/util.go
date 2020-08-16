@@ -25,6 +25,8 @@ const colorWhite string = "\033[37m"
 type Options struct {
 	Verbosity int
 	Color bool
+	RepoName string
+	RepoPath string
 }
 
 func Check(e error) {
