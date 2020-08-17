@@ -43,7 +43,60 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("copy called")
+		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Verbose, Quiet)
+		
+		if Monochrome || Quiet {
+			opts.Color = false
+		}
+
+		opts.RepoName = RepoName
+		opts.RepoPath = RepoPath
+		
+		if len(args) >= 1 {
+			commitFile := args[0]
+			tarFile := commitFile
+			containingFolder := filepath.Dir(commitFile)
+
+			if !strings.HasSuffix(commitFile, "tar") {
+				fmt.Printf("%s -> %s, %s\n", commitFile, containingFolder, commitFile)
+				tarFile = CreateTar(containingFolder, commitFile, opts)
+
+				if len(Message) == 0 {
+					Message = filepath.Base(commitFile)
+
+					if opts.Verbosity >= 1 {
+						fmt.Printf("Message not specified, setting to: %s\n", Message)
+					}
+				}
+			}
+
+			myHead := dupver.CommitFile(tarFile, parentIds, Message, opts)
+			headPath := filepath.Join(containingFolder, ".dupver", "head.toml")
+			dupver.WriteHead(headPath, myHead, opts)
+		} else {
+			dir, err := os.Getwd()
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			containingFolder := filepath.Dir(dir)
+			workdirFolder := filepath.Base(dir)
+			fmt.Printf("%s -> %s, %s\n", dir, containingFolder, workdirFolder)
+
+			if len(Message) == 0 {
+				Message = workdirFolder
+
+				if opts.Verbosity >= 1 {
+					fmt.Printf("Message not specified, setting to: %s\n", Message)
+				}				
+			}
+
+
+			tarFile := CreateTar(containingFolder, workdirFolder, opts)
+			myHead := dupver.CommitFile(tarFile, parentIds, Message, opts)	
+			headPath := filepath.Join(".dupver", "head.toml")
+			dupver.WriteHead(headPath, myHead, opts)
+		}
 	},
 }
 
