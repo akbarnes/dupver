@@ -39,6 +39,10 @@ import (
 var cfgFile string
 var RepoName string
 var RepoPath string
+// var DestRepoName string // need this?
+var DestRepoPath string
+// var BranchID string // for copy - move to copy.go?
+// var SnapshotID string // for copy - move to copy.go?
 var WorkDirPath string
 var Verbose bool
 var Quiet bool
@@ -80,6 +84,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.main.yaml)")
 	rootCmd.PersistentFlags().StringVarP(&RepoName, "repo-name", "n", "main", "repository name")
 	rootCmd.PersistentFlags().StringVarP(&RepoPath, "repo-path", "r", "", "repository path")
+	rootCmd.PersistentFlags().StringVarP(&DestRepoPath, "dest-repo-path", "d", "", "destination repository path")
 	rootCmd.PersistentFlags().StringVarP(&WorkDirPath, "workdir-path", "d", "", "project working directory path")
 	rootCmd.PersistentFlags().BoolVarP(&Verbose, "verbose", "v", false, "verbose output")
 	rootCmd.PersistentFlags().BoolVarP(&Quiet, "quiet", "q", false, "quiet output")		

@@ -1,29 +1,3 @@
-/*
-Copyright © 2020 Art Barnes <art@pin3.io>
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
-
-1. Redistributions of source code must retain the above copyright notice,
-   this list of conditions and the following disclaimer.
-
-2. Redistributions in binary form must reproduce the above copyright notice,
-   this list of conditions and the following disclaimer in the documentation
-   and/or other materials provided with the distribution.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-POSSIBILITY OF SUCH DAMAGE.
-*/
 package cmd
 
 import (
@@ -31,6 +5,31 @@ import (
 
 	"github.com/spf13/cobra"
 )
+
+// snapshots:
+//	 project1:
+//     snap1.json
+//     snap2.json	 
+// branches:
+//   project1:
+//     main.toml
+//     feature.toml
+// trees:
+//   tree1.json
+//   tree2.json
+// packs:
+//   fe:
+//     fe1.zip
+//     fe2.zip
+
+// To copy:
+// 1. copy snapshots folder directly
+// 2. copy branch to reponame.branch
+// 3. for packs:
+//    a. don't copy duplicate chunks
+//    b. copy new chunks into new packs
+// 4. for trees, create new tree	
+//    as new packs are created
 
 // copyCmd represents the copy command
 var copyCmd = &cobra.Command{
@@ -51,52 +50,22 @@ to quickly create a Cobra application.`,
 
 		opts.RepoName = RepoName
 		opts.RepoPath = RepoPath
+
+		opts.DestRepoName := ""
+		opts.DestRepoPath := destRepoPath
+
 		
 		if len(args) >= 1 {
-			commitFile := args[0]
-			tarFile := commitFile
-			containingFolder := filepath.Dir(commitFile)
+			opts.DestRepoName := args[0]
+		} 
 
-			if !strings.HasSuffix(commitFile, "tar") {
-				fmt.Printf("%s -> %s, %s\n", commitFile, containingFolder, commitFile)
-				tarFile = CreateTar(containingFolder, commitFile, opts)
+		snapshotId = ""
 
-				if len(Message) == 0 {
-					Message = filepath.Base(commitFile)
-
-					if opts.Verbosity >= 1 {
-						fmt.Printf("Message not specified, setting to: %s\n", Message)
-					}
-				}
-			}
-
-			myHead := dupver.CommitFile(tarFile, parentIds, Message, opts)
-			headPath := filepath.Join(containingFolder, ".dupver", "head.toml")
-			dupver.WriteHead(headPath, myHead, opts)
-		} else {
-			dir, err := os.Getwd()
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			containingFolder := filepath.Dir(dir)
-			workdirFolder := filepath.Base(dir)
-			fmt.Printf("%s -> %s, %s\n", dir, containingFolder, workdirFolder)
-
-			if len(Message) == 0 {
-				Message = workdirFolder
-
-				if opts.Verbosity >= 1 {
-					fmt.Printf("Message not specified, setting to: %s\n", Message)
-				}				
-			}
-
-
-			tarFile := CreateTar(containingFolder, workdirFolder, opts)
-			myHead := dupver.CommitFile(tarFile, parentIds, Message, opts)	
-			headPath := filepath.Join(".dupver", "head.toml")
-			dupver.WriteHead(headPath, myHead, opts)
+		if len(args) >= 2 {
+			snapshotId = args[2]
 		}
+
+		dupver.CopyRepo(snapshotId, opts)
 	},
 }
 

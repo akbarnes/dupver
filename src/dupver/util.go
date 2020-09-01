@@ -27,6 +27,8 @@ type Options struct {
 	Color bool
 	RepoName string
 	RepoPath string
+	DestRepoName string
+	DestRepoPath string
 }
 
 func Check(e error) {
