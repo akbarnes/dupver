@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/akbarnes/dupver/src/dupver"
 	"github.com/spf13/cobra"
 )
 
@@ -47,12 +48,12 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg := dupver.ReadWorkDirConfig(WorkDirPath)
-		cfg = dupver.UpdateRepoPath(cfg, RepoPath)
+		// cfg = dupver.UpdateRepoPath(cfg, RepoPath)
 
 		sourcePath := cfg.RepoPath
 
 		if len(RepoName) > 0 {
-			sourcePath = cfg.Repos[RepoName]
+			cfg.RepoPath = cfg.Repos[RepoName]
 		}
 
 		if len(RepoPath) > 0 {
@@ -62,7 +63,7 @@ to quickly create a Cobra application.`,
 		destPath := args[0]
 
 		if UseDestPath {
-			destPath = cfg.repos[args[0]]
+			destPath = cfg.Repos[args[0]]
 		} 		
 
 		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Verbose, Quiet)
@@ -71,14 +72,12 @@ to quickly create a Cobra application.`,
 			opts.Color = false
 		}
 
-		
-
-
-		snapshotId = ""
+		snapshotId := ""
+		// TODO: look up the snapshot id based on 1st n characters
 
 		if len(args) >= 2 {
 			snapshotId = args[2]
-			dupver.CopySnapshot(snapshotId, sourcePath, destPath)
+			dupver.CopySnapshot(cfg, snapshotId, sourcePath, destPath, opts)
 		} else {
 			//dupver.CopyRepo(opts)
 			fmt.Println("TODO: copy whole repo")

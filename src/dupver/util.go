@@ -3,7 +3,7 @@ package dupver
 import (
 	"os"
 	"path/filepath"
-	// "io"
+	"io"
 	"archive/tar"
 	"bufio"
 	"fmt"

@@ -50,14 +50,16 @@ const TREE_ID_LEN int = 40
 // CopyBranch - a bit trickier as need to rename branches to reponame.branch
 //              and repo will need to have a unique name
 //              stick with names in workdir for now
-func CopySnapshot(snapshotId string, opts Options) {
-	fromPath := opts.RepoPath
-	toPath := opts.DestRepoPath
+func CopySnapshot(cfg workDirConfig, snapshotId string, source string, dest string, opts Options) {
+	fmt.Println("Copying snapshot %s from %s to %s", source, dest)
+	sourceFolder := filepath.Join(source, "snapshots", cfg.WorkDirName)
+	destFolder := filepath.Join(dest, "snapshots", cfg.WorkDirName)
+	os.Mkdir(destFolder, 0777)
 
-	if len(fromPath) == 0 {
-		fromPath = opts.
-	}
-	fmt.Println("Copying snapshot %s from %s to %s")
+	sourcePath := filepath.Join(sourceFolder, snapshotId)
+	destPath := filepath.Join(destFolder, snapshotId)
+
+	CopyFile(sourcePath, destPath) // TODO: check error status
 }
 
 
