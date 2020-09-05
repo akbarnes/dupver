@@ -57,12 +57,20 @@ Stage your files by adding them to aø tar file
 Commit the tarfile with
 `dupver commit -m "commit message" tarfile.tar`
 
+Alternatively run 
+`dupver commit -m "commit message"`
+from within the working directory
+
 ### List commits
 List all commits
 `dupver log`
 
 List a specific commit
 `dupver log commit_id`
+
+### Copy
+Copy a commit 
+`dupver copy dest_repo snapshot_id`
 
 ### Check if files are modified/added
 `dupver status`

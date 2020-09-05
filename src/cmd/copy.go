@@ -42,30 +42,51 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		cfg := dupver.ReadWorkDirConfig(WorkDirPath)
+		cfg = dupver.UpdateRepoPath(cfg, RepoPath)
+
+		sourcePath := cfg.RepoPath
+
+		if len(RepoName) > 0 {
+			sourcePath = cfg.Repos[RepoName]
+		}
+
+		if len(RepoPath) > 0 {
+			sourcePath = RepoPath
+		}
+
+		destPath := ""
+
+		if len(DestRepoName) > 0 {
+			destPath = cfg.Repos[DestRepoName]
+		}
+
+		if len(args) >= 1 {
+			destPath = cfg.repos[args[0]]
+		} 		
+
+		if len(DestRepoPath) > 0 {
+			destPath = cfg.Repos[DestRepoPath]
+		}
+
 		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Verbose, Quiet)
 		
 		if Monochrome || Quiet {
 			opts.Color = false
 		}
 
-		opts.RepoName = RepoName
-		opts.RepoPath = RepoPath
-
-		opts.DestRepoName := ""
-		opts.DestRepoPath := destRepoPath
-
 		
-		if len(args) >= 1 {
-			opts.DestRepoName := args[0]
-		} 
+
 
 		snapshotId = ""
 
 		if len(args) >= 2 {
 			snapshotId = args[2]
+			dupver.CopySnapshot(snapshotId, sourcePath, destPath)
+		} else {
+			//dupver.CopyRepo(opts)
+			fmt.Println("TODO: copy whole repo")
 		}
-
-		dupver.CopyRepo(snapshotId, opts)
 	},
 }
 

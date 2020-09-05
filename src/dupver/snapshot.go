@@ -46,6 +46,17 @@ const PACK_ID_LEN int = 64
 const CHUNK_ID_LEN int = 64
 const TREE_ID_LEN int = 40
 
+func CopySnapshot(snapshotId string, opts Options) {
+	fromPath := opts.RepoPath
+	toPath := opts.DestRepoPath
+
+	if len(fromPath) == 0 {
+		fromPath = opts.
+	}
+	fmt.Println("Copying snapshot %s from %s to %s")
+}
+
+
 func CommitFile(filePath string, parentIds []string, msg string, opts Options) Head {
 	var myWorkDirConfig workDirConfig
 	t := time.Now()

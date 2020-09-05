@@ -27,7 +27,7 @@ to quickly create a Cobra application.`,
 		snapshotId := myHead.CommitID
 		numSnapshots := 0
 
-		// TODO: Yeesh...move this messinto a function
+		// TODO: Yeesh...move this mess into a function
 		if len(args) >= 1 {
 			snapshotId = args[0]
 			numSnapshots = 1
