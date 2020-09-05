@@ -46,6 +46,10 @@ const PACK_ID_LEN int = 64
 const CHUNK_ID_LEN int = 64
 const TREE_ID_LEN int = 40
 
+// CopyAll
+// CopyBranch - a bit trickier as need to rename branches to reponame.branch
+//              and repo will need to have a unique name
+//              stick with names in workdir for now
 func CopySnapshot(snapshotId string, opts Options) {
 	fromPath := opts.RepoPath
 	toPath := opts.DestRepoPath

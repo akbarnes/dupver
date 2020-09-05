@@ -6,6 +6,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var UseDestPath bool
+
 // snapshots:
 //	 project1:
 //     snap1.json
@@ -31,6 +33,8 @@ import (
 // 4. for trees, create new tree	
 //    as new packs are created
 
+
+
 // copyCmd represents the copy command
 var copyCmd = &cobra.Command{
 	Use:   "copy",
@@ -55,19 +59,11 @@ to quickly create a Cobra application.`,
 			sourcePath = RepoPath
 		}
 
-		destPath := ""
+		destPath := args[0]
 
-		if len(DestRepoName) > 0 {
-			destPath = cfg.Repos[DestRepoName]
-		}
-
-		if len(args) >= 1 {
+		if UseDestPath {
 			destPath = cfg.repos[args[0]]
 		} 		
-
-		if len(DestRepoPath) > 0 {
-			destPath = cfg.Repos[DestRepoPath]
-		}
 
 		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Verbose, Quiet)
 		
@@ -98,8 +94,11 @@ func init() {
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
 	// copyCmd.PersistentFlags().String("foo", "", "A help for foo")
+	rootCmd.PersistentFlags().BoolVarP(&UseDestPath, "path", "p", false, "specify destination repo path instead of name")		
+
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// copyCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+
 }

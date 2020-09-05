@@ -48,13 +48,14 @@ to quickly create a Cobra application.`,
 			opts.Color = false
 		}
 				
+		repoName := args[0]
 		repoPath := RepoPath
 
 		if len(args) >= 1 {
-			repoPath = args[0]
+			repoPath = args[1]
 		}
 
-		dupver.InitRepo(repoPath, opts)
+		dupver.InitRepo(repoPath, repoName opts)
 	},
 }
 

@@ -40,7 +40,7 @@ var cfgFile string
 var RepoName string
 var RepoPath string
 // var DestRepoName string // need this?
-var DestRepoPath string
+// var DestRepoPath string
 // var BranchID string // for copy - move to copy.go?
 // var SnapshotID string // for copy - move to copy.go?
 var WorkDirPath string
@@ -82,10 +82,10 @@ func init() {
 	// will be global for your application.
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.main.yaml)")
-	rootCmd.PersistentFlags().StringVarP(&RepoName, "repo-name", "R", "main", "repository name")
+	rootCmd.PersistentFlags().StringVarP(&RepoName, "repo-name", "n", "main", "repository name")
 	rootCmd.PersistentFlags().StringVarP(&RepoPath, "repo-path", "r", "", "repository path")
-	rootCmd.PersistentFlags().StringVarP(&RepoPath, "dest-repo-name", "D", "", "destination repository path")
-	rootCmd.PersistentFlags().StringVarP(&DestRepoPath, "dest-repo-path", "d", "", "destination repository path")
+	// rootCmd.PersistentFlags().StringVarP(&DestRepoName, "dest-repo-name", "D", "", "destination repository path")
+	// rootCmd.PersistentFlags().StringVarP(&DestRepoPath, "dest-repo-path", "d", "", "destination repository path")
 	rootCmd.PersistentFlags().StringVarP(&WorkDirPath, "workdir-path", "w", "", "project working directory path")
 	rootCmd.PersistentFlags().BoolVarP(&Verbose, "verbose", "v", false, "verbose output")
 	rootCmd.PersistentFlags().BoolVarP(&Quiet, "quiet", "q", false, "quiet output")		

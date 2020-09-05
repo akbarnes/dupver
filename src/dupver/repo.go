@@ -12,11 +12,12 @@ import (
 )
 
 type repoConfig struct {
-	Version           int
+	RepoName string
+	Version int
 	ChunkerPolynomial chunker.Pol
 }
 
-func InitRepo(repoPath string, opts Options) {
+func InitRepo(repoPath string, repoName string, opts Options) {
 	if len(repoPath) == 0 {
 		repoPath = path.Join(GetHome(), ".dupver_repo")
 		fmt.Printf("Repo path not specified, setting to %s\n", repoPath)
@@ -58,6 +59,7 @@ func InitRepo(repoPath string, opts Options) {
 	}
 
 	var myConfig repoConfig
+	myConfig.RepoName = repoName
 	myConfig.Version = 2
 	myConfig.ChunkerPolynomial = p
 
