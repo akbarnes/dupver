@@ -62,7 +62,7 @@ to quickly create a Cobra application.`,
 
 		destPath := args[0]
 
-		if UseDestPath {
+		if !UseDestPath {
 			destPath = cfg.Repos[args[0]]
 		} 		
 
@@ -76,7 +76,7 @@ to quickly create a Cobra application.`,
 		// TODO: look up the snapshot id based on 1st n characters
 
 		if len(args) >= 2 {
-			snapshotId = args[2]
+			snapshotId = args[1	 ]
 			dupver.CopySnapshot(cfg, snapshotId, sourcePath, destPath, opts)
 		} else {
 			//dupver.CopyRepo(opts)

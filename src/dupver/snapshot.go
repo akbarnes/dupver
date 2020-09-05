@@ -51,14 +51,15 @@ const TREE_ID_LEN int = 40
 //              and repo will need to have a unique name
 //              stick with names in workdir for now
 func CopySnapshot(cfg workDirConfig, snapshotId string, source string, dest string, opts Options) {
-	fmt.Println("Copying snapshot %s from %s to %s", source, dest)
+	fmt.Printf("Copying snapshot %s: %s -> %s\n", snapshotId, source, dest)
 	sourceFolder := filepath.Join(source, "snapshots", cfg.WorkDirName)
 	destFolder := filepath.Join(dest, "snapshots", cfg.WorkDirName)
 	os.Mkdir(destFolder, 0777)
 
-	sourcePath := filepath.Join(sourceFolder, snapshotId)
-	destPath := filepath.Join(destFolder, snapshotId)
+	sourcePath := filepath.Join(sourceFolder, snapshotId + ".json")
+	destPath := filepath.Join(destFolder, snapshotId + ".json")
 
+	fmt.Printf("Copying %s -> %s\n", sourcePath, destPath)
 	CopyFile(sourcePath, destPath) // TODO: check error status
 }
 
