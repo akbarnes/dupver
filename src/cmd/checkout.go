@@ -56,7 +56,7 @@ to quickly create a Cobra application.`,
 
 		cfg := dupver.ReadWorkDirConfig(WorkDirPath)
 		cfg = dupver.UpdateRepoPath(cfg, RepoPath)
-		snapshotId = dupver.GetFullSnapshotId(args[0], cfg)
+		snapshotId := dupver.GetFullSnapshotId(args[0], cfg)
 		snap := dupver.ReadSnapshot(snapshotId, cfg)
 
 		if len(OutFile) == 0 {

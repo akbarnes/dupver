@@ -3,6 +3,7 @@ package dupver
 import (
 	"os"
 	"io"
+	"io/ioutil"
 	"fmt"
     "path"
 	"crypto/sha256"
@@ -211,12 +212,18 @@ func ReadPacks(tarFile *os.File, repoPath string, chunkIds []string, chunkPacks 
 	}
 }
 
-func Repack(writer *zip.Writer, repoPath string, chunkId string, chunkPacks map[string]string, opts Options) {
+func LoadChunk(repoPath string, chunkId string, chunkPacks map[string]string, opts Options) []byte {
 	packId := chunkPacks[chunkId]
-	packPath := path.Join(repoPath, "packs", packId[0:2], packId + ".zip")
 
 	if opts.Verbosity >= 2 {
-		fmt.Printf("Reading chunk %d %s \n from pack %s\n", i, chunkId, packPath)
+		fmt.Printf("Reading chunk %s \n from pack %s\n", chunkId, packId)
+	}
+
+	packPath := path.Join(repoPath, "packs", packId[0:2], packId + ".zip")
+	data := []byte{}
+
+	if opts.Verbosity >= 2 {
+		fmt.Printf("Reading chunk %s \n from pack file %s\n", chunkId, packPath)
 	}
 
 	// From https://golangcode.com/unzip-files-in-go/
@@ -232,18 +239,24 @@ func Repack(writer *zip.Writer, repoPath string, chunkId string, chunkPacks map[
 			chunkReader, err := f.Open()
 			
 			if err != nil {
-				panic(fmt.Sprintf("Error opnening pack/chunk %s/%s", packPath, h.Name))
+				// TODO: return err
+				panic(fmt.Sprintf("Error opening pack/chunk %s/%s", packPath, h.Name))
 			}
 
-			if _, err := io.Copy(writer, chunkReader); err != nil {
-				// fmt.Fprintf(tarFile, "Pack %s, chunk %s, csize %d, usize %d\n", packId, h.Name, h.CompressedSize, h.UncompressedSize)
-				panic(fmt.Sprintf("Error reading from pack/chunk %s/%s", packPath, h.Name))
+			{
+				var err error
+				if data, err = ioutil.ReadFile("test.txt"); err != nil {
+					// fmt.Fprintf(tarFile, "Pack %s, chunk %s, csize %d, usize %d\n", packId, h.Name, h.CompressedSize, h.UncompressedSize)
+					// TODO: return err
+					panic(fmt.Sprintf("Error reading from pack/chunk %s/%s", packPath, h.Name))
+				}
 			}
 
 			chunkReader.Close()
 		}
 	}
 
-	packReader.Close()			
+	packReader.Close()		
+	return data	
 }
 

@@ -76,8 +76,8 @@ to quickly create a Cobra application.`,
 		// TODO: look up the snapshot id based on 1st n characters
 
 		if len(args) >= 2 {
-			snapshotId = dupver.GetFullSnapshotId(args[0], cfg)
-				dupver.CopySnapshot(cfg, snapshotId, sourcePath, destPath, opts)
+			snapshotId = dupver.GetFullSnapshotId(args[1], cfg)
+			dupver.CopySnapshot(cfg, snapshotId, sourcePath, destPath, opts)
 		} else {
 			//dupver.CopyRepo(opts)
 			fmt.Println("TODO: copy whole repo")

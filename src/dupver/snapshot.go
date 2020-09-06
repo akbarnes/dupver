@@ -65,13 +65,14 @@ func CopySnapshot(cfg workDirConfig, snapshotId string, source string, dest stri
 	snapshot := ReadSnapshotFile(sourcePath)	
 	chunkIndex := 0
 
-	const maxPackSize uint = 104857600 // 100 MB
-	buf := make([]byte, 8*1024*1024) // reuse this buffer
+	const maxPackSize int = 104857600 // 100 MB
 	chunkIDs := []string{}
-	sourceChunkPacks := ReadTrees(sourcePath)
-	destChunkPacks := ReadTrees(destPath)
+	sourceChunkPacks := ReadTrees(source)
+	fmt.Printf("Source chunk packs:\n")
+	fmt.Println(sourceChunkPacks)
+	destChunkPacks := ReadTrees(dest)
 	newChunkPacks := make(map[string]string)	
-	var curPackSize  uint 
+	var curPackSize int 
 	stillReadingInput := true
 
 	totalDataSize := 0
@@ -108,6 +109,7 @@ func CopySnapshot(cfg workDirConfig, snapshotId string, source string, dest stri
 		for curPackSize < maxPackSize { // white chunks to pack
 			// chunk, err := mychunker.Next(buf)
 			chunkId := snapshot.ChunkIDs[chunkIndex]
+			chunk := LoadChunk(sourcePath, chunkId, sourceChunkPacks, opts) 
 			chunkIndex++
 
 			if chunkIndex >= len(snapshot.ChunkIDs) {
@@ -122,7 +124,7 @@ func CopySnapshot(cfg workDirConfig, snapshotId string, source string, dest stri
 			// chunkId := fmt.Sprintf("%064x", sha256.Sum256(chunk.Data))			
 			chunkIDs = append(chunkIDs, chunkId)
 
-			totalDataSize += int(chunk.Length)
+			totalDataSize += int(len(chunk))
 			totalChunkNum++
 
 			if _, ok := destChunkPacks[chunkId]; ok {
@@ -131,10 +133,10 @@ func CopySnapshot(cfg workDirConfig, snapshotId string, source string, dest stri
 				}
 
 				dupChunkNum++
-				dupDataSize += int(chunk.Length)
+				dupDataSize += int(len(chunk))
 			} else {	
 				if opts.Verbosity >= 2 {
-					fmt.Printf("Chunk %d: chunk size %d kB, total size %d kB, ", i, chunk.Length/1024, curPackSize/1024)
+					fmt.Printf("Chunk %d: chunk size %d kB, total size %d kB, ", i, len(chunk)/1024, curPackSize/1024)
 					fmt.Printf("chunk ID: %s\n",chunkId[0:16])
 				}
 				destChunkPacks[chunkId] = packId
@@ -150,9 +152,8 @@ func CopySnapshot(cfg workDirConfig, snapshotId string, source string, dest stri
 					panic(fmt.Sprintf("Error creating zip file header for %s", destPackPath))
 				}
 
-				// TODO: read the chunk here
-				Repack(writer, sourcePath, chunkId, sourceChunkPacks, opts) 
-				curPackSize += chunk.Length
+				writer.Write(chunk)	
+				curPackSize += len(chunk)
 			}		
 		}	
 
@@ -320,7 +321,9 @@ func GetFullSnapshotId(snapshotId string, cfg workDirConfig) string {
 
 	for  _,  snapshotPath := range snapshotPaths {
 		n := len(snapshotId) - 1
-		sid := snapshotPath[n-SNAPSHOT_ID_LEN-5 : n-5]
+		sid := filepath.Base(snapshotPath)
+		sid = sid[0:len(sid)-5]
+		fmt.Printf("path: %s\nsid: %s\n", snapshotPath, sid)
 
 		if len(sid) < len(snapshotId) {
 			n = len(sid) - 1
