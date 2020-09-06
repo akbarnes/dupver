@@ -54,8 +54,7 @@ to quickly create a Cobra application.`,
 		snapshotId := myHead.CommitID
 
 		if len(args) >= 1 {
-			snapshotId = args[0]
-			snapshotId = dupver.GetFullSnapshotId(snapshotId, cfg)
+			snapshotId = dupver.GetFullSnapshotId(args[0], cfg)
 		}
 
 		mySnapshot := dupver.ReadSnapshot(snapshotId, cfg)

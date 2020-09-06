@@ -29,9 +29,8 @@ to quickly create a Cobra application.`,
 
 		// TODO: Yeesh...move this mess into a function
 		if len(args) >= 1 {
-			snapshotId = args[0]
+			snapshotId = dupver.GetFullSnapshotId(args[0], cfg)
 			numSnapshots = 1
-			snapshotId = dupver.GetFullSnapshotId(snapshotId, cfg)
 		}
 
 		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Verbose, Quiet)

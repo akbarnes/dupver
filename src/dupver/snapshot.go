@@ -61,6 +61,120 @@ func CopySnapshot(cfg workDirConfig, snapshotId string, source string, dest stri
 
 	fmt.Printf("Copying %s -> %s\n", sourcePath, destPath)
 	CopyFile(sourcePath, destPath) // TODO: check error status
+	snapshot := ReadSnapshotFile(sourcePath)	
+	chunkIndex := 0
+
+	buf := make([]byte, 8*1024*1024) // reuse this buffer
+	chunkIDs := []string{}
+	chunkPacks := ReadTrees(repoPath)
+	newChunkPacks := make(map[string]string)	
+	var curPackSize  uint 
+	stillReadingInput := true
+
+	totalDataSize := 0
+	dupDataSize := 0
+
+	newPackNum := 0
+	totalChunkNum := 0
+	dupChunkNum := 0
+
+	for stillReadingInput {
+		packId := RandHexString(PACK_ID_LEN)
+		packFolderPath := path.Join(destFolder, "packs", packId[0:2])
+		os.MkdirAll(packFolderPath, 0777)
+		packPath := path.Join(packFolderPath, packId + ".zip")	
+
+		newPackNum++		
+
+		if verbosity >= 2 {
+			fmt.Printf("Creating pack file %3d: %s\n", newPackNum, packPath)	
+		} else if verbosity == 1 {
+			fmt.Printf("Creating pack number: %3d, ID: %s\n", newPackNum, packId[0:16])	
+		}
+
+		zipFile, err := os.Create(packPath)
+		
+		if err != nil {
+			panic(fmt.Sprintf("Error creating zip file %s", packPath))
+		}
+		zipWriter := zip.NewWriter(zipFile)
+
+		i := 0
+		curPackSize = 0
+
+
+		for curPackSize < maxPackSize { // white chunks to pack
+			chunk, err := mychunker.Next(buf)
+			if err == io.EOF {
+				// fmt.Printf("Reached end of input file, stop chunking\n")
+				stillReadingInput = false	
+   				break
+			} else if err != nil {
+				panic("Error chunking input file")
+			}
+		
+			i++
+			chunkId := snapshot.ChunkIDs[chunkIndex]
+			chunkIDs = append(chunkIDs, chunkId)
+
+			totalDataSize += int(chunk.Length)
+			totalChunkNum++
+
+			if _, ok := chunkPacks[chunkId]; ok {
+				if verbosity >= 2 {
+					fmt.Printf("Skipping Chunk ID %s already in pack %s\n", chunkId[0:16], chunkPacks[chunkId][0:16])
+				}
+
+				dupChunkNum++
+				dupDataSize += int(chunk.Length)
+			} else {	
+				if verbosity >= 2 {
+					fmt.Printf("Chunk %d: chunk size %d kB, total size %d kB, ", i, chunk.Length/1024, curPackSize/1024)
+					fmt.Printf("chunk ID: %s\n",chunkId[0:16])
+				}
+				chunkPacks[chunkId] = packId
+				newChunkPacks[chunkId] = packId
+
+				var header zip.FileHeader
+				header.Name = chunkId
+				header.Method = zip.Deflate
+			
+				writer, err := zipWriter.CreateHeader(&header)
+				
+				if err != nil {
+					panic(fmt.Sprintf("Error creating zip file header for %s", packPath))
+				}
+
+				writer.Write(chunk.Data)	
+				curPackSize += chunk.Length
+			}		
+		}	
+
+
+		if verbosity >= 2 {
+			if stillReadingInput {
+				fmt.Printf("Pack size %d exceeds max size %d\n", curPackSize, maxPackSize)		
+			}
+
+			fmt.Printf("Reached end of input, closing zip file\n")
+		}
+
+		zipWriter.Close()
+		zipFile.Close()
+	}
+
+	if verbosity >= 1 {
+		newChunkNum := totalChunkNum - dupChunkNum
+		newDataSize := totalDataSize - dupDataSize
+
+		newMb := float64(newDataSize)/1e6
+		dupMb := float64(dupDataSize)/1e6
+		totalMb := float64(totalDataSize)/1e6
+
+		fmt.Printf("%0.2f new, %0.2f duplicate, %0.2f total MB raw data stored\n", newMb, dupMb, totalMb)
+		fmt.Printf("%d new, %d duplicate, %d total chunks\n", newChunkNum, dupChunkNum, totalChunkNum)
+		fmt.Printf("%d packs stored, %0.2f chunks/pack\n", newPackNum, float64(newChunkNum)/float64(newPackNum))
+	}
 }
 
 
