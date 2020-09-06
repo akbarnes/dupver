@@ -172,7 +172,7 @@ func UnpackFile(filePath string, repoPath string, chunkIds []string, opts Option
 	f.Close()
 }
 
-
+// TODO: change name to something other than read
 func ReadPacks(tarFile *os.File, repoPath string, chunkIds []string, chunkPacks map[string]string, opts Options) {
 	for i, chunkId := range chunkIds {
 		packId := chunkPacks[chunkId]
@@ -209,5 +209,41 @@ func ReadPacks(tarFile *os.File, repoPath string, chunkIds []string, chunkPacks 
 
 		r.Close()			
 	}
+}
+
+func Repack(writer *zip.Writer, repoPath string, chunkId string, chunkPacks map[string]string, opts Options) {
+	packId := chunkPacks[chunkId]
+	packPath := path.Join(repoPath, "packs", packId[0:2], packId + ".zip")
+
+	if opts.Verbosity >= 2 {
+		fmt.Printf("Reading chunk %d %s \n from pack %s\n", i, chunkId, packPath)
+	}
+
+	// From https://golangcode.com/unzip-files-in-go/
+	packReader, err := zip.OpenReader(packPath)
+	
+	if err != nil {
+		panic(fmt.Sprintf("Error opening zip file %s", packPath))
+	}
+
+	for _, f := range packReader.File {
+		h := f.FileHeader
+		if h.Name == chunkId {
+			chunkReader, err := f.Open()
+			
+			if err != nil {
+				panic(fmt.Sprintf("Error opnening pack/chunk %s/%s", packPath, h.Name))
+			}
+
+			if _, err := io.Copy(writer, chunkReader); err != nil {
+				// fmt.Fprintf(tarFile, "Pack %s, chunk %s, csize %d, usize %d\n", packId, h.Name, h.CompressedSize, h.UncompressedSize)
+				panic(fmt.Sprintf("Error reading from pack/chunk %s/%s", packPath, h.Name))
+			}
+
+			chunkReader.Close()
+		}
+	}
+
+	packReader.Close()			
 }
 

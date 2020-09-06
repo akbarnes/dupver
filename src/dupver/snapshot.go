@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+	"archive/zip"
 
 	"github.com/BurntSushi/toml"
 	)
@@ -64,9 +65,11 @@ func CopySnapshot(cfg workDirConfig, snapshotId string, source string, dest stri
 	snapshot := ReadSnapshotFile(sourcePath)	
 	chunkIndex := 0
 
+	const maxPackSize uint = 104857600 // 100 MB
 	buf := make([]byte, 8*1024*1024) // reuse this buffer
 	chunkIDs := []string{}
-	chunkPacks := ReadTrees(repoPath)
+	sourceChunkPacks := ReadTrees(sourcePath)
+	destChunkPacks := ReadTrees(destPath)
 	newChunkPacks := make(map[string]string)	
 	var curPackSize  uint 
 	stillReadingInput := true
@@ -80,32 +83,34 @@ func CopySnapshot(cfg workDirConfig, snapshotId string, source string, dest stri
 
 	for stillReadingInput {
 		packId := RandHexString(PACK_ID_LEN)
-		packFolderPath := path.Join(destFolder, "packs", packId[0:2])
-		os.MkdirAll(packFolderPath, 0777)
-		packPath := path.Join(packFolderPath, packId + ".zip")	
+		destPackFolderPath := path.Join(destFolder, "packs", packId[0:2])
+		os.MkdirAll(destPackFolderPath, 0777)
+		destPackPath := path.Join(destPackFolderPath, packId + ".zip")	
 
 		newPackNum++		
 
-		if verbosity >= 2 {
-			fmt.Printf("Creating pack file %3d: %s\n", newPackNum, packPath)	
-		} else if verbosity == 1 {
+		if opts.Verbosity >= 2 {
+			fmt.Printf("Creating pack file %3d: %s\n", newPackNum, destPackPath)	
+		} else if opts.Verbosity == 1 {
 			fmt.Printf("Creating pack number: %3d, ID: %s\n", newPackNum, packId[0:16])	
 		}
 
-		zipFile, err := os.Create(packPath)
+		zipFile, err := os.Create(destPackPath)
 		
 		if err != nil {
-			panic(fmt.Sprintf("Error creating zip file %s", packPath))
+			panic(fmt.Sprintf("Error creating zip file %s", destPackPath))
 		}
 		zipWriter := zip.NewWriter(zipFile)
 
 		i := 0
 		curPackSize = 0
 
-
 		for curPackSize < maxPackSize { // white chunks to pack
-			chunk, err := mychunker.Next(buf)
-			if err == io.EOF {
+			// chunk, err := mychunker.Next(buf)
+			chunkId := snapshot.ChunkIDs[chunkIndex]
+			chunkIndex++
+
+			if chunkIndex >= len(snapshot.ChunkIDs) {
 				// fmt.Printf("Reached end of input file, stop chunking\n")
 				stillReadingInput = false	
    				break
@@ -114,25 +119,25 @@ func CopySnapshot(cfg workDirConfig, snapshotId string, source string, dest stri
 			}
 		
 			i++
-			chunkId := snapshot.ChunkIDs[chunkIndex]
+			// chunkId := fmt.Sprintf("%064x", sha256.Sum256(chunk.Data))			
 			chunkIDs = append(chunkIDs, chunkId)
 
 			totalDataSize += int(chunk.Length)
 			totalChunkNum++
 
-			if _, ok := chunkPacks[chunkId]; ok {
-				if verbosity >= 2 {
-					fmt.Printf("Skipping Chunk ID %s already in pack %s\n", chunkId[0:16], chunkPacks[chunkId][0:16])
+			if _, ok := destChunkPacks[chunkId]; ok {
+				if opts.Verbosity >= 2 {
+					fmt.Printf("Skipping Chunk ID %s already in pack %s\n", chunkId[0:16], destChunkPacks[chunkId][0:16])
 				}
 
 				dupChunkNum++
 				dupDataSize += int(chunk.Length)
 			} else {	
-				if verbosity >= 2 {
+				if opts.Verbosity >= 2 {
 					fmt.Printf("Chunk %d: chunk size %d kB, total size %d kB, ", i, chunk.Length/1024, curPackSize/1024)
 					fmt.Printf("chunk ID: %s\n",chunkId[0:16])
 				}
-				chunkPacks[chunkId] = packId
+				destChunkPacks[chunkId] = packId
 				newChunkPacks[chunkId] = packId
 
 				var header zip.FileHeader
@@ -142,16 +147,17 @@ func CopySnapshot(cfg workDirConfig, snapshotId string, source string, dest stri
 				writer, err := zipWriter.CreateHeader(&header)
 				
 				if err != nil {
-					panic(fmt.Sprintf("Error creating zip file header for %s", packPath))
+					panic(fmt.Sprintf("Error creating zip file header for %s", destPackPath))
 				}
 
-				writer.Write(chunk.Data)	
+				// TODO: read the chunk here
+				Repack(writer, sourcePath, chunkId, sourceChunkPacks, opts) 
 				curPackSize += chunk.Length
 			}		
 		}	
 
 
-		if verbosity >= 2 {
+		if opts.Verbosity >= 2 {
 			if stillReadingInput {
 				fmt.Printf("Pack size %d exceeds max size %d\n", curPackSize, maxPackSize)		
 			}
@@ -163,7 +169,7 @@ func CopySnapshot(cfg workDirConfig, snapshotId string, source string, dest stri
 		zipFile.Close()
 	}
 
-	if verbosity >= 1 {
+	if opts.Verbosity >= 1 {
 		newChunkNum := totalChunkNum - dupChunkNum
 		newDataSize := totalDataSize - dupDataSize
 
