@@ -215,9 +215,9 @@ func ReadPacks(tarFile *os.File, repoPath string, chunkIds []string, chunkPacks 
 func LoadChunk(repoPath string, chunkId string, chunkPacks map[string]string, opts Options) []byte {
 	packId := chunkPacks[chunkId]
 
-	if opts.Verbosity >= 2 {
-		fmt.Printf("Reading chunk %s \n from pack %s\n", chunkId, packId)
-	}
+	// if opts.Verbosity >= 2 {
+	// 	fmt.Printf("Reading chunk %s \n from pack %s\n", chunkId, packId)
+	// }
 
 	packPath := path.Join(repoPath, "packs", packId[0:2], packId + ".zip")
 	data := []byte{}
@@ -240,15 +240,17 @@ func LoadChunk(repoPath string, chunkId string, chunkPacks map[string]string, op
 			
 			if err != nil {
 				// TODO: return err
-				panic(fmt.Sprintf("Error opening pack/chunk %s/%s", packPath, h.Name))
+				panic(fmt.Sprintf("Error opening chunk %s from pack file", h.Name, packPath))
 			}
 
 			{
 				var err error
-				if data, err = ioutil.ReadFile("test.txt"); err != nil {
+				// if _, err := io.Copy(tarFile, rc); err != nil {
+
+				if data, err = ioutil.ReadAll(chunkReader); err != nil {
 					// fmt.Fprintf(tarFile, "Pack %s, chunk %s, csize %d, usize %d\n", packId, h.Name, h.CompressedSize, h.UncompressedSize)
 					// TODO: return err
-					panic(fmt.Sprintf("Error reading from pack/chunk %s/%s", packPath, h.Name))
+					panic(fmt.Sprintf("Error opening chunk %s from pack file", h.Name, packPath))
 				}
 			}
 

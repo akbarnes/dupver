@@ -51,26 +51,27 @@ const TREE_ID_LEN int = 40
 // CopyBranch - a bit trickier as need to rename branches to reponame.branch
 //              and repo will need to have a unique name
 //              stick with names in workdir for now
-func CopySnapshot(cfg workDirConfig, snapshotId string, source string, dest string, opts Options) {
-	fmt.Printf("Copying snapshot %s: %s -> %s\n", snapshotId, source, dest)
-	sourceFolder := filepath.Join(source, "snapshots", cfg.WorkDirName)
-	destFolder := filepath.Join(dest, "snapshots", cfg.WorkDirName)
-	os.Mkdir(destFolder, 0777)
+func CopySnapshot(cfg workDirConfig, snapshotId string, sourceRepoPath string, destRepoPath string, opts Options) {
+	fmt.Printf("Copying snapshot %s: %s -> %s\n", snapshotId, sourceRepoPath, destRepoPath)
+	sourceSnapshotsFolder := filepath.Join(sourceRepoPath, "snapshots", cfg.WorkDirName)
+	destSnapshotsFolder := filepath.Join(destRepoPath, "snapshots", cfg.WorkDirName)
+	os.Mkdir(destSnapshotsFolder, 0777)
 
-	sourcePath := filepath.Join(sourceFolder, snapshotId + ".json")
-	destPath := filepath.Join(destFolder, snapshotId + ".json")
+	sourceSnapshotPath := filepath.Join(sourceSnapshotsFolder, snapshotId + ".json")
+	destSnapshotPath := filepath.Join(destSnapshotsFolder, snapshotId + ".json")
 
-	fmt.Printf("Copying %s -> %s\n", sourcePath, destPath)
-	CopyFile(sourcePath, destPath) // TODO: check error status
-	snapshot := ReadSnapshotFile(sourcePath)	
+	fmt.Printf("Copying %s -> %s\n", sourceSnapshotPath, destSnapshotPath)
+	CopyFile(sourceSnapshotPath, destSnapshotPath) // TODO: check error status
+	snapshot := ReadSnapshotFile(sourceSnapshotPath)	
 	chunkIndex := 0
 
+	// TODO: Move this into CopyChunks in pack.go
 	const maxPackSize int = 104857600 // 100 MB
 	chunkIDs := []string{}
-	sourceChunkPacks := ReadTrees(source)
-	fmt.Printf("Source chunk packs:\n")
-	fmt.Println(sourceChunkPacks)
-	destChunkPacks := ReadTrees(dest)
+	sourceChunkPacks := ReadTrees(sourceRepoPath)
+	// fmt.Printf("Source chunk packs:\n")
+	// fmt.Println(sourceChunkPacks)
+	destChunkPacks := ReadTrees(destRepoPath)
 	newChunkPacks := make(map[string]string)	
 	var curPackSize int 
 	stillReadingInput := true
@@ -84,7 +85,7 @@ func CopySnapshot(cfg workDirConfig, snapshotId string, source string, dest stri
 
 	for stillReadingInput {
 		packId := RandHexString(PACK_ID_LEN)
-		destPackFolderPath := path.Join(destFolder, "packs", packId[0:2])
+		destPackFolderPath := path.Join(destRepoPath, "packs", packId[0:2])
 		os.MkdirAll(destPackFolderPath, 0777)
 		destPackPath := path.Join(destPackFolderPath, packId + ".zip")	
 
@@ -109,7 +110,7 @@ func CopySnapshot(cfg workDirConfig, snapshotId string, source string, dest stri
 		for curPackSize < maxPackSize { // white chunks to pack
 			// chunk, err := mychunker.Next(buf)
 			chunkId := snapshot.ChunkIDs[chunkIndex]
-			chunk := LoadChunk(sourcePath, chunkId, sourceChunkPacks, opts) 
+			chunk := LoadChunk(sourceRepoPath, chunkId, sourceChunkPacks, opts) 
 			chunkIndex++
 
 			if chunkIndex >= len(snapshot.ChunkIDs) {
@@ -182,6 +183,20 @@ func CopySnapshot(cfg workDirConfig, snapshotId string, source string, dest stri
 		fmt.Printf("%d new, %d duplicate, %d total chunks\n", newChunkNum, dupChunkNum, totalChunkNum)
 		fmt.Printf("%d packs stored, %0.2f chunks/pack\n", newPackNum, float64(newChunkNum)/float64(newPackNum))
 	}
+
+	treeFolder := path.Join(destRepoPath, "trees")
+	treeBasename := snapshotId[0:40]
+	os.Mkdir(treeFolder, 0777)
+	treePath := path.Join(treeFolder, treeBasename+".json")
+	WriteTree(treePath, destChunkPacks)
+
+	if opts.Verbosity >= 1 {
+		fmt.Printf("%s", colorGreen)
+		fmt.Printf("Copied snapshot %s (%s)\n", snapshotId[0:16], snapshotId)
+		fmt.Printf("%s", colorReset)
+	} else {
+		fmt.Println(snapshotId)
+	}	
 }
 
 
