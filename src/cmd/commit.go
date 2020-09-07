@@ -146,5 +146,5 @@ func init() {
 	// commitCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 	commitCmd.Flags().StringVarP(&Message, "message", "m", "", "Commit message")
 	commitCmd.Flags().BoolVarP(&Add, "add", "a", false, "Unused, but added for git compatibility")
-	commitCmd.Flags().StringVarP(&ParentCommitIds, "parent", "p", "", "Comma separated list of parent commit ID(s)")
+	commitCmd.Flags().StringVarP(&ParentCommitIds, "parent", "c", "", "Comma separated list of parent commit ID(s)")
 }
