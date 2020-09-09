@@ -93,7 +93,7 @@ func init() {
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
 	// copyCmd.PersistentFlags().String("foo", "", "A help for foo")
-	rootCmd.PersistentFlags().BoolVarP(&UseDestPath, "path", "p", false, "specify destination repo path instead of name")		
+	copyCmd.PersistentFlags().BoolVarP(&UseDestPath, "path", "p", false, "specify destination repo path instead of name")		
 
 
 	// Cobra supports local flags which will only run when this command
