@@ -5,6 +5,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var ChunkerPolynomial string
+
 // initCmd represents the init command
 var repoInitCmd = &cobra.Command{
 	Use:   "init",
@@ -26,14 +28,14 @@ to quickly create a Cobra application.`,
 		repoPath := RepoPath
 
 		if len(args) >= 1 {
-			repoPath = args[1]
+			repoPath = args[0]
 		}
 
 		if len(args) >= 2 {
 			repoName = args[1]
 		}
 
-		dupver.InitRepo(repoPath, repoName, opts)
+		dupver.InitRepo(repoPath, repoName, ChunkerPolynomial, opts)
 	},
 }
 
@@ -45,6 +47,7 @@ func init() {
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
 	// initCmd.PersistentFlags().String("foo", "", "A help for foo")
+	repoInitCmd.PersistentFlags().StringVarP(&ChunkerPolynomial, "poly", "P", "", "specify chunker polynomial")		
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
