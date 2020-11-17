@@ -30,17 +30,14 @@ a few GB, but it is expected to scale up to the low 100's of GB.
 2. Add branch & head pointers
 3. Convert snapshot filenames to drop date
 
-## TODO
-- [ ] check that branch cannot be called head. this check may not be needed anymore
-- [x] fix writing head from outside of wd
-- [ ] remove auto-generated tar files after chunking
-- [ ] use toml for heads and branches?
-
 ## Usage
 
 ### Initialize repository
 Initialize a repository with
 `dupver repo init repo_path`
+
+Specify a name when initializing a repository
+`dupver repo init repo_path repo_name`
 
 ### Initialize project working directory
 From inside the working directory
@@ -50,7 +47,7 @@ Or from the parent directory
 `dupver -r repo_path init -p project_name working_directory`
 
 ### Commit
-Stage your files by adding them to aø tar file
+Stage your files by adding them to a tar file
 
 `tar cfv tarfile.tar file1 file2 file`
 

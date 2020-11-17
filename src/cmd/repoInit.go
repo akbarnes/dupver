@@ -11,19 +11,19 @@ var ChunkerPolynomial string
 var repoInitCmd = &cobra.Command{
 	Use:   "init",
 	Short: "Initialize a repository",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+	Long: `This initializes a dupver repository (as oppposed to a workdir)
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+This command can be run from anywhere but requires the repository path
+as a positional argument. It takes an optional second positional
+argument to specify the repository name.
+Usage: dupver repo init <repopath> [<reponame>]`,
 	Run: func(cmd *cobra.Command, args []string) {
 		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Verbose, Quiet)
-		
+
 		if Monochrome || Quiet {
 			opts.Color = false
 		}
-				
+
 		repoName := "main"
 		repoPath := RepoPath
 
@@ -47,7 +47,7 @@ func init() {
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
 	// initCmd.PersistentFlags().String("foo", "", "A help for foo")
-	repoInitCmd.PersistentFlags().StringVarP(&ChunkerPolynomial, "poly", "P", "", "specify chunker polynomial")		
+	repoInitCmd.PersistentFlags().StringVarP(&ChunkerPolynomial, "poly", "P", "", "specify chunker polynomial")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
