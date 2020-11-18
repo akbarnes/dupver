@@ -58,6 +58,9 @@ Alternatively run
 `dupver commit -m "commit message"`
 from within the working directory
 
+To commit to a specific repository run
+`dupver commit -n repo_name -m "commit message"`    
+
 ### List commits
 List all commits
 `dupver log`

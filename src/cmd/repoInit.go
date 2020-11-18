@@ -24,7 +24,7 @@ Usage: dupver repo init <repopath> [<reponame>]`,
 			opts.Color = false
 		}
 
-		repoName := "main"
+		repoName := RepoName
 		repoPath := RepoPath
 
 		if len(args) >= 1 {
