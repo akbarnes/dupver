@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"path"
+
 	// "path/filepath"
 
 	"github.com/BurntSushi/toml"
@@ -12,8 +13,8 @@ import (
 )
 
 type repoConfig struct {
-	RepoName string
-	Version int
+	RepoName          string
+	Version           int
 	ChunkerPolynomial chunker.Pol
 }
 
@@ -28,7 +29,6 @@ func InitRepo(repoPath string, repoName string, chunkerPolynomial string, opts O
 	CreateSubFolder(repoPath, "snapshots", opts.Verbosity)
 	CreateSubFolder(repoPath, "trees", opts.Verbosity)
 	CreateSubFolder(repoPath, "packs", opts.Verbosity)
-
 
 	snapshotsPath := path.Join(repoPath, "snapshots")
 
@@ -46,12 +46,15 @@ func InitRepo(repoPath string, repoName string, chunkerPolynomial string, opts O
 
 	os.Mkdir(treesPath, 0777)
 
+	if opts.Verbosity >= 1 {
+		fmt.Printf("Chunker Polynomial: %s\n", chunkerPolynomial)
+	}
 
 	var poly chunker.Pol
 
 	if len(chunkerPolynomial) == 0 {
 		p, err := chunker.RandomPolynomial()
-		
+
 		if err != nil {
 			panic("Error creating random polynomical while initializing repo")
 		}
@@ -59,7 +62,7 @@ func InitRepo(repoPath string, repoName string, chunkerPolynomial string, opts O
 		poly = p
 	} else {
 		poly.UnmarshalJSON([]byte(chunkerPolynomial))
-	}	
+	}
 
 	if opts.Verbosity >= 1 {
 		fmt.Printf("Chunker polynomial: %d\n", poly)
