@@ -5,10 +5,12 @@ import (
 	"log"
 	"path"
 	"path/filepath"
+
 	// "io"
 	// "bufio"
 	"os"
 	"strings"
+
 	// "crypto/sha256"
 	// "encoding/json"
 
@@ -29,8 +31,8 @@ import (
 type workDirConfig struct {
 	WorkDirName string
 	DefaultRepo string
-	RepoPath string
-	Repos map[string]string
+	RepoPath    string
+	Repos       map[string]string
 }
 
 func FolderToWorkDirName(folder string) string {
@@ -210,12 +212,12 @@ func WorkDirStatus(workDir string, snapshot Commit, opts Options) {
 					if opts.Color {
 						fmt.Printf("%s", colorCyan)
 					}
-		
+
 					fmt.Printf("M %s\n", curPath)
-		
+
 					if opts.Color {
 						fmt.Printf("%s", colorReset)
-					}						
+					}
 					// fmt.Printf("M %s\n", curPath)
 					changes = true
 				}
@@ -223,12 +225,12 @@ func WorkDirStatus(workDir string, snapshot Commit, opts Options) {
 				if opts.Color {
 					fmt.Printf("%s", colorWhite)
 				}
-	
+
 				fmt.Printf("M %s\n", curPath)
-	
+
 				if opts.Color {
 					fmt.Printf("%s", colorReset)
-				}					
+				}
 			}
 		} else if !strings.HasPrefix(curPath, path.Join(workDirPrefix, ".dupver")) {
 			if opts.Color {
@@ -239,7 +241,7 @@ func WorkDirStatus(workDir string, snapshot Commit, opts Options) {
 
 			if opts.Color {
 				fmt.Printf("%s", colorReset)
-			}			
+			}
 			changes = true
 		}
 
@@ -280,7 +282,7 @@ func WriteHead(headPath string, myHead Head, opts Options) {
 	CreateFolder(dir, opts.Verbosity)
 
 	if opts.Verbosity >= 2 {
-		fmt.Println("Writing head to " +  headPath)
+		fmt.Println("Writing head to " + headPath)
 	}
 
 	f, err := os.Create(headPath)
@@ -291,7 +293,7 @@ func WriteHead(headPath string, myHead Head, opts Options) {
 
 	myEncoder := toml.NewEncoder(f)
 	myEncoder.Encode(myHead)
-	f.Close()	
+	f.Close()
 }
 
 func ReadHead(headPath string) Head {
@@ -300,7 +302,7 @@ func ReadHead(headPath string) Head {
 
 	if err != nil {
 		//panic(fmt.Sprintf("Error: Could not read head file %s", headPath))
-		fmt.Printf("No head file exists, returning defaut head struct\n")
+		fmt.Printf("No head file exists, returning default head struct\n")
 		return Head{BranchName: "main"}
 	}
 	if _, err := toml.DecodeReader(f, &myHead); err != nil {
@@ -310,5 +312,3 @@ func ReadHead(headPath string) Head {
 	f.Close()
 	return myHead
 }
-
-

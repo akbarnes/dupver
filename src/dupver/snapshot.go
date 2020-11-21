@@ -4,30 +4,31 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+
 	// "log"
+	"archive/zip"
 	"os"
 	"path"
 	"path/filepath"
 	"strings"
 	"time"
-	"archive/zip"
 
 	"github.com/BurntSushi/toml"
-	)
+)
 
 type Commit struct {
 	// TarFileName string
-	ID          string
-	Message     string
-	Time        string
-	ParentIDs   []string
-	Files       []fileInfo
-	ChunkIDs    []string
+	ID        string
+	Message   string
+	Time      string
+	ParentIDs []string
+	Files     []fileInfo
+	ChunkIDs  []string
 }
 
 type Head struct {
 	BranchName string
-	CommitID string // use this for detached head, but do I need this?
+	CommitID   string // use this for detached head, but do I need this?
 }
 
 type Branch struct {
@@ -57,12 +58,12 @@ func CopySnapshot(cfg workDirConfig, snapshotId string, sourceRepoPath string, d
 	destSnapshotsFolder := filepath.Join(destRepoPath, "snapshots", cfg.WorkDirName)
 	os.Mkdir(destSnapshotsFolder, 0777)
 
-	sourceSnapshotPath := filepath.Join(sourceSnapshotsFolder, snapshotId + ".json")
-	destSnapshotPath := filepath.Join(destSnapshotsFolder, snapshotId + ".json")
+	sourceSnapshotPath := filepath.Join(sourceSnapshotsFolder, snapshotId+".json")
+	destSnapshotPath := filepath.Join(destSnapshotsFolder, snapshotId+".json")
 
 	fmt.Printf("Copying %s -> %s\n", sourceSnapshotPath, destSnapshotPath)
 	CopyFile(sourceSnapshotPath, destSnapshotPath) // TODO: check error status
-	snapshot := ReadSnapshotFile(sourceSnapshotPath)	
+	snapshot := ReadSnapshotFile(sourceSnapshotPath)
 	chunkIndex := 0
 
 	// TODO: Move this into CopyChunks in pack.go
@@ -72,8 +73,8 @@ func CopySnapshot(cfg workDirConfig, snapshotId string, sourceRepoPath string, d
 	// fmt.Printf("Source chunk packs:\n")
 	// fmt.Println(sourceChunkPacks)
 	destChunkPacks := ReadTrees(destRepoPath)
-	newChunkPacks := make(map[string]string)	
-	var curPackSize int 
+	newChunkPacks := make(map[string]string)
+	var curPackSize int
 	stillReadingInput := true
 
 	totalDataSize := 0
@@ -87,18 +88,18 @@ func CopySnapshot(cfg workDirConfig, snapshotId string, sourceRepoPath string, d
 		packId := RandHexString(PACK_ID_LEN)
 		destPackFolderPath := path.Join(destRepoPath, "packs", packId[0:2])
 		os.MkdirAll(destPackFolderPath, 0777)
-		destPackPath := path.Join(destPackFolderPath, packId + ".zip")	
+		destPackPath := path.Join(destPackFolderPath, packId+".zip")
 
-		newPackNum++		
+		newPackNum++
 
 		if opts.Verbosity >= 2 {
-			fmt.Printf("Creating pack file %3d: %s\n", newPackNum, destPackPath)	
+			fmt.Printf("Creating pack file %3d: %s\n", newPackNum, destPackPath)
 		} else if opts.Verbosity == 1 {
-			fmt.Printf("Creating pack number: %3d, ID: %s\n", newPackNum, packId[0:16])	
+			fmt.Printf("Creating pack number: %3d, ID: %s\n", newPackNum, packId[0:16])
 		}
 
 		zipFile, err := os.Create(destPackPath)
-		
+
 		if err != nil {
 			panic(fmt.Sprintf("Error creating zip file %s", destPackPath))
 		}
@@ -110,19 +111,19 @@ func CopySnapshot(cfg workDirConfig, snapshotId string, sourceRepoPath string, d
 		for curPackSize < maxPackSize { // white chunks to pack
 			// chunk, err := mychunker.Next(buf)
 			chunkId := snapshot.ChunkIDs[chunkIndex]
-			chunk := LoadChunk(sourceRepoPath, chunkId, sourceChunkPacks, opts) 
+			chunk := LoadChunk(sourceRepoPath, chunkId, sourceChunkPacks, opts)
 			chunkIndex++
 
 			if chunkIndex >= len(snapshot.ChunkIDs) {
 				// fmt.Printf("Reached end of input file, stop chunking\n")
-				stillReadingInput = false	
-   				break
+				stillReadingInput = false
+				break
 			} else if err != nil {
 				panic("Error chunking input file")
 			}
-		
+
 			i++
-			// chunkId := fmt.Sprintf("%064x", sha256.Sum256(chunk.Data))			
+			// chunkId := fmt.Sprintf("%064x", sha256.Sum256(chunk.Data))
 			chunkIDs = append(chunkIDs, chunkId)
 
 			totalDataSize += int(len(chunk))
@@ -135,10 +136,10 @@ func CopySnapshot(cfg workDirConfig, snapshotId string, sourceRepoPath string, d
 
 				dupChunkNum++
 				dupDataSize += int(len(chunk))
-			} else {	
+			} else {
 				if opts.Verbosity >= 2 {
 					fmt.Printf("Chunk %d: chunk size %d kB, total size %d kB, ", i, len(chunk)/1024, curPackSize/1024)
-					fmt.Printf("chunk ID: %s\n",chunkId[0:16])
+					fmt.Printf("chunk ID: %s\n", chunkId[0:16])
 				}
 				destChunkPacks[chunkId] = packId
 				newChunkPacks[chunkId] = packId
@@ -146,22 +147,21 @@ func CopySnapshot(cfg workDirConfig, snapshotId string, sourceRepoPath string, d
 				var header zip.FileHeader
 				header.Name = chunkId
 				header.Method = zip.Deflate
-			
+
 				writer, err := zipWriter.CreateHeader(&header)
-				
+
 				if err != nil {
 					panic(fmt.Sprintf("Error creating zip file header for %s", destPackPath))
 				}
 
-				writer.Write(chunk)	
+				writer.Write(chunk)
 				curPackSize += len(chunk)
-			}		
-		}	
-
+			}
+		}
 
 		if opts.Verbosity >= 2 {
 			if stillReadingInput {
-				fmt.Printf("Pack size %d exceeds max size %d\n", curPackSize, maxPackSize)		
+				fmt.Printf("Pack size %d exceeds max size %d\n", curPackSize, maxPackSize)
 			}
 
 			fmt.Printf("Reached end of input, closing zip file\n")
@@ -175,9 +175,9 @@ func CopySnapshot(cfg workDirConfig, snapshotId string, sourceRepoPath string, d
 		newChunkNum := totalChunkNum - dupChunkNum
 		newDataSize := totalDataSize - dupDataSize
 
-		newMb := float64(newDataSize)/1e6
-		dupMb := float64(dupDataSize)/1e6
-		totalMb := float64(totalDataSize)/1e6
+		newMb := float64(newDataSize) / 1e6
+		dupMb := float64(dupDataSize) / 1e6
+		totalMb := float64(totalDataSize) / 1e6
 
 		fmt.Printf("%0.2f new, %0.2f duplicate, %0.2f total MB raw data stored\n", newMb, dupMb, totalMb)
 		fmt.Printf("%d new, %d duplicate, %d total chunks\n", newChunkNum, dupChunkNum, totalChunkNum)
@@ -196,9 +196,8 @@ func CopySnapshot(cfg workDirConfig, snapshotId string, sourceRepoPath string, d
 		fmt.Printf("%s", colorReset)
 	} else {
 		fmt.Println(snapshotId)
-	}	
+	}
 }
-
 
 func CommitFile(filePath string, parentIds []string, msg string, opts Options) Head {
 	var myWorkDirConfig workDirConfig
@@ -228,7 +227,7 @@ func CommitFile(filePath string, parentIds []string, msg string, opts Options) H
 	}
 
 	myRepoConfig := ReadRepoConfigFile(path.Join(myWorkDirConfig.RepoPath, "config.toml"))
-	
+
 	if opts.Verbosity >= 1 {
 		fmt.Println("Head:")
 		fmt.Println(myHead)
@@ -237,10 +236,10 @@ func CommitFile(filePath string, parentIds []string, msg string, opts Options) H
 
 	if len(myHead.BranchName) == 0 {
 		myHead.BranchName = "main"
-	}		
+	}
 
 	branchFolder := path.Join(myWorkDirConfig.RepoPath, "branches", myWorkDirConfig.WorkDirName)
-	branchPath := path.Join(branchFolder, myHead.BranchName + ".toml")	
+	branchPath := path.Join(branchFolder, myHead.BranchName+".toml")
 	myBranch := ReadBranch(branchPath)
 
 	mySnapshot.ParentIDs = append([]string{myHead.CommitID}, parentIds...)
@@ -251,7 +250,7 @@ func CommitFile(filePath string, parentIds []string, msg string, opts Options) H
 	snapshotFolder := path.Join(myWorkDirConfig.RepoPath, "snapshots", myWorkDirConfig.WorkDirName)
 	snapshotBasename := fmt.Sprintf("%s", mySnapshot.ID[0:40])
 	os.Mkdir(snapshotFolder, 0777)
-	snapshotPath := path.Join(snapshotFolder, snapshotBasename + ".json")
+	snapshotPath := path.Join(snapshotFolder, snapshotBasename+".json")
 	WriteSnapshot(snapshotPath, mySnapshot)
 
 	// Do I really need to track commit id in head??
@@ -286,7 +285,6 @@ func UpdateMessage(mySnapshot Commit, msg string, filePath string) Commit {
 	return mySnapshot
 }
 
-
 func WriteSnapshot(snapshotPath string, mySnapshot Commit) {
 	f, err := os.Create(snapshotPath)
 
@@ -310,7 +308,7 @@ func WriteBranch(branchPath string, myBranch Branch, verbosity int) {
 
 	myEncoder := toml.NewEncoder(f)
 	myEncoder.Encode(myBranch)
-	f.Close()	
+	f.Close()
 }
 
 func ReadBranch(branchPath string) Branch {
@@ -334,10 +332,10 @@ func ReadBranch(branchPath string) Branch {
 func GetFullSnapshotId(snapshotId string, cfg workDirConfig) string {
 	snapshotPaths := ListSnapshots(cfg)
 
-	for  _,  snapshotPath := range snapshotPaths {
+	for _, snapshotPath := range snapshotPaths {
 		n := len(snapshotId) - 1
 		sid := filepath.Base(snapshotPath)
-		sid = sid[0:len(sid)-5]
+		sid = sid[0 : len(sid)-5]
 		fmt.Printf("path: %s\nsid: %s\n", snapshotPath, sid)
 
 		if len(sid) < len(snapshotId) {
@@ -356,7 +354,7 @@ func GetFullSnapshotId(snapshotId string, cfg workDirConfig) string {
 
 func ReadSnapshot(snapshot string, cfg workDirConfig) Commit {
 	snapshotsFolder := path.Join(cfg.RepoPath, "snapshots", cfg.WorkDirName)
-	snapshotPath := path.Join(snapshotsFolder, snapshot + ".json")
+	snapshotPath := path.Join(snapshotsFolder, snapshot+".json")
 	return ReadSnapshotFile(snapshotPath)
 }
 
@@ -365,7 +363,8 @@ func ReadSnapshotFile(snapshotPath string) Commit {
 	f, err := os.Open(snapshotPath)
 
 	if err != nil {
-		panic(fmt.Sprintf("Error: Could not read snapshot file %s", snapshotPath))
+		// panic(fmt.Sprintf("Error: Could not read snapshot file %s", snapshotPath))
+		return Commit{}
 	}
 
 	myDecoder := json.NewDecoder(f)
@@ -428,9 +427,15 @@ func PrintSnapshots(cfg workDirConfig, snapshotId string, maxSnapshots int, opts
 		fmt.Println("Snapshot History")
 	}
 
-	for  {	
-		snapshotPath := filepath.Join(repoPath, "snapshots", projectName, snapshotId + ".json")
+	for {
+		snapshotPath := filepath.Join(repoPath, "snapshots", projectName, snapshotId+".json")
 		mySnapshot := ReadSnapshotFile(snapshotPath)
+
+		if len(mySnapshot.ID) == 0 {
+			fmt.Println("No snapshots")
+			break
+		}
+
 		PrintSnapshot(mySnapshot, 0, opts)
 		parents := mySnapshot.ParentIDs
 
@@ -518,4 +523,3 @@ func PrintSnapshot(mySnapshot Commit, maxFiles int, opts Options) {
 	// 	}
 	// }
 }
-
