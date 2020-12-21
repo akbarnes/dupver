@@ -10,12 +10,12 @@ import (
 
 // logCmd represents the log command
 var logCmd = &cobra.Command{
-	Use:   "log [snapshot_id]",
-	Short: "List snapshots for the current working directory",
-	Long: `This prints a list of snapshots for the current working directory."
+	Use:   "log [commit_id]",
+	Short: "List commits for the current working directory",
+	Long: `This prints a list of commits for the current working directory."
 
 If an optional positional argument is provided, this will specify
-a snapshot ID to print in additional detail.`,
+a commit ID to print in additional detail.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg := dupver.ReadWorkDirConfig(WorkDirPath)
 		cfg = dupver.UpdateRepoPath(cfg, RepoPath)

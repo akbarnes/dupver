@@ -7,11 +7,11 @@ version control system Boar https://bitbucket.org/mats_ekberg/boar/wiki/Home,
 and to a lesser extent the commercial offering Perforce,
 though it borrows design conventions from the deduplicating backup
 applications Duplicacy, Restic and Borg.
-Dupver does not track files, rather it stores snapshots more like
+Dupver does not track files, rather it stores commits as snapshots more like
 a backup program. Rather than traverse directories itself, Dupver
 uses an (uncompressed) tar file as input. Not that *only* tar files
 are accepted as input as Dupver relies on the tar container to
- 1. provide the list of files in the snapshot
+ 1. provide the list of files in the commit
  2. store metadata such as file modification times and permissions
  
 Dupver uses a centralized repository to take advantage of deduplication 
@@ -66,11 +66,11 @@ List all commits
 `dupver log`
 
 List a specific commit
-`dupver log snapshot_id`
+`dupver log commit_id`
 
 ### Copy
 Copy a commit 
-`dupver copy dest_repo snapshot_id`
+`dupver copy dest_repo commit_id`
 
 ### Check if files are modified/added
 `dupver status`

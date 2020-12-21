@@ -61,12 +61,24 @@ var commitCmd = &cobra.Command{
 	Short: "Commit the current working directory or a tarball",
 	Long: `This commits the current working directory or a tarball.
 
-If no arguments are provided this command will commit the
-current working directory (if initialized as a dupver
-working directory). If a single positional argument is
-provided then a tarball with the specified file name
-is committed. This is intended to allow for git-style
-incremental commits using the -r option of tar.`,
+	If no arguments are provided this command will commit the
+	current working directory (if initialized as a dupver
+	working directory). If a single positional argument is
+	provided then a tarball with the specified file name
+	is committed. This is intended to allow for git-style
+	incremental commits using the -r option of tar. The 
+	commit command does not require a commit message, though
+	this can be specified with the --message flag. The
+	--parent flag bears mentioning. Dupver does not currently
+	support merge functionality, though it tracks branches.
+	By default a commit's parent will be the commit id
+	of the current branch head. The --parent flag allows for
+	a list of commits to be specified instead which is used
+	after performing a merge. Merges must be performed manually 
+	by checking out the branches into separate project working
+	directories and using an external diff/merge tool to resolve 
+	the differences. Once this is performed, the --parent
+	flag is used to keep track of this merge.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Verbose, Quiet)
 		
