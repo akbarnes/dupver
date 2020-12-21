@@ -9,23 +9,28 @@ import (
 
 // repoAddCmd represents the repoAdd command
 var repoAddCmd = &cobra.Command{
-	Use:   "add [name] [path]",
+	Use:   "add [repo_path] [repo_name]",
 	Short: "Add a repository the current working directory",
-	Long: `This command will add an additional repository
-to the current project working directory. It takes
-two optional positionaly arguments for the repo 
-name and repo path. These take precedence over the
-global command line flags`,
+	Long: `This adds an additional repository
+to the current project working directory. 
+
+The first optional positional argument
+allows for the repository path to be specified. The second optional
+positional argument allows for the repository name to be specified.
+These take precedence over the global command-line flags. While
+the positional arguments are considered optional, if they are
+ommitted the path and name must be specified by the global
+command-line flags.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		repoName := RepoName
 		repoPath := RepoPath
 
 		if len(args) >= 1 {
-			repoName = args[0]
+			repoPath = args[0]
 		}
 
 		if len(args) >= 2 {
-			repoPath = args[1]
+			repoName = args[1]
 		}
 
 		// TODO: Read repoPath from environment variable if empty

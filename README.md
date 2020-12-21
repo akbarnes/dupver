@@ -66,7 +66,7 @@ List all commits
 `dupver log`
 
 List a specific commit
-`dupver log commit_id`
+`dupver log snapshot_id`
 
 ### Copy
 Copy a commit 

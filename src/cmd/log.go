@@ -10,14 +10,12 @@ import (
 
 // logCmd represents the log command
 var logCmd = &cobra.Command{
-	Use:   "log",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+	Use:   "log [snapshot_id]",
+	Short: "List snapshots for the current working directory",
+	Long: `This prints a list of snapshots for the current working directory."
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+If an optional positional argument is provided, this will specify
+a snapshot ID to print in additional detail.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg := dupver.ReadWorkDirConfig(WorkDirPath)
 		cfg = dupver.UpdateRepoPath(cfg, RepoPath)

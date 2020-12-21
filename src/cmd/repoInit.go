@@ -9,7 +9,7 @@ var ChunkerPolynomial string
 
 // initCmd represents the init command
 var repoInitCmd = &cobra.Command{
-	Use:   "init",
+	Use:   "init path [repo_path] [repo_name]",
 	Short: "Initialize a repository",
 	Long: `This initializes a dupver repository (as oppposed to a workdir)
 
@@ -18,8 +18,7 @@ the current working directory. The first optional positional argument
 allows for the repository path to be specified. The second optional
 positional argument allows for the repository name to be specified.
 if no repository name is specified, the repository takes on the default
-name of "main."
-Usage: dupver repo init [<repopath>] [<reponame>]`,
+name of "main."`,
 	Run: func(cmd *cobra.Command, args []string) {
 		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Verbose, Quiet)
 

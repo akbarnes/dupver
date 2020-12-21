@@ -38,14 +38,20 @@ var UseDestPath bool
 
 // copyCmd represents the copy command
 var copyCmd = &cobra.Command{
-	Use:   "copy",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+	Use:   "copy <dest> [snapshot_id]",
+	Short: "Copy snapshots and chunks to the specified repo",
+	Long: `This command will copy both snapshots and chunks from
+either the default repo or a specified repo to the destination repo.
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+An alternate source repo can be specified with the --repo-name and
+--repo-path flags. The destination repo is specified with the 
+required first positional argument. By default, the destination
+repo is specified from one of the repos current in the working 
+directory configuration file. However, if it desired to specify
+an arbitrary path that can be done by using the --path Boolean
+flag, which instructs dupver to interpret the destination 
+argument as a path. A second optional positional argument 
+will limit only a single specified snapshot id to be copied.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg := dupver.ReadWorkDirConfig(WorkDirPath)
 		// cfg = dupver.UpdateRepoPath(cfg, RepoPath)
