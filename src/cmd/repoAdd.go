@@ -9,14 +9,12 @@ import (
 
 // repoAddCmd represents the repoAdd command
 var repoAddCmd = &cobra.Command{
-	Use:   "add",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+	Use:   "add [name] [path]",
+	Short: "Add a repository the current working directory",
+	Long: `This command will add an additional repository
+to the current project working directory.
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+Usage: dupver repo add [repo_name] [repo_path]`,
 	Run: func(cmd *cobra.Command, args []string) {
 		repoName := RepoName
 		repoPath := RepoPath
@@ -31,7 +29,7 @@ to quickly create a Cobra application.`,
 
 		// TODO: Read repoPath from environment variable if empty
 		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Verbose, Quiet)
-		
+
 		if Monochrome || Quiet {
 			opts.Color = false
 		}
