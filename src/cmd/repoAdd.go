@@ -12,9 +12,10 @@ var repoAddCmd = &cobra.Command{
 	Use:   "add [name] [path]",
 	Short: "Add a repository the current working directory",
 	Long: `This command will add an additional repository
-to the current project working directory.
-
-Usage: dupver repo add [repo_name] [repo_path]`,
+to the current project working directory. It takes
+two optional positionaly arguments for the repo 
+name and repo path. These take precedence over the
+global command line flags`,
 	Run: func(cmd *cobra.Command, args []string) {
 		repoName := RepoName
 		repoPath := RepoPath
