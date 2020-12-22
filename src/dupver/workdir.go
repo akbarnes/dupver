@@ -10,6 +10,7 @@ import (
 	// "bufio"
 	"os"
 	"strings"
+	"strconv"
 
 	// "crypto/sha256"
 	// "encoding/json"
@@ -111,6 +112,28 @@ func AddRepoToWorkDir(workDirPath string, repoName string, repoPath string, opts
 	configPath = filepath.Join(workDirPath, ".dupver", "config.toml")
 	SaveWorkDirConfig(configPath, cfg, true)
 }
+
+func ListWorkDirRepos(workDirPath string, opts Options) {
+	cfg := ReadWorkDirConfig(workDirPath)
+	maxLen := 0
+
+	for name, _ := range cfg.Repos {
+		if len(name) > maxLen {
+			maxLen = len(name)
+		}
+	}	
+
+	fmtStr := "%" + strconv.Itoa(maxLen) + "s: %s\n"
+
+	for name, path := range cfg.Repos {
+		if opts.Verbosity == 0 {
+			fmt.Printf("%s %s\n", name, path)
+		} else {
+			fmt.Printf(fmtStr, name, path)
+		}
+	}
+}
+
 
 func UpdateWorkDirName(myWorkDirConfig workDirConfig, workDirName string) workDirConfig {
 	if len(workDirName) > 0 {
