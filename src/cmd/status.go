@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	// "fmt"
+	"fmt"
 	// "log"
 	"path/filepath"
 
@@ -26,6 +26,26 @@ with the --monochrome flag.`,
 		cfg = dupver.UpdateRepoPath(cfg, RepoPath)
 
 		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Verbose, Quiet)
+
+		if len(RepoName) == 0 {
+			if len(RepoPath) > 0 {
+				for name, path := range cfg.Repos {
+					if path == RepoPath {
+						if opts.Verbosity >= 2 {
+							fmt.Printf("Only repo path specified, assuming repo name is %s\n\n", name)
+						}
+						RepoName = name
+					}
+				}
+			} else {
+				RepoName = cfg.DefaultRepo
+			}
+		}
+
+		if len(RepoPath) == 0 {
+			RepoPath = cfg.Repos[RepoName]
+		}		
+
 		opts.RepoName = RepoName
 		opts.RepoPath = RepoPath
 

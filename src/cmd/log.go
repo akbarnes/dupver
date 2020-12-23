@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	// "fmt"
+	"fmt"
 	"path/filepath"
 
 	"github.com/akbarnes/dupver/src/dupver"
@@ -22,13 +22,48 @@ a commit ID to print in additional detail.`,
 
 		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Verbose, Quiet)
 
+		if opts.Verbosity >= 2 {
+			fmt.Println("cfg:")
+			fmt.Println(cfg)
+		}
+
+		if len(RepoName) == 0 {
+			if len(RepoPath) > 0 {
+				for name, path := range cfg.Repos {
+					if path == RepoPath {
+						if opts.Verbosity >= 2 {
+							fmt.Printf("Only repo path specified, assuming repo name is %s\n\n", name)
+						}
+						RepoName = name
+					}
+				}
+			} else {
+				RepoName = cfg.DefaultRepo
+			}
+		}
+
+		if len(RepoPath) == 0 {
+			RepoPath = cfg.Repos[RepoName]
+		}
+
 		opts.RepoName = RepoName
 		opts.RepoPath = RepoPath
 
+		if opts.Verbosity >= 2 {
+			fmt.Println("opts:")
+			fmt.Println(opts)
+		}
+
 		headPath := filepath.Join(WorkDirPath, ".dupver", "head.toml")
 		myHead := dupver.ReadHead(headPath)
+
 		snapshotId := myHead.CommitIDs[opts.RepoName]
 		numSnapshots := 0
+
+		if opts.Verbosity >= 2 {
+			fmt.Println("Commit ID")
+			fmt.Println(snapshotId)
+		}
 
 		// TODO: Yeesh...move this mess into a function
 		if len(args) >= 1 {
