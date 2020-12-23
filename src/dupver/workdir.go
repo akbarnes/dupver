@@ -109,8 +109,7 @@ var configPath string
 func AddRepoToWorkDir(workDirPath string, repoName string, repoPath string, opts Options) {
 	cfg := ReadWorkDirConfig(workDirPath)
 	cfg.Repos[repoName] = repoPath
-	configPath = filepath.Join(workDirPath, ".dupver", "config.toml")
-	SaveWorkDirConfig(configPath, cfg, true)
+	SaveWorkDirConfig(workDirPath, cfg, true)
 }
 
 func ListWorkDirRepos(workDirPath string, opts Options) {
@@ -143,16 +142,7 @@ func UpdateWorkDirName(myWorkDirConfig workDirConfig, workDirName string) workDi
 	return myWorkDirConfig
 }
 
-func SaveWorkDirConfig(configPath string, myConfig workDirConfig, forceWrite bool) {
-	if _, err := os.Stat(configPath); err == nil && !forceWrite {
-		log.Fatal("Refusing to write existing project workdir config " + configPath)
-	}
 
-	f, _ := os.Create(configPath)
-	myEncoder := toml.NewEncoder(f)
-	myEncoder.Encode(myConfig)
-	f.Close()
-}
 
 func ReadWorkDirConfig(workDir string) workDirConfig {
 	var configPath string
@@ -182,6 +172,29 @@ func ReadWorkDirConfigFile(filePath string) workDirConfig {
 	f.Close()
 
 	return myConfig
+}
+
+func SaveWorkDirConfig(workDir string, myConfig workDirConfig, forceWrite bool) {
+	var configPath string
+
+	if len(workDir) == 0 {
+		configPath = filepath.Join(".dupver", "config.toml")
+	} else {
+		configPath = filepath.Join(workDir, ".dupver", "config.toml")
+	}
+
+	SaveWorkDirConfigFile(configPath, myConfig, forceWrite)
+}
+
+func SaveWorkDirConfigFile(configPath string, myConfig workDirConfig, forceWrite bool) {
+	if _, err := os.Stat(configPath); err == nil && !forceWrite {
+		log.Fatal("Refusing to write existing project workdir config " + configPath)
+	}
+
+	f, _ := os.Create(configPath)
+	myEncoder := toml.NewEncoder(f)
+	myEncoder.Encode(myConfig)
+	f.Close()
 }
 
 func WorkDirStatus(workDir string, snapshot Commit, opts Options) {

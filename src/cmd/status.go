@@ -25,16 +25,19 @@ with the --monochrome flag.`,
 		cfg := dupver.ReadWorkDirConfig(WorkDirPath)
 		cfg = dupver.UpdateRepoPath(cfg, RepoPath)
 
+		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Verbose, Quiet)
+		opts.RepoName = RepoName
+		opts.RepoPath = RepoPath
+
 		headPath := filepath.Join(WorkDirPath, ".dupver", "head.toml")
 		myHead := dupver.ReadHead(headPath)
-		snapshotId := myHead.CommitID
+		snapshotId := myHead.CommitIDs[opts.RepoName]
 
 		if len(args) >= 1 {
 			snapshotId = dupver.GetFullSnapshotId(args[0], cfg)
 		}
 
 		mySnapshot := dupver.ReadSnapshot(snapshotId, cfg)
-		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Verbose, Quiet)
 
 		if Monochrome || Quiet {
 			opts.Color = false

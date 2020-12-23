@@ -29,6 +29,8 @@ type Commit struct {
 type Head struct {
 	BranchName string
 	CommitID   string // use this for detached head, but do I need this?
+	Branches map[string]string
+	CommitIDs map[string]string
 }
 
 type Branch struct {
