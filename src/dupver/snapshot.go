@@ -206,11 +206,13 @@ func CommitFile(filePath string, parentIds []string, msg string, opts Options) H
 	t := time.Now()
 
 	var mySnapshot Commit
-	var myHead Head
+	// var myHead Head
 	mySnapshot.ID = RandHexString(SNAPSHOT_ID_LEN)
 	mySnapshot.Time = t.Format("2006/01/02 15:04:05")
 	mySnapshot = UpdateMessage(mySnapshot, msg, filePath)
-	mySnapshot.Files, myWorkDirConfig, myHead = ReadTarFileIndex(filePath, opts.Verbosity)
+	mySnapshot.Files, myWorkDirConfig, _ = ReadTarFileIndex(filePath, opts.Verbosity)
+	myHead := ReadBranch(filepath.Join(opts.RepoPath, "branches", myWorkDirConfig.WorkDirName, myWorkDirConfig.BranchName + ".toml"))
+
 
 	if len(myWorkDirConfig.RepoPath) == 0 {
 		myWorkDirConfig.RepoPath = myWorkDirConfig.Repos[myWorkDirConfig.DefaultRepo]
@@ -233,15 +235,11 @@ func CommitFile(filePath string, parentIds []string, msg string, opts Options) H
 	if opts.Verbosity >= 1 {
 		fmt.Println("Head:")
 		fmt.Println(myHead)
-		fmt.Printf("Branch: %s\nParent commit: %s\n", myHead.BranchName, myHead.CommitID)
-	}
-
-	if len(myHead.BranchName) == 0 {
-		myHead.BranchName = "main"
+		fmt.Printf("Branch: %s\nParent commit: %s\n", myWorkDirConfig.BranchName, myHead.CommitID)
 	}
 
 	branchFolder := path.Join(myWorkDirConfig.RepoPath, "branches", myWorkDirConfig.WorkDirName)
-	branchPath := path.Join(branchFolder, myHead.BranchName + ".toml")
+	branchPath := path.Join(branchFolder, myWorkDirConfig.BranchName + ".toml")
 	myBranch := ReadBranch(branchPath)
 
 	mySnapshot.ParentIDs = append([]string{myHead.CommitID}, parentIds...)
@@ -275,7 +273,10 @@ func CommitFile(filePath string, parentIds []string, msg string, opts Options) H
 		fmt.Println(mySnapshot.ID)
 	}
 
-	return myHead
+	var newHead Head
+	newHead.CommitID = mySnapshot.ID
+	newHead.BranchName = myWorkDirConfig.BranchName
+	return new	Head
 }
 
 func UpdateMessage(mySnapshot Commit, msg string, filePath string) Commit {
