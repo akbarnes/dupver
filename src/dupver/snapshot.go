@@ -241,7 +241,7 @@ func CommitFile(filePath string, parentIds []string, msg string, opts Options) H
 	}
 
 	branchFolder := path.Join(myWorkDirConfig.RepoPath, "branches", myWorkDirConfig.WorkDirName)
-	branchPath := path.Join(branchFolder, myHead.BranchName+".toml")
+	branchPath := path.Join(branchFolder, myHead.BranchName + ".toml")
 	myBranch := ReadBranch(branchPath)
 
 	mySnapshot.ParentIDs = append([]string{myHead.CommitID}, parentIds...)
@@ -355,8 +355,9 @@ func GetFullSnapshotId(snapshotId string, cfg workDirConfig) string {
 }
 
 func ReadSnapshot(snapshot string, cfg workDirConfig) Commit {
-	snapshotsFolder := path.Join(cfg.RepoPath, "snapshots", cfg.WorkDirName)
-	snapshotPath := path.Join(snapshotsFolder, snapshot+".json")
+	snapshotsFolder := filepath.Join(cfg.RepoPath, "snapshots", cfg.WorkDirName)
+	snapshotPath := filepath.Join(snapshotsFolder, snapshot+".json")
+	fmt.Printf("Snapshot path: %s\n", snapshotPath)
 	return ReadSnapshotFile(snapshotPath)
 }
 
@@ -431,6 +432,11 @@ func PrintSnapshots(cfg workDirConfig, snapshotId string, maxSnapshots int, opts
 
 	for {
 		snapshotPath := filepath.Join(repoPath, "snapshots", projectName, snapshotId+".json")
+
+		if opts.Verbosity >= 2 {
+			fmt.Printf("Snapshot path: %s\n\n", snapshotPath)
+		}
+
 		mySnapshot := ReadSnapshotFile(snapshotPath)
 
 		if len(mySnapshot.ID) == 0 {

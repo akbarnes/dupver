@@ -34,7 +34,7 @@ command-line flags.`,
 		}
 
 		// TODO: Read repoPath from environment variable if empty
-		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Verbose, Quiet)
+		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Debug, Verbose, Quiet)
 
 		if Monochrome || Quiet {
 			opts.Color = false

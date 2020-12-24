@@ -14,12 +14,14 @@ import (
 var cfgFile string
 var RepoName string
 var RepoPath string
+var BranchName string
 
 // var DestRepoName string // need this?
 // var DestRepoPath string
 // var BranchID string // for copy - move to copy.go?
 // var SnapshotID string // for copy - move to copy.go?
 var WorkDirPath string
+var Debug bool
 var Verbose bool
 var Quiet bool
 var Monochrome bool
@@ -59,9 +61,11 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.main.yaml)")
 	rootCmd.PersistentFlags().StringVarP(&RepoName, "repo-name", "n", "", "repository name")
 	rootCmd.PersistentFlags().StringVarP(&RepoPath, "repo-path", "r", "", "repository path")
+	rootCmd.PersistentFlags().StringVarP(&RepoPath, "branch-name", "b", "", "branch name")
 	// rootCmd.PersistentFlags().StringVarP(&DestRepoName, "dest-repo-name", "D", "", "destination repository path")
 	// rootCmd.PersistentFlags().StringVarP(&DestRepoPath, "dest-repo-path", "d", "", "destination repository path")
 	rootCmd.PersistentFlags().StringVarP(&WorkDirPath, "workdir-path", "w", "", "project working directory path")
+	rootCmd.PersistentFlags().BoolVarP(&Verbose, "debug", "d", false, "debug output")
 	rootCmd.PersistentFlags().BoolVarP(&Verbose, "verbose", "v", false, "verbose output")
 	rootCmd.PersistentFlags().BoolVarP(&Quiet, "quiet", "q", false, "quiet output")
 	rootCmd.PersistentFlags().BoolVarP(&Monochrome, "monochrome", "M", false, "monochrome output")

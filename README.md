@@ -30,6 +30,9 @@ a few GB, but it is expected to scale up to the low 100's of GB.
 2. Add branch & head pointers
 3. Convert snapshot filenames to drop date
 
+## TODO:
+- [ ] Split ReadHead into ReadHead & ReadHeadFile, or combine ReadWorkDirConfig & ReadWorkDirConfigFile into a single function
+
 ## Usage
 
 ### Initialize repository

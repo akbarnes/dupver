@@ -23,41 +23,58 @@ chunks rather than diffs). For usage as part of a command pipeline, colors can b
 with the --monochrome flag.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg := dupver.ReadWorkDirConfig(WorkDirPath)
-		cfg = dupver.UpdateRepoPath(cfg, RepoPath)
+		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Debug, Verbose, Quiet)
 
-		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Verbose, Quiet)
-
+		if opts.Verbosity >= 2 {
+			fmt.Println("cfg:")
+			fmt.Println(cfg)
+			fmt.Printf("\nRepo name: %s\nRepo path: %s\n\n", RepoName, RepoPath)
+		}
 		if len(RepoName) == 0 {
-			if len(RepoPath) > 0 {
-				for name, path := range cfg.Repos {
-					if path == RepoPath {
-						if opts.Verbosity >= 2 {
-							fmt.Printf("Only repo path specified, assuming repo name is %s\n\n", name)
-						}
-						RepoName = name
-					}
-				}
-			} else {
-				RepoName = cfg.DefaultRepo
-			}
+			RepoName = cfg.DefaultRepo
 		}
 
 		if len(RepoPath) == 0 {
 			RepoPath = cfg.Repos[RepoName]
+			if opts.Verbosity >= 2 {
+				fmt.Printf("Updating repo path to %s\n", RepoPath)
+			}	
+		}
+		
+		if len(BranchName) == 0 {
+			BranchName = cfg.BranchName
 		}		
+
+		cfg.RepoPath = RepoPath
 
 		opts.RepoName = RepoName
 		opts.RepoPath = RepoPath
+		opts.BranchName = BranchName
 
-		headPath := filepath.Join(WorkDirPath, ".dupver", "head.toml")
+		if opts.Verbosity >= 2 {
+			fmt.Println("opts:")
+			fmt.Println(opts)
+			fmt.Println("")
+		}
+		headPath := filepath.Join(opts.RepoPath, "branches", cfg.WorkDirName, opts.BranchName + ".toml")
+		if opts.Verbosity >= 2 {
+			fmt.Println("Head path:")
+			fmt.Println(headPath)
+			fmt.Println("")
+		}
 		myHead := dupver.ReadHead(headPath)
-		snapshotId := myHead.CommitIDs[opts.RepoName]
+		snapshotId := myHead.CommitID
 
+		if opts.Verbosity >= 2 {
+			fmt.Println("Commit ID:")
+			fmt.Println(snapshotId)
+			fmt.Println("")
+		}
 		if len(args) >= 1 {
 			snapshotId = dupver.GetFullSnapshotId(args[0], cfg)
 		}
 
-		mySnapshot := dupver.ReadSnapshot(snapshotId, cfg)
+		mySnapshot := dupver.ReadSnapshot(snapshotId, cfg) 
 
 		if Monochrome || Quiet {
 			opts.Color = false

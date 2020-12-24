@@ -80,7 +80,7 @@ var commitCmd = &cobra.Command{
 	the differences. Once this is performed, the --parent
 	flag is used to keep track of this merge.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Verbose, Quiet)
+		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Debug, Verbose, Quiet)
 		
 		if Monochrome || Quiet {
 			opts.Color = false
@@ -88,6 +88,7 @@ var commitCmd = &cobra.Command{
 
 		opts.RepoName = RepoName
 		opts.RepoPath = RepoPath
+		opts.BranchName = BranchName
 		
 		parentIds := []string{}
 		unfilteredParentIds := strings.Split(ParentCommitIds, ",")

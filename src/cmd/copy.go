@@ -72,7 +72,7 @@ will limit only a single specified snapshot id to be copied.`,
 			destPath = cfg.Repos[args[0]]
 		} 		
 
-		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Verbose, Quiet)
+		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Debug, Verbose, Quiet)
 		
 		if Monochrome || Quiet {
 			opts.Color = false

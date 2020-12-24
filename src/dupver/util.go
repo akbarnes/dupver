@@ -27,6 +27,7 @@ type Options struct {
 	Color bool
 	RepoName string
 	RepoPath string
+	BranchName string
 	DestRepoName string
 	DestRepoPath string
 }
@@ -37,9 +38,13 @@ func Check(e error) {
 	}
 }
 
-func CalculateVerbosity(verbose bool, quiet bool) int {
+func CalculateVerbosity(debug bool, verbose bool, quiet bool) int {
 	if quiet {
 		return 0
+	}
+	
+	if debug {
+		return 3
 	}
 
 	if verbose {
@@ -49,8 +54,8 @@ func CalculateVerbosity(verbose bool, quiet bool) int {
 	return 1
 }
 
-func SetVerbosity(opts Options, verbose bool, quiet bool) Options {
-	opts.Verbosity = CalculateVerbosity(verbose, quiet)
+func SetVerbosity(opts Options, debug bool, verbose bool, quiet bool) Options {
+	opts.Verbosity = CalculateVerbosity(debug, verbose, quiet)
 	return opts
 }
 

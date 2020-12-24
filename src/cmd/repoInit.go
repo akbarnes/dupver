@@ -20,7 +20,7 @@ positional argument allows for the repository name to be specified.
 if no repository name is specified, the repository takes on the default
 name of "main."`,
 	Run: func(cmd *cobra.Command, args []string) {
-		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Verbose, Quiet)
+		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Debug, Verbose, Quiet)
 
 		if Monochrome || Quiet {
 			opts.Color = false

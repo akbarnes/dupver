@@ -31,6 +31,7 @@ import (
 
 type workDirConfig struct {
 	WorkDirName string
+	BranchName string
 	DefaultRepo string
 	RepoPath    string
 	Repos       map[string]string
@@ -212,7 +213,7 @@ func WorkDirStatus(workDir string, snapshot Commit, opts Options) {
 	}
 
 	if opts.Verbosity >= 2 {
-		fmt.Printf("Comparing changes for wd \"%s\" (prefix: \"%s\"\n", workDir, workDirPrefix)
+		fmt.Printf("Comparing changes for wd \"%s\" (prefix: \"%s\")\n", workDir, workDirPrefix)
 	}
 
 	myFileInfo := make(map[string]fileInfo)

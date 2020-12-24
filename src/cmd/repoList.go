@@ -19,7 +19,7 @@ be applied and each row of the output will be the repo name
 and repo path separated by a space.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// TODO: Read repoPath from environment variable if empty
-		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Verbose, Quiet)
+		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Debug, Verbose, Quiet)
 
 		if Monochrome || Quiet {
 			opts.Color = false
