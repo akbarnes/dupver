@@ -28,18 +28,7 @@ a commit ID to print in additional detail.`,
 		}
 
 		if len(RepoName) == 0 {
-			if len(RepoPath) > 0 {
-				for name, path := range cfg.Repos {
-					if path == RepoPath {
-						if opts.Verbosity >= 2 {
-							fmt.Printf("Only repo path specified, assuming repo name is %s\n\n", name)
-						}
-						RepoName = name
-					}
-				}
-			} else {
 				RepoName = cfg.DefaultRepo
-			}
 		}
 
 		if len(RepoPath) == 0 {
@@ -54,8 +43,18 @@ a commit ID to print in additional detail.`,
 			fmt.Println(opts)
 		}
 
-		headPath := filepath.Join(WorkDirPath, ".dupver", "head.toml")
+		headPath := filepath.Join(opts.RepoPath, "heads", cfg.WorkDirName + ".toml")
+
+		if opts.Verbosity >= 2 {
+			fmt.Printf("Head path = %s\n", headPath)
+		}
+	
 		myHead := dupver.ReadHead(headPath)
+
+		if opts.Verbosity >= 2 {
+			fmt.Println("Head:")
+			fmt.Println(myHead)
+		}
 
 		snapshotId := myHead.CommitIDs[opts.RepoName]
 		numSnapshots := 0

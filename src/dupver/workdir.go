@@ -339,7 +339,7 @@ func ReadHead(headPath string) Head {
 	if err != nil {
 		//panic(fmt.Sprintf("Error: Could not read head file %s", headPath))
 		fmt.Printf("No head file exists, returning default head struct\n")
-		return Head{BranchName: "main"}
+		return Head{}
 	}
 	if _, err := toml.DecodeReader(f, &myHead); err != nil {
 		panic(fmt.Sprintf("Error:could not decode head file %s", headPath))

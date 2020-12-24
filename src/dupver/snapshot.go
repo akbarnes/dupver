@@ -27,10 +27,7 @@ type Commit struct {
 }
 
 type Head struct {
-	BranchName string
-	CommitID   string // use this for detached head, but do I need this?
-	Branches map[string]string
-	CommitIDs map[string]string
+	CommitID   string 
 }
 
 type Branch struct {
@@ -233,16 +230,8 @@ func CommitFile(filePath string, parentIds []string, msg string, opts Options) H
 	if opts.Verbosity >= 1 {
 		fmt.Println("Head:")
 		fmt.Println(myHead)
-		fmt.Printf("Branch: %s\nParent commit: %s\n", myHead.BranchName, myHead.CommitID)
+		fmt.Printf("Parent commit: %s\n", myHead.CommitID)
 	}
-
-	if len(myHead.BranchName) == 0 {
-		myHead.BranchName = "main"
-	}
-
-	branchFolder := path.Join(myWorkDirConfig.RepoPath, "branches", myWorkDirConfig.WorkDirName)
-	branchPath := path.Join(branchFolder, myHead.BranchName+".toml")
-	myBranch := ReadBranch(branchPath)
 
 	mySnapshot.ParentIDs = append([]string{myHead.CommitID}, parentIds...)
 
@@ -257,9 +246,8 @@ func CommitFile(filePath string, parentIds []string, msg string, opts Options) H
 
 	// Do I really need to track commit id in head??
 	myHead.CommitID = mySnapshot.ID
-	myBranch.CommitID = mySnapshot.ID
-
-	WriteBranch(branchPath, myBranch, opts.Verbosity)
+	headPath := filepath.Join(opts.RepoPath, "heads", myWorkDirConfig.WorkDirName + ".toml")
+	WriteHead(headPath, myHead, opts)
 
 	treeFolder := path.Join(myWorkDirConfig.RepoPath, "trees")
 	treeBasename := mySnapshot.ID[0:40]
