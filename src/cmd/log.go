@@ -10,21 +10,24 @@ import (
 
 // logCmd represents the log command
 var logCmd = &cobra.Command{
-	Use:   "log",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+	Use:   "log [commit_id]",
+	Short: "List commits for the current working directory",
+	Long: `This prints a list of commits for the current working directory."
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+If an optional positional argument is provided, this will specify
+a commit ID to print in additional detail.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg := dupver.ReadWorkDirConfig(WorkDirPath)
 		cfg = dupver.UpdateRepoPath(cfg, RepoPath)
 
+		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Verbose, Quiet)
+
+		opts.RepoName = RepoName
+		opts.RepoPath = RepoPath
+
 		headPath := filepath.Join(WorkDirPath, ".dupver", "head.toml")
 		myHead := dupver.ReadHead(headPath)
-		snapshotId := myHead.CommitID
+		snapshotId := myHead.CommitIDs[opts.RepoName]
 		numSnapshots := 0
 
 		// TODO: Yeesh...move this mess into a function
@@ -33,7 +36,6 @@ to quickly create a Cobra application.`,
 			numSnapshots = 1
 		}
 
-		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Verbose, Quiet)
 		
 		if Monochrome || Quiet {
 			opts.Color = false

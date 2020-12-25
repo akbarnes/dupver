@@ -11,14 +11,16 @@ var OutFile string
 
 // checkoutCmd represents the checkout command
 var checkoutCmd = &cobra.Command{
-	Use:   "checkout",
+	Use:   "checkout [commit_id]",
 	Short: "Checkout commit to a tar file",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+	Long: `This is used to restore a commit.
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+To avoid overwriting existing files (and because
+the current architecture stores snapshots as a tar
+file), the checkout command will export a commit to 
+a tar file with the default name 
+workdir_name-YYYY-MM-DDThh-mm-ss-commit_id[0:15].tar.
+To specify a tar file name, use the --output flag.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Verbose, Quiet)
 

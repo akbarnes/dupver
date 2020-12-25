@@ -13,26 +13,31 @@ import (
 var statusCmd = &cobra.Command{
 	Use:   "status",
 	Short: "Print file modification status of the project working directory",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+	Long: `This will print the modification status of files in the current project working directory.
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+By default, new files are indicated with the prefix "+ " and are colored in green. Modified
+files are indicated with the prefix "M " and are colored in cyan. Deleted files are
+indicated with the prefix "- " and are colored in red. Dupver does not currently track file
+renames (though this does not impact disk usage on account of the files being stored as
+chunks rather than diffs). For usage as part of a command pipeline, colors can be disabled
+with the --monochrome flag.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg := dupver.ReadWorkDirConfig(WorkDirPath)
 		cfg = dupver.UpdateRepoPath(cfg, RepoPath)
 
+		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Verbose, Quiet)
+		opts.RepoName = RepoName
+		opts.RepoPath = RepoPath
+
 		headPath := filepath.Join(WorkDirPath, ".dupver", "head.toml")
 		myHead := dupver.ReadHead(headPath)
-		snapshotId := myHead.CommitID
+		snapshotId := myHead.CommitIDs[opts.RepoName]
 
 		if len(args) >= 1 {
 			snapshotId = dupver.GetFullSnapshotId(args[0], cfg)
 		}
 
 		mySnapshot := dupver.ReadSnapshot(snapshotId, cfg)
-		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Verbose, Quiet)
 
 		if Monochrome || Quiet {
 			opts.Color = false

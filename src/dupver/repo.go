@@ -25,6 +25,7 @@ func InitRepo(repoPath string, repoName string, chunkerPolynomial string, opts O
 	}
 
 	CreateFolder(repoPath, opts.Verbosity)
+	CreateSubFolder(repoPath, "heads", opts.Verbosity)
 	CreateSubFolder(repoPath, "branches", opts.Verbosity)
 	CreateSubFolder(repoPath, "snapshots", opts.Verbosity)
 	CreateSubFolder(repoPath, "trees", opts.Verbosity)

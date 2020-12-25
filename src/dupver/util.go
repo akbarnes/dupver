@@ -82,7 +82,7 @@ func GetHome() string {
 }
 
 func TimeToPath(timeStr string) string {
-	return strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(timeStr, ":", "-"), "/", "-"), " ", "-")
+	return strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(timeStr, ":", "-"), "/", "-"), " ", "T")
 }
 
 // Copy the src file to dst. Any existing file will be overwritten and will not
