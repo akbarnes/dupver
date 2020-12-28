@@ -101,7 +101,7 @@ func WritePacks(f *os.File, repoPath string, poly chunker.Pol, verbosity int) ([
 			totalChunkNum++
 
 			if _, ok := chunkPacks[chunkId]; ok {
-				if verbosity >= 2 {
+				if verbosity >= 3 {
 					fmt.Printf("Skipping Chunk ID %s already in pack %s\n", chunkId[0:16], chunkPacks[chunkId][0:16])
 				}
 

@@ -511,14 +511,4 @@ func PrintSnapshot(mySnapshot Commit, maxFiles int, opts Options) {
 	}
 
 	fmt.Printf("\n")
-
-	// fmt.Printf("Files:\n")
-	// for i, file := range mySnapshot.Files {
-	// 	fmt.Printf("  %d: %s\n", i+1, file.Path)
-
-	// 	if i > maxFiles && maxFiles > 0 {
-	// 		fmt.Printf("  ...\n  Skipping %d more files\n", len(mySnapshot.Files)-maxFiles)
-	// 		break
-	// 	}
-	// }
 }
