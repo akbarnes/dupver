@@ -201,7 +201,7 @@ func CopySnapshot(cfg workDirConfig, snapshotId string, sourceRepoPath string, d
 	}
 }
 
-func CommitFile(filePath string, parentIds []string, msg string, opts Options) Head {
+func CommitFile(filePath string, parentIds []string, msg string, opts Options) {
 	var myWorkDirConfig workDirConfig
 	t := time.Now()
 
@@ -211,8 +211,6 @@ func CommitFile(filePath string, parentIds []string, msg string, opts Options) H
 	mySnapshot.Time = t.Format("2006/01/02 15:04:05")
 	mySnapshot = UpdateMessage(mySnapshot, msg, filePath)
 	mySnapshot.Files, myWorkDirConfig, _ = ReadTarFileIndex(filePath, opts.Verbosity)
-	myHead := ReadBranch(filepath.Join(opts.RepoPath, "branches", myWorkDirConfig.WorkDirName, myWorkDirConfig.BranchName + ".toml"))
-
 
 	if len(myWorkDirConfig.RepoPath) == 0 {
 		myWorkDirConfig.RepoPath = myWorkDirConfig.Repos[myWorkDirConfig.DefaultRepo]
@@ -226,23 +224,21 @@ func CommitFile(filePath string, parentIds []string, msg string, opts Options) H
 		myWorkDirConfig.RepoPath = opts.RepoPath
 	}
 
-	if opts.Verbosity >= 2 {
-		fmt.Printf("Repo config: %s\n", myWorkDirConfig.RepoPath)
+	if opts.Verbosity >= 1 {
+		fmt.Println("Workdir config: ")
+		fmt.Println(myWorkDirConfig)
 	}
 
 	myRepoConfig := ReadRepoConfigFile(path.Join(myWorkDirConfig.RepoPath, "config.toml"))
-
-	if opts.Verbosity >= 1 {
-		fmt.Println("Head:")
-		fmt.Println(myHead)
-		fmt.Printf("Branch: %s\nParent commit: %s\n", myWorkDirConfig.BranchName, myHead.CommitID)
-	}
-
 	branchFolder := path.Join(myWorkDirConfig.RepoPath, "branches", myWorkDirConfig.WorkDirName)
 	branchPath := path.Join(branchFolder, myWorkDirConfig.BranchName + ".toml")
 	myBranch := ReadBranch(branchPath)
 
-	mySnapshot.ParentIDs = append([]string{myHead.CommitID}, parentIds...)
+	if opts.Verbosity >= 1 {
+		fmt.Printf("Branch: %s\nParent commit: %s\n", myWorkDirConfig.BranchName, myBranch.CommitID)
+	}
+
+	mySnapshot.ParentIDs = append([]string{myBranch.CommitID}, parentIds...)
 
 	chunkIDs, chunkPacks := PackFile(filePath, myWorkDirConfig.RepoPath, myRepoConfig.ChunkerPolynomial, opts.Verbosity)
 	mySnapshot.ChunkIDs = chunkIDs
@@ -254,7 +250,6 @@ func CommitFile(filePath string, parentIds []string, msg string, opts Options) H
 	WriteSnapshot(snapshotPath, mySnapshot)
 
 	// Do I really need to track commit id in head??
-	myHead.CommitID = mySnapshot.ID
 	myBranch.CommitID = mySnapshot.ID
 
 	WriteBranch(branchPath, myBranch, opts.Verbosity)
@@ -272,11 +267,6 @@ func CommitFile(filePath string, parentIds []string, msg string, opts Options) H
 	} else {
 		fmt.Println(mySnapshot.ID)
 	}
-
-	var newHead Head
-	newHead.CommitID = mySnapshot.ID
-	newHead.BranchName = myWorkDirConfig.BranchName
-	return new	Head
 }
 
 func UpdateMessage(mySnapshot Commit, msg string, filePath string) Commit {
@@ -320,7 +310,7 @@ func ReadBranch(branchPath string) Branch {
 
 	if err != nil {
 		//panic(fmt.Sprintf("Error: Could not read head file %s", headPath))
-		fmt.Printf("No branch file exists, returning default head struct\n")
+		fmt.Printf("Branch file %s does not exist, returning default head struct\n", branchPath)
 		return Branch{}
 	}
 

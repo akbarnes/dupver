@@ -30,11 +30,11 @@ func CreateTar(parentPath string, commitPath string, opts dupver.Options) string
 
 	os.Mkdir(tarFolder, 0777)	
 
-	CompressTar(parentPath, commitPath, tarPath)
+	CompressTar(parentPath, commitPath, tarPath, opts)
 	return tarPath
 }
 
-func CompressTar(parentPath string, commitPath string, tarPath string) string {
+func CompressTar(parentPath string, commitPath string, tarPath string, opts dupver.Options) string {
 	if len(tarPath) == 0 {
 		tarPath = commitPath + ".tar"
 	}
@@ -43,12 +43,16 @@ func CompressTar(parentPath string, commitPath string, tarPath string) string {
 
 	tarCmd := exec.Command("tar", "cfv", tarPath, cleanCommitPath)
 	tarCmd.Dir = parentPath
-	log.Printf("Running tar cfv %s %s", tarPath, cleanCommitPath)
+
+	if opts.Verbosity >= 1 {
+		log.Printf("Running tar cfv %s %s", tarPath, cleanCommitPath)
+	}
+
 	output, err := tarCmd.CombinedOutput()	
 
 	if err != nil {
 		log.Fatal(fmt.Sprintf("Tar command failed\nOutput:\n%s\nError:\n%s\n", output, err))	
-	} else {
+	} else if opts.Verbosity >= 3 {
 		fmt.Printf("Ran tar command with output:\n%s\n", output)
 	}
 
@@ -117,9 +121,7 @@ var commitCmd = &cobra.Command{
 				}
 			}
 
-			myHead := dupver.CommitFile(tarFile, parentIds, Message, opts)
-			headPath := filepath.Join(containingFolder, ".dupver", "head.toml")
-			dupver.WriteHead(headPath, myHead, opts)
+			dupver.CommitFile(tarFile, parentIds, Message, opts)
 		} else {
 			dir, err := os.Getwd()
 			if err != nil {
@@ -140,9 +142,7 @@ var commitCmd = &cobra.Command{
 
 
 			tarFile := CreateTar(containingFolder, workdirFolder, opts)
-			myHead := dupver.CommitFile(tarFile, parentIds, Message, opts)	
-			headPath := filepath.Join(".dupver", "head.toml")
-			dupver.WriteHead(headPath, myHead, opts)
+			dupver.CommitFile(tarFile, parentIds, Message, opts)	
 		}
 	},
 }
