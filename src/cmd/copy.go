@@ -54,13 +54,30 @@ argument as a path. A second optional positional argument
 will limit only a single specified snapshot id to be copied.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg := dupver.ReadWorkDirConfig(WorkDirPath)
-		// cfg = dupver.UpdateRepoPath(cfg, RepoPath)
+		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Debug, Verbose, Quiet)
 
-		sourcePath := cfg.RepoPath
-
-		if len(RepoName) > 0 {
-			cfg.RepoPath = cfg.Repos[RepoName]
+		if len(RepoName) == 0 {
+			RepoName = cfg.DefaultRepo
 		}
+
+		if len(RepoPath) == 0 {
+			RepoPath = cfg.Repos[RepoName]
+
+			if opts.Verbosity >= 2 {
+				fmt.Printf("Updating repo path to %s\n", RepoPath)
+			}
+		}
+
+		if len(BranchName) == 0 {
+			BranchName = cfg.BranchName
+		}
+
+		opts.WorkDirName = cfg.WorkDirName
+		opts.RepoName = RepoName
+		opts.RepoPath = RepoPath
+		opts.BranchName = BranchName		
+
+		sourcePath := opts.RepoPath
 
 		if len(RepoPath) > 0 {
 			sourcePath = RepoPath
@@ -71,8 +88,6 @@ will limit only a single specified snapshot id to be copied.`,
 		if !UseDestPath {
 			destPath = cfg.Repos[args[0]]
 		} 		
-
-		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Debug, Verbose, Quiet)
 		
 		if Monochrome || Quiet {
 			opts.Color = false
@@ -82,8 +97,8 @@ will limit only a single specified snapshot id to be copied.`,
 		// TODO: look up the snapshot id based on 1st n characters
 
 		if len(args) >= 2 {
-			snapshotId = dupver.GetFullSnapshotId(args[1], cfg)
-			dupver.CopySnapshot(cfg, snapshotId, sourcePath, destPath, opts)
+			snapshotId = dupver.GetFullSnapshotId(args[1], opts)
+			dupver.CopySnapshot(snapshotId, sourcePath, destPath, opts)
 		} else {
 			//dupver.CopyRepo(opts)
 			fmt.Println("TODO: copy whole repo")

@@ -54,10 +54,10 @@ const TREE_ID_LEN int = 40
 // CopyBranch - a bit trickier as need to rename branches to reponame.branch
 //              and repo will need to have a unique name
 //              stick with names in workdir for now
-func CopySnapshot(cfg workDirConfig, snapshotId string, sourceRepoPath string, destRepoPath string, opts Options) {
+func CopySnapshot(snapshotId string, sourceRepoPath string, destRepoPath string, opts Options) {
 	fmt.Printf("Copying snapshot %s: %s -> %s\n", snapshotId, sourceRepoPath, destRepoPath)
-	sourceSnapshotsFolder := filepath.Join(sourceRepoPath, "snapshots", cfg.WorkDirName)
-	destSnapshotsFolder := filepath.Join(destRepoPath, "snapshots", cfg.WorkDirName)
+	sourceSnapshotsFolder := filepath.Join(sourceRepoPath, "snapshots", opts.WorkDirName)
+	destSnapshotsFolder := filepath.Join(destRepoPath, "snapshots", opts.WorkDirName)
 	os.Mkdir(destSnapshotsFolder, 0777)
 
 	sourceSnapshotPath := filepath.Join(sourceSnapshotsFolder, snapshotId+".json")
@@ -322,8 +322,8 @@ func ReadBranch(branchPath string) Branch {
 	return myBranch
 }
 
-func GetFullSnapshotId(snapshotId string, cfg workDirConfig) string {
-	snapshotPaths := ListSnapshots(cfg)
+func GetFullSnapshotId(snapshotId string, opts Options) string {
+	snapshotPaths := ListSnapshots(opts)
 
 	for _, snapshotPath := range snapshotPaths {
 		n := len(snapshotId) - 1
@@ -345,10 +345,14 @@ func GetFullSnapshotId(snapshotId string, cfg workDirConfig) string {
 	return snapshotId
 }
 
-func ReadSnapshot(snapshot string, cfg workDirConfig) Commit {
-	snapshotsFolder := filepath.Join(cfg.RepoPath, "snapshots", cfg.WorkDirName)
+func ReadSnapshot(snapshot string, opts Options) Commit {
+	snapshotsFolder := filepath.Join(opts.RepoPath, "snapshots", opts.WorkDirName)
 	snapshotPath := filepath.Join(snapshotsFolder, snapshot+".json")
-	fmt.Printf("Snapshot path: %s\n", snapshotPath)
+
+	if opts.Verbosity >= 2 {
+		fmt.Printf("Snapshot path: %s\n", snapshotPath)
+	}
+
 	return ReadSnapshotFile(snapshotPath)
 }
 
@@ -371,8 +375,8 @@ func ReadSnapshotFile(snapshotPath string) Commit {
 	return mySnapshot
 }
 
-func ReadSnapshotId(snapshotId string, cfg workDirConfig) (Commit, error) {
-	snapshotPaths := ListSnapshots(cfg)
+func ReadSnapshotId(snapshotId string, opts Options) (Commit, error) {
+	snapshotPaths := ListSnapshots(opts)
 
 	for _, snapshotPath := range snapshotPaths {
 		n := len(snapshotPath)
@@ -398,8 +402,8 @@ func GetRevIndex(revision int, numCommits int) int {
 	return revIndex
 }
 
-func ListSnapshots(cfg workDirConfig) []string {
-	snapshotsFolder := path.Join(cfg.RepoPath, "snapshots", cfg.WorkDirName)
+func ListSnapshots(opts Options) []string {
+	snapshotsFolder := path.Join(opts.RepoPath, "snapshots", opts.WorkDirName)
 	snapshotGlob := path.Join(snapshotsFolder, "*.json")
 	// fmt.Println(snapshotGlob)
 	snapshotPaths, err := filepath.Glob(snapshotGlob)
@@ -410,12 +414,12 @@ func ListSnapshots(cfg workDirConfig) []string {
 	return snapshotPaths
 }
 
-func PrintSnapshots(cfg workDirConfig, snapshotId string, maxSnapshots int, opts Options) {
+func PrintSnapshots(snapshotId string, maxSnapshots int, opts Options) {
 	// fmt.Printf("Verbosity = %d\n", verbosity)
 	// print a specific revision
 	snapshotCount := 0
-	repoPath := cfg.RepoPath
-	projectName := cfg.WorkDirName
+	repoPath := opts.RepoPath
+	projectName := opts.WorkDirName
 
 	if maxSnapshots != 0 && opts.Verbosity >= 1 {
 		fmt.Println("Snapshot History")
@@ -454,9 +458,9 @@ func PrintSnapshots(cfg workDirConfig, snapshotId string, maxSnapshots int, opts
 	}
 }
 
-func PrintAllSnapshots(cfg workDirConfig, snapshot string, opts Options) {
+func PrintAllSnapshots(snapshot string, opts Options) {
 	// fmt.Printf("Verbosity = %d\n", opts.Verbosity)
-	snapshotPaths := ListSnapshots(cfg)
+	snapshotPaths := ListSnapshots(opts)
 	// print a specific revision
 	if len(snapshot) == 0 {
 		if opts.Verbosity >= 1 {

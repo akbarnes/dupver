@@ -263,7 +263,7 @@ func WorkDirStatus(workDir string, snapshot Commit, opts Options) {
 					fmt.Printf("%s", colorWhite)
 				}
 
-				fmt.Printf("M %s\n", curPath)
+				fmt.Printf("U %s\n", curPath)
 
 				if opts.Color {
 					fmt.Printf("%s", colorReset)

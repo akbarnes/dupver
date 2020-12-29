@@ -45,8 +45,7 @@ a commit ID to print in additional detail.`,
 			BranchName = cfg.BranchName
 		}
 
-		cfg.RepoPath = RepoPath
-
+		opts.WorkDirName = cfg.WorkDirName
 		opts.RepoName = RepoName
 		opts.RepoPath = RepoPath
 		opts.BranchName = BranchName
@@ -78,7 +77,7 @@ a commit ID to print in additional detail.`,
 
 		// TODO: Yeesh...move this mess into a function
 		if len(args) >= 1 {
-			snapshotId = dupver.GetFullSnapshotId(args[0], cfg)
+			snapshotId = dupver.GetFullSnapshotId(args[0], opts)
 			numSnapshots = 1
 		}
 
@@ -87,7 +86,7 @@ a commit ID to print in additional detail.`,
 			opts.Color = false
 		}
 		
-		dupver.PrintSnapshots(cfg, snapshotId, numSnapshots, opts)
+		dupver.PrintSnapshots(snapshotId, numSnapshots, opts)
 	},
 }
 

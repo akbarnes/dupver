@@ -25,6 +25,7 @@ const colorWhite string = "\033[37m"
 type Options struct {
 	Verbosity int
 	Color bool
+	WorkDirName string
 	RepoName string
 	RepoPath string
 	BranchName string

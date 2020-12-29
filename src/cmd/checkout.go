@@ -22,23 +22,43 @@ a tar file with the default name
 workdir_name-YYYY-MM-DDThh-mm-ss-commit_id[0:15].tar.
 To specify a tar file name, use the --output flag.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		cfg := dupver.ReadWorkDirConfig(WorkDirPath)
 		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Debug, Verbose, Quiet)
 
 		if Monochrome || Quiet {
 			opts.Color = false
 		}
 
-		cfg := dupver.ReadWorkDirConfig(WorkDirPath)
-		cfg = dupver.UpdateRepoPath(cfg, RepoPath)
-		snapshotId := dupver.GetFullSnapshotId(args[0], cfg)
-		snap := dupver.ReadSnapshot(snapshotId, cfg)
+		if len(RepoName) == 0 {
+			RepoName = cfg.DefaultRepo
+		}
+
+		if len(RepoPath) == 0 {
+			RepoPath = cfg.Repos[RepoName]
+			if opts.Verbosity >= 2 {
+				fmt.Printf("Updating repo path to %s\n", RepoPath)
+			}	
+		}
+		
+		if len(BranchName) == 0 {
+			BranchName = cfg.BranchName
+		}		
+
+		cfg.RepoPath = RepoPath
+
+		opts.RepoName = RepoName
+		opts.RepoPath = RepoPath
+		opts.BranchName = BranchName		
+
+		snapshotId := dupver.GetFullSnapshotId(args[0], opts)
+		snap := dupver.ReadSnapshot(snapshotId, opts)
 
 		if len(OutFile) == 0 {
 			timeStr := dupver.TimeToPath(snap.Time)
-			OutFile = fmt.Sprintf("%s-%s-%s.tar", cfg.WorkDirName, timeStr, snap.ID[0:16])
+			OutFile = fmt.Sprintf("%s-%s-%s.tar", opts.WorkDirName, timeStr, snap.ID[0:16])
 		}
 
-		dupver.UnpackFile(OutFile, cfg.RepoPath, snap.ChunkIDs, opts)
+		dupver.UnpackFile(OutFile, opts.RepoPath, snap.ChunkIDs, opts)
 
 		if opts.Verbosity >= 1 {
 			fmt.Printf("Wrote to %s\n", OutFile)

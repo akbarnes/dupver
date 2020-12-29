@@ -19,7 +19,8 @@ By default, new files are indicated with the prefix "+ " and are colored in gree
 files are indicated with the prefix "M " and are colored in cyan. Deleted files are
 indicated with the prefix "- " and are colored in red. Dupver does not currently track file
 renames (though this does not impact disk usage on account of the files being stored as
-chunks rather than diffs). For usage as part of a command pipeline, colors can be disabled
+chunks rather than diffs). For usage as part of a comm
+	and pipeline, colors can be disabled
 with the --monochrome flag.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg := dupver.ReadWorkDirConfig(WorkDirPath)
@@ -45,8 +46,7 @@ with the --monochrome flag.`,
 			BranchName = cfg.BranchName
 		}		
 
-		cfg.RepoPath = RepoPath
-
+		opts.WorkDirName = cfg.WorkDirName
 		opts.RepoName = RepoName
 		opts.RepoPath = RepoPath
 		opts.BranchName = BranchName
@@ -56,7 +56,7 @@ with the --monochrome flag.`,
 			fmt.Println(opts)
 			fmt.Println("")
 		}
-		headPath := filepath.Join(opts.RepoPath, "branches", cfg.WorkDirName, opts.BranchName + ".toml")
+		headPath := filepath.Join(opts.RepoPath, "branches", opts.WorkDirName, opts.BranchName + ".toml")
 		if opts.Verbosity >= 2 {
 			fmt.Println("Head path:")
 			fmt.Println(headPath)
@@ -71,10 +71,15 @@ with the --monochrome flag.`,
 			fmt.Println("")
 		}
 		if len(args) >= 1 {
-			snapshotId = dupver.GetFullSnapshotId(args[0], cfg)
+			snapshotId = dupver.GetFullSnapshotId(args[0], opts)
 		}
 
-		mySnapshot := dupver.ReadSnapshot(snapshotId, cfg) 
+		mySnapshot := dupver.ReadSnapshot(snapshotId, opts) 
+
+		if opts.Verbosity >= 2 {
+			fmt.Println("Snapshot commit ID:")
+			fmt.Println(mySnapshot.ID)
+		}
 
 		if Monochrome || Quiet {
 			opts.Color = false
