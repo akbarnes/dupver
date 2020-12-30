@@ -46,7 +46,7 @@ func InitWorkDir(workDirFolder string, workDirName string, opts Options) {
 	repoName := opts.RepoName
 	repoPath := opts.RepoPath
 
-	if opts.Verbosity >= 3 {
+	if opts.Verbosity >= 2 {
 		fmt.Printf("Workdir %s, name %s, repo %s\n", workDirFolder, workDirName, opts.RepoPath)
 	}
 
@@ -56,6 +56,10 @@ func InitWorkDir(workDirFolder string, workDirName string, opts Options) {
 	} else {
 		CreateSubFolder(workDirFolder, ".dupver", opts.Verbosity)
 		configPath = filepath.Join(workDirFolder, ".dupver", "config.toml")
+	}
+
+	if opts.Verbosity >= 2 {
+		fmt.Println("Writing workdir config file to: " + configPath)
 	}
 
 	if len(workDirName) == 0 || workDirName == "." {
@@ -102,17 +106,14 @@ func InitWorkDir(workDirFolder string, workDirName string, opts Options) {
 	// need to pass this as a parameter
 	myConfig.DefaultRepo = repoName
 	myConfig.RepoPath = repoPath
+
+	// TODO: specify an arbitrary branch
+	myConfig.BranchName = "main"
 	myRepos := make(map[string]string)
 	myRepos[repoName] = repoPath
 	myConfig.Repos = myRepos
 	myConfig.WorkDirName = workDirName
-	
-	if opts.Verbosity >= 2 {
-		fmt.Printf("Writing config:\n%+v\n", myConfig)
-		fmt.Printf("to: %+v\n", configPath)
-	}
-
-	SaveWorkDirConfig(configPath, myConfig, false, opts)
+	SaveWorkDirConfigFile(configPath, myConfig, false, opts)
 }
 
 var configPath string
@@ -199,8 +200,13 @@ func SaveWorkDirConfig(workDir string, myConfig workDirConfig, forceWrite bool, 
 
 func SaveWorkDirConfigFile(configPath string, myConfig workDirConfig, forceWrite bool, opts Options) {
 	if _, err := os.Stat(configPath); err == nil && !forceWrite {
+		// panic("Refusing to write existing project workdir config " + configPath)
 		log.Fatal("Refusing to write existing project workdir config " + configPath)
-		panic("Refusing to write existing project workdir config " + configPath)
+	}
+
+	if opts.Verbosity >= 2 {
+		fmt.Printf("Writing config:\n%+v\n", myConfig)
+		fmt.Printf("to: %s\n", configPath)
 	}
 
 	f, _ := os.Create(configPath)

@@ -22,6 +22,10 @@ Otherwise, the current working directory is used.`,
 		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Debug, Verbose, Quiet)
 		workDirPath := WorkDirPath
 
+		if len(RepoName) == 0 {
+			RepoName = "main"
+		}
+
 		opts.RepoName = RepoName
 		opts.RepoPath = RepoPath
 		opts.BranchName = BranchName		
