@@ -19,20 +19,24 @@ If an optional positional argument is provided, this will
 specify the location of the project working directory. 
 Otherwise, the current working directory is used.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Debug, Verbose, Quiet)
 		workDirPath := WorkDirPath
+
+		opts.RepoName = RepoName
+		opts.RepoPath = RepoPath
+		opts.BranchName = BranchName		
 
 		if len(args) >= 1 {
 			workDirPath = args[0]
 		}
 
 		// TODO: Read repoPath from environment variable if empty
-		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Debug, Verbose, Quiet)
 		
 		if Monochrome || Quiet {
 			opts.Color = false
 		}
 
-		dupver.InitWorkDir(workDirPath, ProjectName, RepoName, RepoPath, opts)
+		dupver.InitWorkDir(workDirPath, ProjectName, opts)
 	},
 }
 

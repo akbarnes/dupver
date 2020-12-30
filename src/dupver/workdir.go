@@ -41,11 +41,13 @@ func FolderToWorkDirName(folder string) string {
 	return strings.ReplaceAll(strings.ToLower(folder), " ", "-")
 }
 
-func InitWorkDir(workDirFolder string, workDirName string, repoName string, repoPath string, opts Options) {
+func InitWorkDir(workDirFolder string, workDirName string, opts Options) {
 	var configPath string
+	repoName := opts.RepoName
+	repoPath := opts.RepoPath
 
-	if opts.Verbosity >= 2 {
-		fmt.Printf("Workdir %s, name %s, repo %s\n", workDirFolder, workDirName, repoPath)
+	if opts.Verbosity >= 3 {
+		fmt.Printf("Workdir %s, name %s, repo %s\n", workDirFolder, workDirName, opts.RepoPath)
 	}
 
 	if len(workDirFolder) == 0 {
@@ -64,7 +66,10 @@ func InitWorkDir(workDirFolder string, workDirName string, repoName string, repo
 			}
 			// _, folder := path.Split(dir)
 			folder := filepath.Base(dir)
-			fmt.Printf("%s -> %s\n", dir, folder)
+
+			if opts.Verbosity >= 3 {
+				fmt.Printf("Resolving folder %s to %s\n", dir, folder)
+			}
 			workDirName = FolderToWorkDirName(folder)
 		} else {
 			workDirName = FolderToWorkDirName(workDirFolder)
@@ -101,8 +106,13 @@ func InitWorkDir(workDirFolder string, workDirName string, repoName string, repo
 	myRepos[repoName] = repoPath
 	myConfig.Repos = myRepos
 	myConfig.WorkDirName = workDirName
-	fmt.Println(myConfig)
-	SaveWorkDirConfig(configPath, myConfig, false)
+	
+	if opts.Verbosity >= 2 {
+		fmt.Printf("Writing config:\n%+v\n", myConfig)
+		fmt.Printf("to: %+v\n", configPath)
+	}
+
+	SaveWorkDirConfig(configPath, myConfig, false, opts)
 }
 
 var configPath string
@@ -110,7 +120,7 @@ var configPath string
 func AddRepoToWorkDir(workDirPath string, repoName string, repoPath string, opts Options) {
 	cfg := ReadWorkDirConfig(workDirPath)
 	cfg.Repos[repoName] = repoPath
-	SaveWorkDirConfig(workDirPath, cfg, true)
+	SaveWorkDirConfig(workDirPath, cfg, true, opts)
 }
 
 func ListWorkDirRepos(workDirPath string, opts Options) {
@@ -175,7 +185,7 @@ func ReadWorkDirConfigFile(filePath string) workDirConfig {
 	return myConfig
 }
 
-func SaveWorkDirConfig(workDir string, myConfig workDirConfig, forceWrite bool) {
+func SaveWorkDirConfig(workDir string, myConfig workDirConfig, forceWrite bool, opts Options) {
 	var configPath string
 
 	if len(workDir) == 0 {
@@ -184,12 +194,13 @@ func SaveWorkDirConfig(workDir string, myConfig workDirConfig, forceWrite bool) 
 		configPath = filepath.Join(workDir, ".dupver", "config.toml")
 	}
 
-	SaveWorkDirConfigFile(configPath, myConfig, forceWrite)
+	SaveWorkDirConfigFile(configPath, myConfig, forceWrite, opts)
 }
 
-func SaveWorkDirConfigFile(configPath string, myConfig workDirConfig, forceWrite bool) {
+func SaveWorkDirConfigFile(configPath string, myConfig workDirConfig, forceWrite bool, opts Options) {
 	if _, err := os.Stat(configPath); err == nil && !forceWrite {
 		log.Fatal("Refusing to write existing project workdir config " + configPath)
+		panic("Refusing to write existing project workdir config " + configPath)
 	}
 
 	f, _ := os.Create(configPath)
