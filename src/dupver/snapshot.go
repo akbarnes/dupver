@@ -29,8 +29,8 @@ type Commit struct {
 type Head struct {
 	BranchName string
 	CommitID   string // use this for detached head, but do I need this?
-	Branches map[string]string
-	CommitIDs map[string]string
+	Branches   map[string]string
+	CommitIDs  map[string]string
 }
 
 type Branch struct {
@@ -231,7 +231,7 @@ func CommitFile(filePath string, parentIds []string, msg string, opts Options) {
 
 	myRepoConfig := ReadRepoConfigFile(path.Join(myWorkDirConfig.RepoPath, "config.toml"))
 	branchFolder := path.Join(myWorkDirConfig.RepoPath, "branches", myWorkDirConfig.WorkDirName)
-	branchPath := path.Join(branchFolder, myWorkDirConfig.BranchName + ".toml")
+	branchPath := path.Join(branchFolder, myWorkDirConfig.BranchName+".toml")
 	myBranch := ReadBranch(branchPath)
 
 	if opts.Verbosity >= 1 {
@@ -261,9 +261,15 @@ func CommitFile(filePath string, parentIds []string, msg string, opts Options) {
 	WriteTree(treePath, chunkPacks)
 
 	if opts.Verbosity >= 1 {
-		fmt.Printf("%s", colorGreen)
+		if opts.Color {
+			fmt.Printf("%s", colorGreen)
+		}
+
 		fmt.Printf("Created snapshot %s (%s)\n", mySnapshot.ID[0:16], mySnapshot.ID)
-		fmt.Printf("%s", colorReset)
+
+		if opts.Color {
+			fmt.Printf("%s", colorReset)
+		}
 	} else {
 		fmt.Println(mySnapshot.ID)
 	}
