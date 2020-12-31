@@ -9,8 +9,8 @@ import (
 	// "io"
 	// "bufio"
 	"os"
-	"strings"
 	"strconv"
+	"strings"
 
 	// "crypto/sha256"
 	// "encoding/json"
@@ -31,7 +31,7 @@ import (
 
 type workDirConfig struct {
 	WorkDirName string
-	BranchName string
+	BranchName  string
 	DefaultRepo string
 	RepoPath    string
 	Repos       map[string]string
@@ -132,7 +132,7 @@ func ListWorkDirRepos(workDirPath string, opts Options) {
 		if len(name) > maxLen {
 			maxLen = len(name)
 		}
-	}	
+	}
 
 	fmtStr := "%" + strconv.Itoa(maxLen) + "s: %s\n"
 
@@ -145,7 +145,6 @@ func ListWorkDirRepos(workDirPath string, opts Options) {
 	}
 }
 
-
 func UpdateWorkDirName(myWorkDirConfig workDirConfig, workDirName string) workDirConfig {
 	if len(workDirName) > 0 {
 		myWorkDirConfig.WorkDirName = workDirName
@@ -153,8 +152,6 @@ func UpdateWorkDirName(myWorkDirConfig workDirConfig, workDirName string) workDi
 
 	return myWorkDirConfig
 }
-
-
 
 func ReadWorkDirConfig(workDir string) workDirConfig {
 	var configPath string
@@ -350,13 +347,15 @@ func WriteHead(headPath string, myHead Head, opts Options) {
 	f.Close()
 }
 
-func ReadHead(headPath string) Head {
+func ReadHead(headPath string, opts Options) Head {
 	var myHead Head
 	f, err := os.Open(headPath)
 
 	if err != nil {
 		//panic(fmt.Sprintf("Error: Could not read head file %s", headPath))
-		fmt.Printf("No head file exists, returning default head struct\n")
+		if opts.Verbosity >= 2 {
+			fmt.Printf("No head file exists, returning default head struct\n")
+		}
 		return Head{BranchName: "main"}
 	}
 	if _, err := toml.DecodeReader(f, &myHead); err != nil {

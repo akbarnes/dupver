@@ -56,7 +56,7 @@ a commit ID to print in additional detail.`,
 			fmt.Println("")
 		}
 
-		headPath := filepath.Join(opts.RepoPath, "branches", cfg.WorkDirName, opts.BranchName + ".toml")
+		headPath := filepath.Join(opts.RepoPath, "branches", cfg.WorkDirName, opts.BranchName+".toml")
 
 		if opts.Verbosity >= 2 {
 			fmt.Println("Head path:")
@@ -64,7 +64,7 @@ a commit ID to print in additional detail.`,
 			fmt.Println("")
 		}
 
-		myHead := dupver.ReadHead(headPath)
+		myHead := dupver.ReadHead(headPath, opts)
 
 		snapshotId := myHead.CommitID
 		numSnapshots := 0
@@ -81,11 +81,10 @@ a commit ID to print in additional detail.`,
 			numSnapshots = 1
 		}
 
-		
 		if Monochrome || Quiet {
 			opts.Color = false
 		}
-		
+
 		dupver.PrintSnapshots(snapshotId, numSnapshots, opts)
 	},
 }

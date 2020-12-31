@@ -39,12 +39,12 @@ with the --monochrome flag.`,
 			RepoPath = cfg.Repos[RepoName]
 			if opts.Verbosity >= 2 {
 				fmt.Printf("Updating repo path to %s\n", RepoPath)
-			}	
+			}
 		}
-		
+
 		if len(BranchName) == 0 {
 			BranchName = cfg.BranchName
-		}		
+		}
 
 		opts.WorkDirName = cfg.WorkDirName
 		opts.RepoName = RepoName
@@ -56,13 +56,13 @@ with the --monochrome flag.`,
 			fmt.Println(opts)
 			fmt.Println("")
 		}
-		headPath := filepath.Join(opts.RepoPath, "branches", opts.WorkDirName, opts.BranchName + ".toml")
+		headPath := filepath.Join(opts.RepoPath, "branches", opts.WorkDirName, opts.BranchName+".toml")
 		if opts.Verbosity >= 2 {
 			fmt.Println("Head path:")
 			fmt.Println(headPath)
 			fmt.Println("")
 		}
-		myHead := dupver.ReadHead(headPath)
+		myHead := dupver.ReadHead(headPath, opts)
 		snapshotId := myHead.CommitID
 
 		if opts.Verbosity >= 2 {
@@ -74,7 +74,7 @@ with the --monochrome flag.`,
 			snapshotId = dupver.GetFullSnapshotId(args[0], opts)
 		}
 
-		mySnapshot := dupver.ReadSnapshot(snapshotId, opts) 
+		mySnapshot := dupver.ReadSnapshot(snapshotId, opts)
 
 		if opts.Verbosity >= 2 {
 			fmt.Println("Snapshot commit ID:")
