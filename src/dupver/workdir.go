@@ -18,17 +18,6 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
-// "name": "default",
-// "id": "macbook-air-home",
-// "repository": "",
-// "storage": "/Volumes/Shared/Backups/Duplicacy/MBAir",
-// "encrypted": true,
-// "no_backup": false,
-// "no_restore": false,
-// "no_save_password": false,
-// "nobackup_file": "",
-// "keys": null
-
 type workDirConfig struct {
 	WorkDirName string
 	BranchName  string
