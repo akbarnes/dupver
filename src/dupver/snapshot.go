@@ -203,6 +203,7 @@ func CopySnapshot(snapshotId string, sourceRepoPath string, destRepoPath string,
 
 func CommitFile(filePath string, parentIds []string, msg string, opts Options) {
 	var myWorkDirConfig workDirConfig
+
 	t := time.Now()
 
 	var mySnapshot Commit
@@ -212,38 +213,37 @@ func CommitFile(filePath string, parentIds []string, msg string, opts Options) {
 	mySnapshot = UpdateMessage(mySnapshot, msg, filePath)
 	mySnapshot.Files, myWorkDirConfig, _ = ReadTarFileIndex(filePath, opts.Verbosity)
 
-	if len(myWorkDirConfig.RepoPath) == 0 {
-		myWorkDirConfig.RepoPath = myWorkDirConfig.Repos[myWorkDirConfig.DefaultRepo]
+	if len(opts.RepoName) == 0 {
+		opts.RepoName = myWorkDirConfig.DefaultRepo
 	}
 
-	if len(opts.RepoName) > 0 {
-		myWorkDirConfig.RepoPath = myWorkDirConfig.Repos[opts.RepoName]
+	if len(opts.RepoPath) == 0 {
+		opts.RepoPath = myWorkDirConfig.Repos[opts.RepoName]
 	}
 
-	if len(opts.RepoPath) > 0 {
-		myWorkDirConfig.RepoPath = opts.RepoPath
+	if len(opts.WorkDirName) == 0 {
+		opts.WorkDirName = myWorkDirConfig.WorkDirName
 	}
 
-	if opts.Verbosity >= 1 {
-		fmt.Println("Workdir config: ")
-		fmt.Println(myWorkDirConfig)
+	if len(opts.BranchName) == 0 {
+		opts.BranchName = myWorkDirConfig.BranchName
 	}
 
-	myRepoConfig := ReadRepoConfigFile(path.Join(myWorkDirConfig.RepoPath, "config.toml"))
-	branchFolder := path.Join(myWorkDirConfig.RepoPath, "branches", myWorkDirConfig.WorkDirName)
+	myRepoConfig := ReadRepoConfigFile(path.Join(opts.RepoPath, "config.toml"))
+	branchFolder := path.Join(opts.RepoPath, "branches", opts.WorkDirName)
 	branchPath := path.Join(branchFolder, myWorkDirConfig.BranchName+".toml")
 	myBranch := ReadBranch(branchPath)
 
 	if opts.Verbosity >= 1 {
-		fmt.Printf("Branch: %s\nParent commit: %s\n", myWorkDirConfig.BranchName, myBranch.CommitID)
+		fmt.Printf("Branch: %s\nParent commit: %s\n", opts.BranchName, myBranch.CommitID)
 	}
 
 	mySnapshot.ParentIDs = append([]string{myBranch.CommitID}, parentIds...)
 
-	chunkIDs, chunkPacks := PackFile(filePath, myWorkDirConfig.RepoPath, myRepoConfig.ChunkerPolynomial, opts.Verbosity)
+	chunkIDs, chunkPacks := PackFile(filePath, opts.RepoPath, myRepoConfig.ChunkerPolynomial, opts.Verbosity)
 	mySnapshot.ChunkIDs = chunkIDs
 
-	snapshotFolder := path.Join(myWorkDirConfig.RepoPath, "snapshots", myWorkDirConfig.WorkDirName)
+	snapshotFolder := path.Join(opts.RepoPath, "snapshots", opts.WorkDirName)
 	snapshotBasename := fmt.Sprintf("%s", mySnapshot.ID[0:40])
 	os.Mkdir(snapshotFolder, 0777)
 	snapshotPath := path.Join(snapshotFolder, snapshotBasename+".json")
@@ -254,7 +254,7 @@ func CommitFile(filePath string, parentIds []string, msg string, opts Options) {
 
 	WriteBranch(branchPath, myBranch, opts.Verbosity)
 
-	treeFolder := path.Join(myWorkDirConfig.RepoPath, "trees")
+	treeFolder := path.Join(opts.RepoPath, "trees")
 	treeBasename := mySnapshot.ID[0:40]
 	os.Mkdir(treeFolder, 0777)
 	treePath := path.Join(treeFolder, treeBasename+".json")

@@ -37,18 +37,16 @@ To specify a tar file name, use the --output flag.`,
 			RepoPath = cfg.Repos[RepoName]
 			if opts.Verbosity >= 2 {
 				fmt.Printf("Updating repo path to %s\n", RepoPath)
-			}	
+			}
 		}
-		
+
 		if len(BranchName) == 0 {
 			BranchName = cfg.BranchName
-		}		
-
-		cfg.RepoPath = RepoPath
+		}
 
 		opts.RepoName = RepoName
 		opts.RepoPath = RepoPath
-		opts.BranchName = BranchName		
+		opts.BranchName = BranchName
 
 		snapshotId := dupver.GetFullSnapshotId(args[0], opts)
 		snap := dupver.ReadSnapshot(snapshotId, opts)

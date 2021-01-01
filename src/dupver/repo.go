@@ -13,7 +13,6 @@ import (
 )
 
 type repoConfig struct {
-	RepoName          string
 	Version           int
 	ChunkerPolynomial chunker.Pol
 }
@@ -72,18 +71,9 @@ func InitRepo(repoPath string, repoName string, chunkerPolynomial string, opts O
 	}
 
 	var myConfig repoConfig
-	myConfig.RepoName = repoName
 	myConfig.Version = 2
 	myConfig.ChunkerPolynomial = poly
 	SaveRepoConfig(repoPath, myConfig, opts.Verbosity)
-}
-
-func UpdateRepoPath(myWorkDirConfig workDirConfig, repoPath string) workDirConfig {
-	if len(repoPath) > 0 {
-		myWorkDirConfig.RepoPath = repoPath
-	}
-
-	return myWorkDirConfig
 }
 
 func SaveRepoConfig(repoPath string, myConfig repoConfig, verbosity int) {

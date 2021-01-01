@@ -33,8 +33,8 @@ type workDirConfig struct {
 	WorkDirName string
 	BranchName  string
 	DefaultRepo string
-	RepoPath    string
-	Repos       map[string]string
+	// RepoPath    string
+	Repos map[string]string
 }
 
 func FolderToWorkDirName(folder string) string {
@@ -105,7 +105,6 @@ func InitWorkDir(workDirFolder string, workDirName string, opts Options) {
 	var myConfig workDirConfig
 	// need to pass this as a parameter
 	myConfig.DefaultRepo = repoName
-	myConfig.RepoPath = repoPath
 
 	// TODO: specify an arbitrary branch
 	myConfig.BranchName = "main"
