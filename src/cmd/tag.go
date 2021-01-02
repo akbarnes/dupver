@@ -10,17 +10,18 @@ import (
 )
 
 // statusCmd represents the status command
-var statusCmd = &cobra.Command{
+var tagCmd = &cobra.Command{
 	Use:   "tag [tag_name] [commit_id]",
 	Short: "Manage tags for commits",
 	Long: `This will print tags, tag a commit, or delete tags.
 
 Without any arguments this will list tags for the repository. If a
 tag name and commit id are provided, this will add a tag for the 
-specifed commit id.`,
+specifed commit id. If only a tag is specified `,
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg := dupver.ReadWorkDirConfig(WorkDirPath)
 		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Debug, Verbose, Quiet)
+		tagName := ""
 
 		if opts.Verbosity >= 2 {
 			fmt.Println("cfg:")
@@ -63,22 +64,20 @@ specifed commit id.`,
 			fmt.Println(snapshotId)
 			fmt.Println("")
 		}
+
 		if len(args) >= 1 {
-			snapshotId = dupver.GetFullSnapshotId(args[0], opts)
+			tagName = args[1]
 		}
 
-		mySnapshot := dupver.ReadSnapshot(snapshotId, opts)
-
-		if opts.Verbosity >= 2 {
-			fmt.Println("Snapshot commit ID:")
-			fmt.Println(mySnapshot.ID)
+		if len(args) >= 2 {
+			snapshotId = dupver.GetFullSnapshotId(args[2], opts)
 		}
 
 		if Monochrome || Quiet {
 			opts.Color = false
 		}
 
-		dupver.WorkDirStatus(WorkDirPath, mySnapshot, opts)
+		dupver.CreateTag(tagName, snapshotId, opts)
 	},
 }
 

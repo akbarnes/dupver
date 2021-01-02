@@ -47,23 +47,17 @@ with the --monochrome flag.`,
 		opts.RepoPath = RepoPath
 
 		if opts.Verbosity >= 2 {
-			fmt.Println("opts:")
-			fmt.Println(opts)
-			fmt.Println("")
+			fmt.Printf("opts:\n%+v\n\n", opts)
 		}
-		headPath := filepath.Join(opts.RepoPath, "branches", opts.WorkDirName, opts.BranchName+".toml")
+		headPath := filepath.Join(opts.RepoPath, "branches", opts.WorkDirName, "main.toml")
 		if opts.Verbosity >= 2 {
-			fmt.Println("Head path:")
-			fmt.Println(headPath)
-			fmt.Println("")
+			fmt.Printf("Head path: %s\n\n", headPath)
 		}
 		myHead := dupver.ReadHead(headPath, opts)
 		snapshotId := myHead.CommitID
 
 		if opts.Verbosity >= 2 {
-			fmt.Println("Commit ID:")
-			fmt.Println(snapshotId)
-			fmt.Println("")
+			fmt.Println("Commit ID: %s\n\n", snapshotId)
 		}
 		if len(args) >= 1 {
 			snapshotId = dupver.GetFullSnapshotId(args[0], opts)
@@ -72,8 +66,7 @@ with the --monochrome flag.`,
 		mySnapshot := dupver.ReadSnapshot(snapshotId, opts)
 
 		if opts.Verbosity >= 2 {
-			fmt.Println("Snapshot commit ID:")
-			fmt.Println(mySnapshot.ID)
+			fmt.Printf("Snapshot commit ID: %s\n", mySnapshot.ID)
 		}
 
 		if Monochrome || Quiet {

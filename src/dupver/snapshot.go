@@ -296,6 +296,18 @@ func WriteSnapshot(snapshotPath string, mySnapshot Commit) {
 	f.Close()
 }
 
+func CreateTag(tagName string, snapshotId string, opts Options) {
+	tagFolder := path.Join(opts.RepoPath, "tags", opts.WorkDirName)
+	tagPath := path.Join(tagFolder, tagName+".toml")
+	myTag := Branch{CommitID: snapshotId}
+
+	if opts.Verbosity >= 1 {
+		fmt.Printf("Tag commit: %s\n", snapshotId)
+	}
+
+	WriteBranch(tagPath, myTag, opts.Verbosity)
+}
+
 func WriteBranch(branchPath string, myBranch Branch, verbosity int) {
 	dir := filepath.Dir(branchPath)
 	CreateFolder(dir, verbosity)

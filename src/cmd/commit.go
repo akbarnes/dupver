@@ -101,7 +101,7 @@ var commitCmd = &cobra.Command{
 				}
 			}
 
-			dupver.CommitFile(tarFile, [], Message, opts)
+			dupver.CommitFile(tarFile, []string{}, Message, opts)
 		} else {
 			dir, err := os.Getwd()
 			if err != nil {
@@ -121,7 +121,7 @@ var commitCmd = &cobra.Command{
 			}
 
 			tarFile := CreateTar(containingFolder, workdirFolder, opts)
-			dupver.CommitFile(tarFile, [], Message, opts)
+			dupver.CommitFile(tarFile, []string{}, Message, opts)
 		}
 	},
 }
