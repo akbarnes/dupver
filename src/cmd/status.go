@@ -42,14 +42,9 @@ with the --monochrome flag.`,
 			}
 		}
 
-		if len(BranchName) == 0 {
-			BranchName = cfg.BranchName
-		}
-
 		opts.WorkDirName = cfg.WorkDirName
 		opts.RepoName = RepoName
 		opts.RepoPath = RepoPath
-		opts.BranchName = BranchName
 
 		if opts.Verbosity >= 2 {
 			fmt.Println("opts:")

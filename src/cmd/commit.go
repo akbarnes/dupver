@@ -3,11 +3,12 @@ package cmd
 import (
 	"fmt"
 	"log"
+
 	// "path"
-	"path/filepath"
-	"strings"
 	"os"
 	"os/exec"
+	"path/filepath"
+	"strings"
 
 	"github.com/akbarnes/dupver/src/dupver"
 	"github.com/spf13/cobra"
@@ -15,7 +16,6 @@ import (
 
 var Add bool
 var Message string
-var ParentCommitIds string
 
 func CreateTar(parentPath string, commitPath string, opts dupver.Options) string {
 	tarFile := dupver.RandHexString(40) + ".tar"
@@ -28,7 +28,7 @@ func CreateTar(parentPath string, commitPath string, opts dupver.Options) string
 		fmt.Printf("Creating folder %s\n", tarFolder)
 	}
 
-	os.Mkdir(tarFolder, 0777)	
+	os.Mkdir(tarFolder, 0777)
 
 	CompressTar(parentPath, commitPath, tarPath, opts)
 	return tarPath
@@ -48,10 +48,10 @@ func CompressTar(parentPath string, commitPath string, tarPath string, opts dupv
 		log.Printf("Running tar cfv %s %s", tarPath, cleanCommitPath)
 	}
 
-	output, err := tarCmd.CombinedOutput()	
+	output, err := tarCmd.CombinedOutput()
 
 	if err != nil {
-		log.Fatal(fmt.Sprintf("Tar command failed\nOutput:\n%s\nError:\n%s\n", output, err))	
+		log.Fatal(fmt.Sprintf("Tar command failed\nOutput:\n%s\nError:\n%s\n", output, err))
 	} else if opts.Verbosity >= 3 {
 		fmt.Printf("Ran tar command with output:\n%s\n", output)
 	}
@@ -72,36 +72,16 @@ var commitCmd = &cobra.Command{
 	is committed. This is intended to allow for git-style
 	incremental commits using the -r option of tar. The 
 	commit command does not require a commit message, though
-	this can be specified with the --message flag. The
-	--parent flag bears mentioning. Dupver does not currently
-	support merge functionality, though it tracks branches.
-	By default a commit's parent will be the commit id
-	of the current branch head. The --parent flag allows for
-	a list of commits to be specified instead which is used
-	after performing a merge. Merges must be performed manually 
-	by checking out the branches into separate project working
-	directories and using an external diff/merge tool to resolve 
-	the differences. Once this is performed, the --parent
-	flag is used to keep track of this merge.`,
+	this can be specified with the --message flag.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Debug, Verbose, Quiet)
-		
+
 		if Monochrome || Quiet {
 			opts.Color = false
 		}
 
 		opts.RepoName = RepoName
 		opts.RepoPath = RepoPath
-		opts.BranchName = BranchName
-		
-		parentIds := []string{}
-		unfilteredParentIds := strings.Split(ParentCommitIds, ",")
-
-		for i := range unfilteredParentIds {
-			if len(unfilteredParentIds[i]) > 0 {
-				parentIds = append(parentIds, unfilteredParentIds[i])
-			}
-		}
 
 		if len(args) >= 1 {
 			commitFile := args[0]
@@ -121,7 +101,7 @@ var commitCmd = &cobra.Command{
 				}
 			}
 
-			dupver.CommitFile(tarFile, parentIds, Message, opts)
+			dupver.CommitFile(tarFile, [], Message, opts)
 		} else {
 			dir, err := os.Getwd()
 			if err != nil {
@@ -137,12 +117,11 @@ var commitCmd = &cobra.Command{
 
 				if opts.Verbosity >= 1 {
 					fmt.Printf("Message not specified, setting to: %s\n", Message)
-				}				
+				}
 			}
 
-
 			tarFile := CreateTar(containingFolder, workdirFolder, opts)
-			dupver.CommitFile(tarFile, parentIds, Message, opts)	
+			dupver.CommitFile(tarFile, [], Message, opts)
 		}
 	},
 }
@@ -161,5 +140,4 @@ func init() {
 	// commitCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 	commitCmd.Flags().StringVarP(&Message, "message", "m", "", "Commit message")
 	commitCmd.Flags().BoolVarP(&Add, "add", "a", false, "Unused, but added for git compatibility")
-	commitCmd.Flags().StringVarP(&ParentCommitIds, "parent", "c", "", "Comma separated list of parent commit ID(s)")
 }

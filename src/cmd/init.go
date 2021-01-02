@@ -28,14 +28,13 @@ Otherwise, the current working directory is used.`,
 
 		opts.RepoName = RepoName
 		opts.RepoPath = RepoPath
-		opts.BranchName = BranchName		
 
 		if len(args) >= 1 {
 			workDirPath = args[0]
 		}
 
 		// TODO: Read repoPath from environment variable if empty
-		
+
 		if Monochrome || Quiet {
 			opts.Color = false
 		}

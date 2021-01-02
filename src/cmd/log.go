@@ -41,14 +41,9 @@ a commit ID to print in additional detail.`,
 			}
 		}
 
-		if len(BranchName) == 0 {
-			BranchName = cfg.BranchName
-		}
-
 		opts.WorkDirName = cfg.WorkDirName
 		opts.RepoName = RepoName
 		opts.RepoPath = RepoPath
-		opts.BranchName = BranchName
 
 		if opts.Verbosity >= 2 {
 			fmt.Println("opts:")
@@ -56,7 +51,7 @@ a commit ID to print in additional detail.`,
 			fmt.Println("")
 		}
 
-		headPath := filepath.Join(opts.RepoPath, "branches", cfg.WorkDirName, opts.BranchName+".toml")
+		headPath := filepath.Join(opts.RepoPath, "branches", cfg.WorkDirName, "main.toml")
 
 		if opts.Verbosity >= 2 {
 			fmt.Println("Head path:")

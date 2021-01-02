@@ -64,14 +64,9 @@ will limit only a single specified snapshot id to be copied.`,
 			}
 		}
 
-		if len(BranchName) == 0 {
-			BranchName = cfg.BranchName
-		}
-
 		opts.WorkDirName = cfg.WorkDirName
 		opts.RepoName = RepoName
 		opts.RepoPath = RepoPath
-		opts.BranchName = BranchName
 
 		sourcePath := opts.RepoPath
 
