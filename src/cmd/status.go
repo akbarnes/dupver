@@ -3,7 +3,6 @@ package cmd
 import (
 	"fmt"
 	// "log"
-	"path/filepath"
 
 	"github.com/akbarnes/dupver/src/dupver"
 	"github.com/spf13/cobra"
@@ -50,24 +49,14 @@ with the --monochrome flag.`,
 			fmt.Printf("opts:\n%+v\n\n", opts)
 		}
 
-		headPath := filepath.Join(opts.RepoPath, "branches", opts.WorkDirName, "main.toml")
-
-		if opts.Verbosity >= 2 {
-			fmt.Printf("Head path: %s\n\n", headPath)
-		}
-
-		myHead := dupver.ReadHead(headPath, opts)
-		snapshotId := myHead.CommitID
-
-		if opts.Verbosity >= 2 {
-			fmt.Printf("Commit ID: %s\n\n", snapshotId)
-		}
+		var mySnapshot dupver.Commit
 
 		if len(args) >= 1 {
-			snapshotId = dupver.GetFullSnapshotId(args[0], opts)
+			snapshotId := dupver.GetFullSnapshotId(args[0], opts)
+			mySnapshot = dupver.ReadSnapshot(snapshotId, opts)
+		} else {
+			mySnapshot = dupver.LastSnapshot(opts)
 		}
-
-		mySnapshot := dupver.ReadSnapshot(snapshotId, opts)
 
 		if opts.Verbosity >= 2 {
 			fmt.Printf("Snapshot commit ID: %s\n", mySnapshot.ID)

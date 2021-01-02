@@ -433,10 +433,32 @@ func ListSnapshots(opts Options) []string {
 	return snapshotPaths
 }
 
+func LastSnapshot(opts Options) Commit {
+	repoPath := opts.RepoPath
+	projectName := opts.WorkDirName
+
+	snapshotGlob := path.Join(repoPath, "snapshots", projectName, "*.json")
+	snapshotPaths, _ := filepath.Glob(snapshotGlob)
+
+	snapshotsByDate := make(map[string]Commit)
+	snapshotDates := []string{}
+
+	// TODO: sort the snapshots by date
+	for _, snapshotPath := range snapshotPaths {
+		if opts.Verbosity >= 2 {
+			fmt.Printf("Snapshot path: %s\n\n", snapshotPath)
+		}
+
+		mySnapshot := ReadSnapshotFile(snapshotPath)
+		snapshotsByDate[mySnapshot.Time] = mySnapshot
+		snapshotDates = append(snapshotDates, mySnapshot.Time)
+	}
+
+	sort.Strings(snapshotDates)
+	return snapshotsByDate[snapshotDates[len(snapshotDates)-1]]
+}
+
 func PrintSnapshots(snapshotId string, maxSnapshots int, opts Options) {
-	// fmt.Printf("Verbosity = %d\n", verbosity)
-	// print a specific revision
-	// snapshotCount := 0
 	repoPath := opts.RepoPath
 	projectName := opts.WorkDirName
 
@@ -452,8 +474,6 @@ func PrintSnapshots(snapshotId string, maxSnapshots int, opts Options) {
 
 	// TODO: sort the snapshots by date
 	for _, snapshotPath := range snapshotPaths {
-		// snapshotPath := filepath.Join(repoPath, "snapshots", projectName, snapshotId+".json")
-
 		if opts.Verbosity >= 2 {
 			fmt.Printf("Snapshot path: %s\n\n", snapshotPath)
 		}
@@ -465,25 +485,15 @@ func PrintSnapshots(snapshotId string, maxSnapshots int, opts Options) {
 
 	sort.Strings(snapshotDates)
 
-	for _, sdate := range snapshotDates {
-		// snapshotPath := filepath.Join(repoPath, "snapshots", projectName, snapshotId+".json")
+	for i, sdate := range snapshotDates {
 		mySnapshot := snapshotsByDate[sdate]
 		PrintSnapshot(mySnapshot, 0, opts)
-		// parents := mySnapshot.ParentIDs
 
-		// if len(parents) == 0 || len(parents[0]) == 0 {
-		// 	break
-		// } else {
-		// 	snapshotId = parents[0]
-		// }
-
-		// if maxSnapshots > 0 {
-		// 	snapshotCount++
-
-		// 	if snapshotCount >= maxSnapshots {
-		// 		break
-		// 	}
-		// }
+		if maxSnapshots > 0 {
+			if i >= maxSnapshots {
+				break
+			}
+		}
 	}
 }
 
