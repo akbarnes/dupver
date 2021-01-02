@@ -44,45 +44,40 @@ specifed commit id. If only a tag is specified `,
 		opts.RepoPath = RepoPath
 
 		if opts.Verbosity >= 2 {
-			fmt.Println("opts:")
-			fmt.Println(opts)
-			fmt.Println("")
+			fmt.Printf("opts:\n%+v\n\n", opts)
 		}
 
-		headPath := filepath.Join(opts.RepoPath, "branches", opts.WorkDirName, opts.BranchName+".toml")
+		headPath := filepath.Join(opts.RepoPath, "branches", opts.WorkDirName, "main.toml")
+
 		if opts.Verbosity >= 2 {
-			fmt.Println("Head path:")
-			fmt.Println(headPath)
-			fmt.Println("")
+			fmt.Printf("Head path: %s\n\n", headPath)
 		}
 
 		myHead := dupver.ReadHead(headPath, opts)
 		snapshotId := myHead.CommitID
 
 		if opts.Verbosity >= 2 {
-			fmt.Println("Commit ID:")
-			fmt.Println(snapshotId)
-			fmt.Println("")
-		}
-
-		if len(args) >= 1 {
-			tagName = args[1]
-		}
-
-		if len(args) >= 2 {
-			snapshotId = dupver.GetFullSnapshotId(args[2], opts)
+			fmt.Printf("Commit ID: %s\n\n", snapshotId)
 		}
 
 		if Monochrome || Quiet {
 			opts.Color = false
 		}
 
-		dupver.CreateTag(tagName, snapshotId, opts)
+		if len(args) >= 1 {
+			tagName = args[0]
+
+			if len(args) >= 2 {
+				snapshotId = dupver.GetFullSnapshotId(args[1], opts)
+			}
+
+			dupver.CreateTag(tagName, snapshotId, opts)
+		}
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(statusCmd)
+	rootCmd.AddCommand(tagCmd)
 
 	// Here you will define your flags and configuration settings.
 

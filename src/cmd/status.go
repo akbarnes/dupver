@@ -49,16 +49,20 @@ with the --monochrome flag.`,
 		if opts.Verbosity >= 2 {
 			fmt.Printf("opts:\n%+v\n\n", opts)
 		}
+
 		headPath := filepath.Join(opts.RepoPath, "branches", opts.WorkDirName, "main.toml")
+
 		if opts.Verbosity >= 2 {
 			fmt.Printf("Head path: %s\n\n", headPath)
 		}
+
 		myHead := dupver.ReadHead(headPath, opts)
 		snapshotId := myHead.CommitID
 
 		if opts.Verbosity >= 2 {
-			fmt.Println("Commit ID: %s\n\n", snapshotId)
+			fmt.Printf("Commit ID: %s\n\n", snapshotId)
 		}
+
 		if len(args) >= 1 {
 			snapshotId = dupver.GetFullSnapshotId(args[0], opts)
 		}
