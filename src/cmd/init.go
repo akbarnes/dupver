@@ -26,8 +26,13 @@ Otherwise, the current working directory is used.`,
 			RepoName = "main"
 		}
 
+		if len(Branch) == 0 {
+			Branch = "main"
+		}
+
 		opts.RepoName = RepoName
 		opts.RepoPath = RepoPath
+		opts.Branch = Branch
 
 		if len(args) >= 1 {
 			workDirPath = args[0]

@@ -39,11 +39,12 @@ a commit ID to print in additional detail.`,
 			if opts.Verbosity >= 2 {
 				fmt.Printf("Updating repo path to %s\n", RepoPath)
 			}
-		}
+		}	
 
 		opts.WorkDirName = cfg.WorkDirName
 		opts.RepoName = RepoName
 		opts.RepoPath = RepoPath
+		opts.Branch = Branch
 
 		if opts.Verbosity >= 2 {
 			fmt.Println("opts:")

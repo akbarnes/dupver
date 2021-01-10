@@ -26,8 +26,7 @@ with the --monochrome flag.`,
 		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Debug, Verbose, Quiet)
 
 		if opts.Verbosity >= 2 {
-			fmt.Println("cfg:")
-			fmt.Println(cfg)
+			fmt.Printf("cfg:\n%+v\n\n", cfg)
 			fmt.Printf("\nRepo name: %s\nRepo path: %s\n\n", RepoName, RepoPath)
 		}
 		if len(RepoName) == 0 {

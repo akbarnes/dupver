@@ -20,6 +20,7 @@ import (
 type Commit struct {
 	// TarFileName string
 	ID        string
+	Branch	  string
 	Message   string
 	Time      string
 	ParentIDs []string
@@ -28,7 +29,7 @@ type Commit struct {
 }
 
 type Head struct {
-	BranchName string
+	Branch string
 	CommitID   string // use this for detached head, but do I need this?
 	Branches   map[string]string
 	CommitIDs  map[string]string
@@ -226,17 +227,19 @@ func CommitFile(filePath string, parentIds []string, msg string, opts Options) {
 		opts.WorkDirName = myWorkDirConfig.WorkDirName
 	}
 
-	if len(opts.BranchName) == 0 {
-		opts.BranchName = myWorkDirConfig.BranchName
+	if len(opts.Branch) == 0 {
+		opts.Branch = myWorkDirConfig.Branch
 	}
+
+	mySnapshot.Branch = opts.Branch
 
 	myRepoConfig := ReadRepoConfigFile(path.Join(opts.RepoPath, "config.toml"))
 	branchFolder := path.Join(opts.RepoPath, "branches", opts.WorkDirName)
-	branchPath := path.Join(branchFolder, myWorkDirConfig.BranchName+".toml")
+	branchPath := path.Join(branchFolder, myWorkDirConfig.Branch+".toml")
 	myBranch := ReadBranch(branchPath)
 
 	if opts.Verbosity >= 1 {
-		fmt.Printf("Branch: %s\nParent commit: %s\n", opts.BranchName, myBranch.CommitID)
+		fmt.Printf("Branch: %s\nParent commit: %s\n", opts.Branch, myBranch.CommitID)
 	}
 
 	mySnapshot.ParentIDs = append([]string{myBranch.CommitID}, parentIds...)
@@ -486,8 +489,13 @@ func PrintSnapshots(snapshotId string, maxSnapshots int, opts Options) {
 	sort.Strings(snapshotDates)
 
 	for i, sdate := range snapshotDates {
-		mySnapshot := snapshotsByDate[sdate]
-		PrintSnapshot(mySnapshot, 0, opts)
+		snap := snapshotsByDate[sdate]
+		b := opts.Branch
+
+		if len(b) == 0 || len(b) > 0 && b == snap.Branch {
+			PrintSnapshot(snap, 0, opts)
+		}
+
 
 		if maxSnapshots > 0 {
 			if i >= maxSnapshots {
@@ -501,6 +509,11 @@ func PrintAllSnapshots(snapshot string, opts Options) {
 	// fmt.Printf("Verbosity = %d\n", opts.Verbosity)
 	snapshotPaths := ListSnapshots(opts)
 	// print a specific revision
+
+	if opts.Verbosity >= 1 {
+		fmt.Printf("Branch: %s\n", opts.Branch)
+	}
+
 	if len(snapshot) == 0 {
 		if opts.Verbosity >= 1 {
 			fmt.Println("Snapshot History")
@@ -524,7 +537,12 @@ func PrintAllSnapshots(snapshot string, opts Options) {
 			snapshotId := snapshotPath[n-SNAPSHOT_ID_LEN-5 : n-5]
 
 			if snapshotId[0:8] == snapshot {
-				PrintSnapshot(ReadSnapshotFile(snapshotPath), 0, opts)
+				snap := ReadSnapshotFile(snapshotPath)
+				b := opts.Branch
+
+				if len(b) == 0 || len(b) > 0 && b == snap.Branch {
+					PrintSnapshot(snap, 0, opts)
+				}
 			}
 		}
 	}

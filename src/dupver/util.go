@@ -28,7 +28,7 @@ type Options struct {
 	WorkDirName string
 	RepoName string
 	RepoPath string
-	BranchName string
+	Branch string
 	DestRepoName string
 	DestRepoPath string
 }

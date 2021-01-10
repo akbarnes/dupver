@@ -20,7 +20,7 @@ import (
 
 type workDirConfig struct {
 	WorkDirName string
-	BranchName  string
+	Branch string
 	DefaultRepo string
 	// RepoPath    string
 	Repos map[string]string
@@ -34,6 +34,7 @@ func InitWorkDir(workDirFolder string, workDirName string, opts Options) {
 	var configPath string
 	repoName := opts.RepoName
 	repoPath := opts.RepoPath
+	branch := opts.Branch
 
 	if opts.Verbosity >= 2 {
 		fmt.Printf("Workdir %s, name %s, repo %s\n", workDirFolder, workDirName, opts.RepoPath)
@@ -96,10 +97,10 @@ func InitWorkDir(workDirFolder string, workDirName string, opts Options) {
 	myConfig.DefaultRepo = repoName
 
 	// TODO: specify an arbitrary branch
-	myConfig.BranchName = "main"
 	myRepos := make(map[string]string)
 	myRepos[repoName] = repoPath
 	myConfig.Repos = myRepos
+	myConfig.Branch = branch
 	myConfig.WorkDirName = workDirName
 	SaveWorkDirConfigFile(configPath, myConfig, false, opts)
 }
@@ -344,7 +345,7 @@ func ReadHead(headPath string, opts Options) Head {
 		if opts.Verbosity >= 2 {
 			fmt.Printf("No head file exists, returning default head struct\n")
 		}
-		return Head{BranchName: "main"}
+		return Head{Branch: "main"}
 	}
 	if _, err := toml.DecodeReader(f, &myHead); err != nil {
 		panic(fmt.Sprintf("Error:could not decode head file %s", headPath))
