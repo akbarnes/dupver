@@ -67,9 +67,14 @@ will limit only a single specified snapshot id to be copied.`,
 			}
 		}
 
+		if AllBranches {
+			opts.Branch = ""
+		}
+
 		opts.WorkDirName = cfg.WorkDirName
 		opts.RepoName = RepoName
 		opts.RepoPath = RepoPath
+		opts.Branch = Branch
 
 		sourcePath := opts.RepoPath
 
@@ -105,7 +110,11 @@ will limit only a single specified snapshot id to be copied.`,
 					fmt.Printf("Copying snapshot %s\n", snap.ID)
 				}
 
-				dupver.CopySnapshot(snap.ID, sourcePath, destPath, opts)
+				branch := opts.Branch
+
+				if len(branch) == 0 || len(branch) > 0 && branch == snap.Branch {
+					dupver.CopySnapshot(snap.ID, sourcePath, destPath, opts)
+				}
 			}
 		}
 	},

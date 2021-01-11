@@ -42,6 +42,11 @@ To specify a tar file name, use the --output flag.`,
 
 		opts.RepoName = RepoName
 		opts.RepoPath = RepoPath
+		opts.Branch = Branch
+
+		if AllBranches {
+			opts.Branch = ""
+		}
 
 		snapshotId := dupver.GetFullSnapshotId(args[0], opts)
 		snap := dupver.ReadSnapshot(snapshotId, opts)

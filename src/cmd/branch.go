@@ -13,7 +13,7 @@ import (
 var branchCmd = &cobra.Command{
 	Use:   "branch [branch_name]",
 	Short: "Switch project working directory to a branch",
-	Long: `This will switch a project working directory to the specified branch. `,
+	Long:  `This will switch a project working directory to the specified branch. `,
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg := dupver.ReadWorkDirConfig(WorkDirPath)
 		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Debug, Verbose, Quiet)
@@ -23,29 +23,35 @@ var branchCmd = &cobra.Command{
 			fmt.Println(cfg)
 		}
 
-		if opts.Verbosity >= 1 {
+		if opts.Verbosity >= 2 {
 			fmt.Printf("\nOld name: %s\n", cfg.WorkDirName)
+		}
+
+		if Monochrome || Quiet {
+			opts.Color = false
 		}
 
 		branch := Branch
 
 		if len(args) >= 1 {
 			branch = args[0]
+
+			if len(branch) > 0 {
+				cfg.Branch = branch
+			}
+
+			if opts.Verbosity >= 2 {
+				fmt.Printf("\nNew name: %s\n", cfg.WorkDirName)
+			}
+
+			dupver.SaveWorkDirConfig(WorkDirPath, cfg, true, opts)
+		} else {
+			if opts.Verbosity >= 1 {
+				fmt.Printf("Current branch: ")
+			}
+
+			fmt.Println(cfg.Branch)
 		}
-
-		if len(branch) > 0 {
-			cfg.Branch = branch
-		}
-
-		if opts.Verbosity >= 1 {
-			fmt.Printf("\nNew name: %s\n", cfg.WorkDirName)
-		}		
-
-		if Monochrome || Quiet {
-			opts.Color = false
-		}		
-
-		dupver.SaveWorkDirConfig(WorkDirPath, cfg, true, opts)
 	},
 }
 

@@ -43,6 +43,11 @@ with the --monochrome flag.`,
 		opts.WorkDirName = cfg.WorkDirName
 		opts.RepoName = RepoName
 		opts.RepoPath = RepoPath
+		opts.Branch = Branch		
+
+		if AllBranches {
+			opts.Branch = ""
+		}
 
 		if opts.Verbosity >= 2 {
 			fmt.Printf("opts:\n%+v\n\n", opts)

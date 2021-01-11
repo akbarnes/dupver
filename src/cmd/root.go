@@ -14,12 +14,8 @@ import (
 var cfgFile string
 var RepoName string
 var RepoPath string
-
-// var DestRepoName string // need this?
-// var DestRepoPath string
-// var BranchID string // for copy - move to copy.go?
-// var SnapshotID string // for copy - move to copy.go?
 var Branch string
+var AllBranches bool
 var WorkDirPath string
 var Debug bool
 var Verbose bool
@@ -63,6 +59,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVarP(&RepoPath, "repo-path", "r", "", "repository path")
 	rootCmd.PersistentFlags().StringVarP(&WorkDirPath, "workdir-path", "w", "", "project working directory path")
 	rootCmd.PersistentFlags().StringVarP(&Branch, "branch", "b", "", "branch name")
+	rootCmd.PersistentFlags().BoolVarP(&AllBranches, "all-branches", "a", false, "branch name")
 	rootCmd.PersistentFlags().BoolVarP(&Verbose, "debug", "d", false, "debug output")
 	rootCmd.PersistentFlags().BoolVarP(&Verbose, "verbose", "v", false, "verbose output")
 	rootCmd.PersistentFlags().BoolVarP(&Quiet, "quiet", "q", false, "quiet output")

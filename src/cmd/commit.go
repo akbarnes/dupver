@@ -82,6 +82,11 @@ var commitCmd = &cobra.Command{
 
 		opts.RepoName = RepoName
 		opts.RepoPath = RepoPath
+		opts.Branch = Branch
+
+		if AllBranches {
+			opts.Branch = ""
+		}
 
 		if len(args) >= 1 {
 			commitFile := args[0]

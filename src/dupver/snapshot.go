@@ -20,7 +20,7 @@ import (
 type Commit struct {
 	// TarFileName string
 	ID        string
-	Branch	  string
+	Branch    string
 	Message   string
 	Time      string
 	ParentIDs []string
@@ -29,10 +29,10 @@ type Commit struct {
 }
 
 type Head struct {
-	Branch string
-	CommitID   string // use this for detached head, but do I need this?
-	Branches   map[string]string
-	CommitIDs  map[string]string
+	Branch    string
+	CommitID  string // use this for detached head, but do I need this?
+	Branches  map[string]string
+	CommitIDs map[string]string
 }
 
 type Branch struct {
@@ -446,15 +446,21 @@ func LastSnapshot(opts Options) Commit {
 	snapshotsByDate := make(map[string]Commit)
 	snapshotDates := []string{}
 
+	branch := opts.Branch
+
 	// TODO: sort the snapshots by date
 	for _, snapshotPath := range snapshotPaths {
 		if opts.Verbosity >= 2 {
 			fmt.Printf("Snapshot path: %s\n\n", snapshotPath)
 		}
 
-		mySnapshot := ReadSnapshotFile(snapshotPath)
-		snapshotsByDate[mySnapshot.Time] = mySnapshot
-		snapshotDates = append(snapshotDates, mySnapshot.Time)
+		snap := ReadSnapshotFile(snapshotPath)
+
+		if len(branch) == 0 || len(branch) > 0 && branch == snap.Branch {
+			snapshotsByDate[snap.Time] = snap
+			snapshotDates = append(snapshotDates, snap.Time)
+		}
+
 	}
 
 	sort.Strings(snapshotDates)
@@ -495,7 +501,6 @@ func PrintSnapshots(snapshotId string, maxSnapshots int, opts Options) {
 		if len(b) == 0 || len(b) > 0 && b == snap.Branch {
 			PrintSnapshot(snap, 0, opts)
 		}
-
 
 		if maxSnapshots > 0 {
 			if i >= maxSnapshots {
