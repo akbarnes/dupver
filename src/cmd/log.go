@@ -41,6 +41,10 @@ a commit ID to print in additional detail.`,
 			}
 		}
 
+		if len(Branch) == 0 {
+			Branch = cfg.Branch
+		}
+
 		opts.WorkDirName = cfg.WorkDirName
 		opts.RepoName = RepoName
 		opts.RepoPath = RepoPath

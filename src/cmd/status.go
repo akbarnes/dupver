@@ -40,10 +40,14 @@ with the --monochrome flag.`,
 			}
 		}
 
+		if len(Branch) == 0 {
+			Branch = cfg.Branch
+		}
+
 		opts.WorkDirName = cfg.WorkDirName
 		opts.RepoName = RepoName
 		opts.RepoPath = RepoPath
-		opts.Branch = Branch		
+		opts.Branch = Branch
 
 		if AllBranches {
 			opts.Branch = ""
