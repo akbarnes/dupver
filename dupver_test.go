@@ -160,6 +160,6 @@ func TestCommit(t *testing.T) {
 		t.Error("Checked out tar file dose not match input")
 	}
 
-	// os.RemoveAll(workDirFolder)
-	// os.RemoveAll(repoPath)
+	os.RemoveAll(workDirFolder)
+	os.RemoveAll(repoPath)
 }

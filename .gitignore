@@ -19,3 +19,5 @@
 /Test_*/
 .DS_Store
 *.orig
+
+*.code-workspace
