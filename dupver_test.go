@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"testing"
 
@@ -142,19 +144,21 @@ func TestCommit(t *testing.T) {
 	outputFileName := fmt.Sprintf("%s-%s-%s.tar", myWorkDirConfig.WorkDirName, timeStr, snapshot.ID[0:16])
 
 	// dupver.UnpackFile(outputFileName, myWorkDirConfig.RepoPath, mySnapshot.ChunkIDs, verbosity)
-	// fmt.Printf("Wrote to %s\n", outputFileName)
+	dupver.UnpackFile(outputFileName, opts.RepoPath, mySnapshot.ChunkIDs, opts)
+	fmt.Printf("Wrote to %s\n", outputFileName)
 
-	// cmd := exec.Command("diff", fileName, outputFileName)
-	// log.Printf("Running command and waiting for it to finish...")
-	// output, err := cmd.Output()
+	cmd := exec.Command("diff", fileName, outputFileName)
+	log.Printf("Running command and waiting for it to finish...")
+	output, err := cmd.Output()
 
-	// if err != nil {
-	// 	t.Error("Error comparing tar files")
-	// }
+	if err != nil {
+		fmt.Printf("diff %s %s\nreturned error\nDiff output:\n%s", fileName, outputFileName, output)
+		t.Error("Error comparing tar files")
+	}
 
-	// if len(output) > 0 {
-	// 	t.Error("Checked out tar file dose not match input")
-	// }
+	if len(output) > 0 {
+		t.Error("Checked out tar file dose not match input")
+	}
 
 	// os.RemoveAll(workDirFolder)
 	// os.RemoveAll(repoPath)
