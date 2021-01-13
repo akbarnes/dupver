@@ -1,38 +1,57 @@
-/*
-Copyright © 2020 NAME HERE <EMAIL ADDRESS>
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
 package cmd
 
 import (
 	"fmt"
+	// "log"
+	// "path/filepath"
 
+	"github.com/akbarnes/dupver/src/dupver"
 	"github.com/spf13/cobra"
 )
 
-// branchCmd represents the branch command
+// statusCmd represents the status command
 var branchCmd = &cobra.Command{
-	Use:   "branch",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Use:   "branch [branch_name]",
+	Short: "Switch project working directory to a branch",
+	Long:  `This will switch a project working directory to the specified branch. `,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("branch called")
+		cfg := dupver.ReadWorkDirConfig(WorkDirPath)
+		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Debug, Verbose, Quiet)
+
+		if opts.Verbosity >= 2 {
+			fmt.Println("cfg:")
+			fmt.Println(cfg)
+		}
+
+		if opts.Verbosity >= 2 {
+			fmt.Printf("\nOld name: %s\n", cfg.WorkDirName)
+		}
+
+		if Monochrome || Quiet {
+			opts.Color = false
+		}
+
+		branch := Branch
+
+		if len(args) >= 1 {
+			branch = args[0]
+
+			if len(branch) > 0 {
+				cfg.Branch = branch
+			}
+
+			if opts.Verbosity >= 2 {
+				fmt.Printf("\nNew name: %s\n", cfg.WorkDirName)
+			}
+
+			dupver.SaveWorkDirConfig(WorkDirPath, cfg, true, opts)
+		} else {
+			if opts.Verbosity >= 1 {
+				fmt.Printf("Current branch: ")
+			}
+
+			fmt.Println(cfg.Branch)
+		}
 	},
 }
 
@@ -43,9 +62,9 @@ func init() {
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// branchCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// statusCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// branchCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// statusCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

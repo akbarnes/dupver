@@ -3,6 +3,7 @@ package dupver
 import (
 	"os"
 	"io"
+	"io/ioutil"
 	"fmt"
     "path"
 	"crypto/sha256"
@@ -100,7 +101,7 @@ func WritePacks(f *os.File, repoPath string, poly chunker.Pol, verbosity int) ([
 			totalChunkNum++
 
 			if _, ok := chunkPacks[chunkId]; ok {
-				if verbosity >= 2 {
+				if verbosity >= 3 {
 					fmt.Printf("Skipping Chunk ID %s already in pack %s\n", chunkId[0:16], chunkPacks[chunkId][0:16])
 				}
 
@@ -150,7 +151,7 @@ func WritePacks(f *os.File, repoPath string, poly chunker.Pol, verbosity int) ([
 		dupMb := float64(dupDataSize)/1e6
 		totalMb := float64(totalDataSize)/1e6
 
-		fmt.Printf("%0.2f new, %0.2f duplicatate, %0.2f total MB raw data stored\n", newMb, dupMb, totalMb)
+		fmt.Printf("%0.2f new, %0.2f duplicate, %0.2f total MB raw data stored\n", newMb, dupMb, totalMb)
 		fmt.Printf("%d new, %d duplicate, %d total chunks\n", newChunkNum, dupChunkNum, totalChunkNum)
 		fmt.Printf("%d packs stored, %0.2f chunks/pack\n", newPackNum, float64(newChunkNum)/float64(newPackNum))
 	}
@@ -172,7 +173,7 @@ func UnpackFile(filePath string, repoPath string, chunkIds []string, opts Option
 	f.Close()
 }
 
-
+// TODO: change name to something other than read
 func ReadPacks(tarFile *os.File, repoPath string, chunkIds []string, chunkPacks map[string]string, opts Options) {
 	for i, chunkId := range chunkIds {
 		packId := chunkPacks[chunkId]
@@ -209,5 +210,55 @@ func ReadPacks(tarFile *os.File, repoPath string, chunkIds []string, chunkPacks 
 
 		r.Close()			
 	}
+}
+
+func LoadChunk(repoPath string, chunkId string, chunkPacks map[string]string, opts Options) []byte {
+	packId := chunkPacks[chunkId]
+
+	// if opts.Verbosity >= 2 {
+	// 	fmt.Printf("Reading chunk %s \n from pack %s\n", chunkId, packId)
+	// }
+
+	packPath := path.Join(repoPath, "packs", packId[0:2], packId + ".zip")
+	data := []byte{}
+
+	if opts.Verbosity >= 2 {
+		fmt.Printf("Reading chunk %s \n from pack file %s\n", chunkId, packPath)
+	}
+
+	// From https://golangcode.com/unzip-files-in-go/
+	packReader, err := zip.OpenReader(packPath)
+	
+	if err != nil {
+		panic(fmt.Sprintf("Error opening zip file %s", packPath))
+	}
+
+	for _, f := range packReader.File {
+		h := f.FileHeader
+		if h.Name == chunkId {
+			chunkReader, err := f.Open()
+			
+			if err != nil {
+				// TODO: return err
+				panic(fmt.Sprintf("Error opening chunk %s from pack file", h.Name, packPath))
+			}
+
+			{
+				var err error
+				// if _, err := io.Copy(tarFile, rc); err != nil {
+
+				if data, err = ioutil.ReadAll(chunkReader); err != nil {
+					// fmt.Fprintf(tarFile, "Pack %s, chunk %s, csize %d, usize %d\n", packId, h.Name, h.CompressedSize, h.UncompressedSize)
+					// TODO: return err
+					panic(fmt.Sprintf("Error opening chunk %s from pack file", h.Name, packPath))
+				}
+			}
+
+			chunkReader.Close()
+		}
+	}
+
+	packReader.Close()		
+	return data	
 }
 

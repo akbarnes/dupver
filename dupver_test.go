@@ -1,17 +1,18 @@
 package main
 
 import (
-	"testing"
-	"os"
-	"path/filepath"
 	"fmt"
-	"os/exec"
 	"log"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"testing"
+
 	"github.com/akbarnes/dupver/src/dupver"
 )
 
 func TestWorkRepoInit(t *testing.T) {
-	verbosity := 2
+	opts := dupver.Options{Color: false, Verbosity: 2}
 	homeDir := dupver.GetHome()
 
 	if len(homeDir) == 0 {
@@ -20,21 +21,22 @@ func TestWorkRepoInit(t *testing.T) {
 
 	repoId := dupver.RandString(16, dupver.HexChars)
 	repoFolder := ".dupver_repo_" + repoId
+	repoName := "test"
 
 	repoPath := filepath.Join(homeDir, "temp", repoFolder)
-	dupver.InitRepo(repoPath, verbosity)
+	dupver.InitRepo(repoPath, repoName, "", opts)
 
 	snapshotsPath := filepath.Join(repoPath, "snapshots")
 	if _, err := os.Stat(snapshotsPath); err != nil {
 		// path/to/whatever exists
 		t.Error("Did not create snapshots folder", snapshotsPath)
-	} 
+	}
 
 	treesPath := filepath.Join(repoPath, "trees")
 	if _, err := os.Stat(treesPath); err != nil {
 		// path/to/whatever exists
 		t.Error("Did not create trees folder", treesPath)
-	} 	
+	}
 
 	cfg := dupver.ReadRepoConfigFile(filepath.Join(repoPath, "config.toml"))
 
@@ -50,7 +52,7 @@ func TestWorkRepoInit(t *testing.T) {
 }
 
 func TestWorkDirInit(t *testing.T) {
-	verbosity := 2
+	opts := dupver.Options{Color: false, Verbosity: 2}
 	homeDir := dupver.GetHome()
 
 	if len(homeDir) == 0 {
@@ -60,7 +62,7 @@ func TestWorkDirInit(t *testing.T) {
 	workDirId := dupver.RandString(16, dupver.HexChars)
 	workDirFolder := "Test_" + workDirId
 	// workDirPath := filepath.Join("temp", workDirFolder)
-	err := os.MkdirAll(workDirFolder, 0777)	
+	err := os.MkdirAll(workDirFolder, 0777)
 
 	if err != nil {
 		t.Error("Could not create workdir")
@@ -68,68 +70,81 @@ func TestWorkDirInit(t *testing.T) {
 
 	repoPath := filepath.Join(homeDir, ".dupver_repo")
 
-	workDirName := ""
-	dupver.InitWorkDir(workDirFolder, workDirName, repoPath, verbosity)
+	// workDirPath := ""
+	projectName := ""
 
-	cfg :=dupver.ReadWorkDirConfig(workDirFolder)
+	opts.RepoName = "test"
+	opts.RepoPath = repoPath
+	opts.Branch = "main"
 
-	if cfg.RepoPath != repoPath {
+	dupver.InitWorkDir(workDirFolder, projectName, opts)
+
+	cfg := dupver.ReadWorkDirConfig(workDirFolder)
+
+	if cfg.Repos[cfg.DefaultRepo] != repoPath {
 		t.Error("Incorrect repo path retrieved")
 	}
 
 	expectedWorkDirName := "test_" + workDirId
 	if cfg.WorkDirName != expectedWorkDirName {
 		t.Error("Incorrect workdir name retrieved")
-	}	
+	}
 
 	os.RemoveAll(workDirFolder)
 }
 
-
 func TestCommit(t *testing.T) {
-	// homeDir := GetHome()
-	verbosity := 1
+	opts := dupver.Options{Color: false, Verbosity: 2}
 	msg := "Commit random data"
 
-    // ----------- Create a repo ----------- //    
+	// ----------- Create a repo ----------- //
 	homeDir := dupver.GetHome()
 	repoId := dupver.RandString(16, dupver.HexChars)
 	repoFolder := ".dupver_repo_" + repoId
 	repoPath := filepath.Join(homeDir, "temp", repoFolder)
-	dupver.InitRepo(repoPath, verbosity)	
+	repoName := "test"
+	dupver.InitRepo(repoPath, repoName, "", opts)
 
-    // ----------- Create a workdir ----------- //    
+	// ----------- Create a workdir ----------- //
 	workDirId := dupver.RandString(16, dupver.HexChars)
 	workDirFolder := "Test_" + workDirId
-	err := os.MkdirAll(workDirFolder, 0777)	
+	err := os.MkdirAll(workDirFolder, 0777)
 
 	if err != nil {
 		t.Error("Could not cerate workdir folder " + workDirFolder)
 	}
 
-	workDirName := ""
-	dupver.InitWorkDir(workDirFolder, workDirName, repoPath, verbosity)
+	projectName := ""
 
-	// ----------- Create tar file with random data ----------- //    
+	opts.WorkDirName = "test"
+	opts.RepoName = "test"
+	opts.RepoPath = repoPath
+	opts.Branch = "main"
+
+	dupver.InitWorkDir(workDirFolder, projectName, opts)
+
+	// ----------- Create tar file with random data ----------- //
 	// TODO: add random permutes to data
 	fileName := dupver.CreateRandomTarFile(workDirFolder, repoPath)
 	fmt.Printf("Created tar file %s\n", fileName)
 
-	// ----------- Commit the tar file  ----------- //    
-	snapshot := dupver.CommitFile(fileName, []string{}, msg, verbosity)
+	// ----------- Commit the tar file  ----------- //
+	snapshot := dupver.CommitFile(fileName, []string{}, msg, opts)
 
-	// ----------- Commit the tar file  ----------- //   
-	opts := dupver.Options{Color: true, Verbosity: 2}
+	// ----------- Commit the tar file  ----------- //
 	myWorkDirConfig := dupver.ReadWorkDirConfig(workDirFolder)
-	dupver.PrintSnapshots(myWorkDirConfig, snapshot.CommitID, 0, opts)
+	dupver.PrintAllSnapshots("", opts)
 
+	fmt.Printf("snapshot: %+v\n\n", snapshot)
+	fmt.Printf("workdir config: %+v\n\n", myWorkDirConfig)
 
-	// ----------- Checkout the tar file  ----------- //    
-	mySnapshot := dupver.ReadSnapshot(snapshot.CommitID, myWorkDirConfig)
+	// // ----------- Checkout the tar file  ----------- //
+	mySnapshot := dupver.ReadSnapshot(snapshot.ID, opts)
 	timeStr := dupver.TimeToPath(mySnapshot.Time)
-	outputFileName := fmt.Sprintf("%s-%s-%s.tar", myWorkDirConfig.WorkDirName, timeStr, snapshot.CommitID[0:16])
+	outputFileName := fmt.Sprintf("%s-%s-%s.tar", myWorkDirConfig.WorkDirName, timeStr, snapshot.ID[0:16])
 
-	dupver.UnpackFile(outputFileName, myWorkDirConfig.RepoPath, mySnapshot.ChunkIDs, verbosity) 
+	// dupver.UnpackFile(outputFileName, myWorkDirConfig.RepoPath, mySnapshot.ChunkIDs, verbosity)
+	dupver.UnpackFile(outputFileName, opts.RepoPath, mySnapshot.ChunkIDs, opts)
 	fmt.Printf("Wrote to %s\n", outputFileName)
 
 	cmd := exec.Command("diff", fileName, outputFileName)
@@ -137,6 +152,7 @@ func TestCommit(t *testing.T) {
 	output, err := cmd.Output()
 
 	if err != nil {
+		fmt.Printf("diff %s %s\nreturned error\nDiff output:\n%s", fileName, outputFileName, output)
 		t.Error("Error comparing tar files")
 	}
 
@@ -144,6 +160,6 @@ func TestCommit(t *testing.T) {
 		t.Error("Checked out tar file dose not match input")
 	}
 
-	os.RemoveAll(workDirFolder)
-	os.RemoveAll(repoPath)
+	// os.RemoveAll(workDirFolder)
+	// os.RemoveAll(repoPath)
 }

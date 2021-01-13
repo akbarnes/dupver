@@ -3,30 +3,29 @@ package cmd
 import (
 	"fmt"
 	// "log"
+	"path/filepath"
 
 	"github.com/akbarnes/dupver/src/dupver"
 	"github.com/spf13/cobra"
 )
 
 // statusCmd represents the status command
-var statusCmd = &cobra.Command{
-	Use:   "status",
-	Short: "Print file modification status of the project working directory",
-	Long: `This will print the modification status of files in the current project working directory.
+var tagCmd = &cobra.Command{
+	Use:   "tag [tag_name] [commit_id]",
+	Short: "Manage tags for commits",
+	Long: `This will print tags, tag a commit, or delete tags.
 
-By default, new files are indicated with the prefix "+ " and are colored in green. Modified
-files are indicated with the prefix "M " and are colored in cyan. Deleted files are
-indicated with the prefix "- " and are colored in red. Dupver does not currently track file
-renames (though this does not impact disk usage on account of the files being stored as
-chunks rather than diffs). For usage as part of a comm
-	and pipeline, colors can be disabled
-with the --monochrome flag.`,
+Without any arguments this will list tags for the repository. If a
+tag name and commit id are provided, this will add a tag for the 
+specifed commit id. If only a tag is specified `,
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg := dupver.ReadWorkDirConfig(WorkDirPath)
 		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Debug, Verbose, Quiet)
+		tagName := ""
 
 		if opts.Verbosity >= 2 {
-			fmt.Printf("cfg:\n%+v\n\n", cfg)
+			fmt.Println("cfg:")
+			fmt.Println(cfg)
 			fmt.Printf("\nRepo name: %s\nRepo path: %s\n\n", RepoName, RepoPath)
 		}
 		if len(RepoName) == 0 {
@@ -40,46 +39,45 @@ with the --monochrome flag.`,
 			}
 		}
 
-		if len(Branch) == 0 {
-			Branch = cfg.Branch
-		}
-
 		opts.WorkDirName = cfg.WorkDirName
 		opts.RepoName = RepoName
 		opts.RepoPath = RepoPath
-		opts.Branch = Branch
-
-		if AllBranches {
-			opts.Branch = ""
-		}
 
 		if opts.Verbosity >= 2 {
 			fmt.Printf("opts:\n%+v\n\n", opts)
 		}
 
-		var mySnapshot dupver.Commit
-
-		if len(args) >= 1 {
-			snapshotId := dupver.GetFullSnapshotId(args[0], opts)
-			mySnapshot = dupver.ReadSnapshot(snapshotId, opts)
-		} else {
-			mySnapshot = dupver.LastSnapshot(opts)
-		}
+		headPath := filepath.Join(opts.RepoPath, "branches", opts.WorkDirName, "main.toml")
 
 		if opts.Verbosity >= 2 {
-			fmt.Printf("Snapshot commit ID: %s\n", mySnapshot.ID)
+			fmt.Printf("Head path: %s\n\n", headPath)
+		}
+
+		myHead := dupver.ReadHead(headPath, opts)
+		snapshotId := myHead.CommitID
+
+		if opts.Verbosity >= 2 {
+			fmt.Printf("Commit ID: %s\n\n", snapshotId)
 		}
 
 		if Monochrome || Quiet {
 			opts.Color = false
 		}
 
-		dupver.WorkDirStatus(WorkDirPath, mySnapshot, opts)
+		if len(args) >= 1 {
+			tagName = args[0]
+
+			if len(args) >= 2 {
+				snapshotId = dupver.GetFullSnapshotId(args[1], opts)
+			}
+
+			dupver.CreateTag(tagName, snapshotId, opts)
+		}
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(statusCmd)
+	rootCmd.AddCommand(tagCmd)
 
 	// Here you will define your flags and configuration settings.
 

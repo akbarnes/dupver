@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"path"
+
 	// "path/filepath"
 
 	"github.com/BurntSushi/toml"
@@ -16,18 +17,18 @@ type repoConfig struct {
 	ChunkerPolynomial chunker.Pol
 }
 
-func InitRepo(repoPath string, opts Options) {
+func InitRepo(repoPath string, repoName string, chunkerPolynomial string, opts Options) {
 	if len(repoPath) == 0 {
 		repoPath = path.Join(GetHome(), ".dupver_repo")
 		fmt.Printf("Repo path not specified, setting to %s\n", repoPath)
 	}
 
 	CreateFolder(repoPath, opts.Verbosity)
+	CreateSubFolder(repoPath, "tags", opts.Verbosity)
 	CreateSubFolder(repoPath, "branches", opts.Verbosity)
 	CreateSubFolder(repoPath, "snapshots", opts.Verbosity)
 	CreateSubFolder(repoPath, "trees", opts.Verbosity)
 	CreateSubFolder(repoPath, "packs", opts.Verbosity)
-
 
 	snapshotsPath := path.Join(repoPath, "snapshots")
 
@@ -45,31 +46,34 @@ func InitRepo(repoPath string, opts Options) {
 
 	os.Mkdir(treesPath, 0777)
 
-	p, err := chunker.RandomPolynomial()
-
 	if opts.Verbosity >= 1 {
-		fmt.Printf("Chunker polynomial: %d\n", p)
-	} else {
-		fmt.Println(p)
+		fmt.Printf("Chunker Polynomial: %s\n", chunkerPolynomial)
 	}
 
-	if err != nil {
-		panic("Error creating random polynomical while initializing repo")
+	var poly chunker.Pol
+
+	if len(chunkerPolynomial) == 0 {
+		p, err := chunker.RandomPolynomial()
+
+		if err != nil {
+			panic("Error creating random polynomical while initializing repo")
+		}
+
+		poly = p
+	} else {
+		poly.UnmarshalJSON([]byte(chunkerPolynomial))
+	}
+
+	if opts.Verbosity >= 1 {
+		fmt.Printf("Chunker polynomial: %d\n", poly)
+	} else {
+		fmt.Println(poly)
 	}
 
 	var myConfig repoConfig
 	myConfig.Version = 2
-	myConfig.ChunkerPolynomial = p
-
+	myConfig.ChunkerPolynomial = poly
 	SaveRepoConfig(repoPath, myConfig, opts.Verbosity)
-}
-
-func UpdateRepoPath(myWorkDirConfig workDirConfig, repoPath string) workDirConfig {
-	if len(repoPath) > 0 {
-		myWorkDirConfig.RepoPath = repoPath
-	}
-
-	return myWorkDirConfig
 }
 
 func SaveRepoConfig(repoPath string, myConfig repoConfig, verbosity int) {

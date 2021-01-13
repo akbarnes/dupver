@@ -1,29 +1,3 @@
-/*
-Copyright © 2020 Art Barnes <art@pin3.io>
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
-
-1. Redistributions of source code must retain the above copyright notice,
-   this list of conditions and the following disclaimer.
-
-2. Redistributions in binary form must reproduce the above copyright notice,
-   this list of conditions and the following disclaimer in the documentation
-   and/or other materials provided with the distribution.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-POSSIBILITY OF SUCH DAMAGE.
-*/
 package cmd
 
 import (
@@ -31,30 +5,39 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var ChunkerPolynomial string
+
 // initCmd represents the init command
 var repoInitCmd = &cobra.Command{
-	Use:   "init",
+	Use:   "init path [repo_path] [repo_name]",
 	Short: "Initialize a repository",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+	Long: `This initializes a dupver repository (as oppposed to a workdir)
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+If no arguments are provided this command will create a repository in
+the current working directory. The first optional positional argument
+allows for the repository path to be specified. The second optional
+positional argument allows for the repository name to be specified.
+if no repository name is specified, the repository takes on the default
+name of "main."`,
 	Run: func(cmd *cobra.Command, args []string) {
-		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Verbose, Quiet)
-		
+		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Debug, Verbose, Quiet)
+
 		if Monochrome || Quiet {
 			opts.Color = false
 		}
-				
+
+		repoName := RepoName
 		repoPath := RepoPath
 
 		if len(args) >= 1 {
 			repoPath = args[0]
 		}
 
-		dupver.InitRepo(repoPath, opts)
+		if len(args) >= 2 {
+			repoName = args[1]
+		}
+
+		dupver.InitRepo(repoPath, repoName, ChunkerPolynomial, opts)
 	},
 }
 
@@ -66,6 +49,7 @@ func init() {
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
 	// initCmd.PersistentFlags().String("foo", "", "A help for foo")
+	repoInitCmd.PersistentFlags().StringVarP(&ChunkerPolynomial, "poly", "P", "", "specify chunker polynomial")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:

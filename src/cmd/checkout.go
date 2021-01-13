@@ -1,29 +1,3 @@
-/*
-Copyright © 2020 Art Barnes <art@pin3.io>
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
-
-1. Redistributions of source code must retain the above copyright notice,
-   this list of conditions and the following disclaimer.
-
-2. Redistributions in binary form must reproduce the above copyright notice,
-   this list of conditions and the following disclaimer in the documentation
-   and/or other materials provided with the distribution.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-POSSIBILITY OF SUCH DAMAGE.
-*/
 package cmd
 
 import (
@@ -37,33 +11,47 @@ var OutFile string
 
 // checkoutCmd represents the checkout command
 var checkoutCmd = &cobra.Command{
-	Use:   "checkout",
+	Use:   "checkout [commit_id]",
 	Short: "Checkout commit to a tar file",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+	Long: `This is used to restore a commit.
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+To avoid overwriting existing files (and because
+the current architecture stores snapshots as a tar
+file), the checkout command will export a commit to 
+a tar file with the default name 
+workdir_name-YYYY-MM-DDThh-mm-ss-commit_id[0:15].tar.
+To specify a tar file name, use the --output flag.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Verbose, Quiet)
-		
+		cfg := dupver.ReadWorkDirConfig(WorkDirPath)
+		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Debug, Verbose, Quiet)
+
 		if Monochrome || Quiet {
 			opts.Color = false
 		}
 
-		snapshotId := args[0]
+		if len(RepoName) == 0 {
+			RepoName = cfg.DefaultRepo
+		}
 
-		cfg := dupver.ReadWorkDirConfig(WorkDirPath)
-		cfg = dupver.UpdateRepoPath(cfg, RepoPath)
-		snap := dupver.ReadSnapshot(snapshotId, cfg)
+		if len(RepoPath) == 0 {
+			RepoPath = cfg.Repos[RepoName]
+			if opts.Verbosity >= 2 {
+				fmt.Printf("Updating repo path to %s\n", RepoPath)
+			}
+		}
+
+		opts.RepoName = RepoName
+		opts.RepoPath = RepoPath
+
+		snapshotId := dupver.GetFullSnapshotId(args[0], opts)
+		snap := dupver.ReadSnapshot(snapshotId, opts)
 
 		if len(OutFile) == 0 {
 			timeStr := dupver.TimeToPath(snap.Time)
-			OutFile = fmt.Sprintf("%s-%s-%s.tar", cfg.WorkDirName, timeStr, snap.ID[0:16])
+			OutFile = fmt.Sprintf("%s-%s-%s.tar", opts.WorkDirName, timeStr, snap.ID[0:16])
 		}
 
-		dupver.UnpackFile(OutFile, cfg.RepoPath, snap.ChunkIDs, opts)
+		dupver.UnpackFile(OutFile, opts.RepoPath, snap.ChunkIDs, opts)
 
 		if opts.Verbosity >= 1 {
 			fmt.Printf("Wrote to %s\n", OutFile)

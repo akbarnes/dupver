@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	// "fmt"
+	"fmt"
 	"path/filepath"
 
 	"github.com/akbarnes/dupver/src/dupver"
@@ -10,37 +10,86 @@ import (
 
 // logCmd represents the log command
 var logCmd = &cobra.Command{
-	Use:   "log",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+	Use:   "log [commit_id]",
+	Short: "List commits for the current working directory",
+	Long: `This prints a list of commits for the current working directory."
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+If an optional positional argument is provided, this will specify
+a commit ID to print in additional detail.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg := dupver.ReadWorkDirConfig(WorkDirPath)
-		cfg = dupver.UpdateRepoPath(cfg, RepoPath)
+		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Debug, Verbose, Quiet)
+		// fmt.Println("Verbosity:")
+		// fmt.Println(opts.Verbosity)
+		// fmt.Println("")
 
-		headPath := filepath.Join(WorkDirPath, ".dupver", "head.toml")
-		myHead := dupver.ReadHead(headPath)
+		if opts.Verbosity >= 2 {
+			fmt.Println("cfg:")
+			fmt.Println(cfg)
+			fmt.Printf("\nRepo name: %s\nRepo path: %s\n\n", RepoName, RepoPath)
+		}
+
+		if len(RepoName) == 0 {
+			RepoName = cfg.DefaultRepo
+		}
+
+		if len(RepoPath) == 0 {
+			RepoPath = cfg.Repos[RepoName]
+
+			if opts.Verbosity >= 2 {
+				fmt.Printf("Updating repo path to %s\n", RepoPath)
+			}
+		}
+
+		if len(Branch) == 0 {
+			Branch = cfg.Branch
+		}
+
+		opts.WorkDirName = cfg.WorkDirName
+		opts.RepoName = RepoName
+		opts.RepoPath = RepoPath
+		opts.Branch = Branch
+
+		if AllBranches {
+			opts.Branch = ""
+		}
+
+		if opts.Verbosity >= 2 {
+			fmt.Println("opts:")
+			fmt.Println(opts)
+			fmt.Println("")
+		}
+
+		headPath := filepath.Join(opts.RepoPath, "branches", cfg.WorkDirName, "main.toml")
+
+		if opts.Verbosity >= 2 {
+			fmt.Println("Head path:")
+			fmt.Println(headPath)
+			fmt.Println("")
+		}
+
+		myHead := dupver.ReadHead(headPath, opts)
+
 		snapshotId := myHead.CommitID
 		numSnapshots := 0
 
-		// TODO: Yeesh...move this messinto a function
-		if len(args) >= 1 {
-			snapshotId = args[0]
-			numSnapshots = 1
-			snapshotId = dupver.GetFullSnapshotId(snapshotId, cfg)
+		if opts.Verbosity >= 2 {
+			fmt.Println("Commit ID:")
+			fmt.Println(snapshotId)
+			fmt.Println("")
 		}
 
-		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Verbose, Quiet)
-		
+		// TODO: Yeesh...move this mess into a function
+		if len(args) >= 1 {
+			snapshotId = dupver.GetFullSnapshotId(args[0], opts)
+			numSnapshots = 1
+		}
+
 		if Monochrome || Quiet {
 			opts.Color = false
 		}
-		
-		dupver.PrintSnapshots(cfg, snapshotId, numSnapshots, opts)
+
+		dupver.PrintSnapshots(snapshotId, numSnapshots, opts)
 	},
 }
 

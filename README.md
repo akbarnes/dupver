@@ -7,11 +7,11 @@ version control system Boar https://bitbucket.org/mats_ekberg/boar/wiki/Home,
 and to a lesser extent the commercial offering Perforce,
 though it borrows design conventions from the deduplicating backup
 applications Duplicacy, Restic and Borg.
-Dupver does not track files, rather it stores snapshots more like
+Dupver does not track files, rather it stores commits as snapshots more like
 a backup program. Rather than traverse directories itself, Dupver
 uses an (uncompressed) tar file as input. Not that *only* tar files
 are accepted as input as Dupver relies on the tar container to
- 1. provide the list of files in the snapshot
+ 1. provide the list of files in the commit
  2. store metadata such as file modification times and permissions
  
 Dupver uses a centralized repository to take advantage of deduplication 
@@ -30,17 +30,21 @@ a few GB, but it is expected to scale up to the low 100's of GB.
 2. Add branch & head pointers
 3. Convert snapshot filenames to drop date
 
-## TODO
-- [ ] check that branch cannot be called head. this check may not be needed anymore
-- [x] fix writing head from outside of wd
-- [ ] remove auto-generated tar files after chunking
-- [ ] use toml for heads and branches?
+## TODO:
+- [ ] Split ReadHead into ReadHead & ReadHeadFile, or combine ReadWorkDirConfig & ReadWorkDirConfigFile into a single function
+- [ ] Add tags as pointers to commits
+- [ ] remove parent-ids parameter
+- [ ] Remove branches, though leave this in the repo. Use a mapping of "/" to "_branch_" in the workdir name going to the repo folders. Need to simplify stuff 
+
 
 ## Usage
 
 ### Initialize repository
 Initialize a repository with
 `dupver repo init repo_path`
+
+Specify a name when initializing a repository
+`dupver repo init repo_path repo_name`
 
 ### Initialize project working directory
 From inside the working directory
@@ -50,12 +54,19 @@ Or from the parent directory
 `dupver -r repo_path init -p project_name working_directory`
 
 ### Commit
-Stage your files by adding them to aø tar file
+Stage your files by adding them to a tar file
 
 `tar cfv tarfile.tar file1 file2 file`
 
 Commit the tarfile with
 `dupver commit -m "commit message" tarfile.tar`
+
+Alternatively run 
+`dupver commit -m "commit message"`
+from within the working directory
+
+To commit to a specific repository run
+`dupver commit -n repo_name -m "commit message"`    
 
 ### List commits
 List all commits
@@ -63,6 +74,10 @@ List all commits
 
 List a specific commit
 `dupver log commit_id`
+
+### Copy
+Copy a commit 
+`dupver copy dest_repo commit_id`
 
 ### Check if files are modified/added
 `dupver status`

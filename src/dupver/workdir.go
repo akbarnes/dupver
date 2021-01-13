@@ -5,31 +5,24 @@ import (
 	"log"
 	"path"
 	"path/filepath"
+
 	// "io"
 	// "bufio"
 	"os"
+	"strconv"
 	"strings"
+
 	// "crypto/sha256"
 	// "encoding/json"
 
 	"github.com/BurntSushi/toml"
 )
 
-// "name": "default",
-// "id": "macbook-air-home",
-// "repository": "",
-// "storage": "/Volumes/Shared/Backups/Duplicacy/MBAir",
-// "encrypted": true,
-// "no_backup": false,
-// "no_restore": false,
-// "no_save_password": false,
-// "nobackup_file": "",
-// "keys": null
-
 type workDirConfig struct {
 	WorkDirName string
+	Branch string
 	DefaultRepo string
-	RepoPath string
+	// RepoPath    string
 	Repos map[string]string
 }
 
@@ -37,11 +30,14 @@ func FolderToWorkDirName(folder string) string {
 	return strings.ReplaceAll(strings.ToLower(folder), " ", "-")
 }
 
-func InitWorkDir(workDirFolder string, workDirName string, repoName string, repoPath string, opts Options) {
+func InitWorkDir(workDirFolder string, workDirName string, opts Options) {
 	var configPath string
+	repoName := opts.RepoName
+	repoPath := opts.RepoPath
+	branch := opts.Branch
 
 	if opts.Verbosity >= 2 {
-		fmt.Printf("Workdir %s, name %s, repo %s\n", workDirFolder, workDirName, repoPath)
+		fmt.Printf("Workdir %s, name %s, repo %s\n", workDirFolder, workDirName, opts.RepoPath)
 	}
 
 	if len(workDirFolder) == 0 {
@@ -52,6 +48,10 @@ func InitWorkDir(workDirFolder string, workDirName string, repoName string, repo
 		configPath = filepath.Join(workDirFolder, ".dupver", "config.toml")
 	}
 
+	if opts.Verbosity >= 2 {
+		fmt.Println("Writing workdir config file to: " + configPath)
+	}
+
 	if len(workDirName) == 0 || workDirName == "." {
 		if len(workDirFolder) == 0 {
 			dir, err := os.Getwd()
@@ -60,7 +60,10 @@ func InitWorkDir(workDirFolder string, workDirName string, repoName string, repo
 			}
 			// _, folder := path.Split(dir)
 			folder := filepath.Base(dir)
-			fmt.Printf("%s -> %s\n", dir, folder)
+
+			if opts.Verbosity >= 3 {
+				fmt.Printf("Resolving folder %s to %s\n", dir, folder)
+			}
 			workDirName = FolderToWorkDirName(folder)
 		} else {
 			workDirName = FolderToWorkDirName(workDirFolder)
@@ -92,13 +95,14 @@ func InitWorkDir(workDirFolder string, workDirName string, repoName string, repo
 	var myConfig workDirConfig
 	// need to pass this as a parameter
 	myConfig.DefaultRepo = repoName
-	myConfig.RepoPath = repoPath
+
+	// TODO: specify an arbitrary branch
 	myRepos := make(map[string]string)
 	myRepos[repoName] = repoPath
 	myConfig.Repos = myRepos
+	myConfig.Branch = branch
 	myConfig.WorkDirName = workDirName
-	fmt.Println(myConfig)
-	SaveWorkDirConfig(configPath, myConfig, false)
+	SaveWorkDirConfigFile(configPath, myConfig, false, opts)
 }
 
 var configPath string
@@ -106,8 +110,28 @@ var configPath string
 func AddRepoToWorkDir(workDirPath string, repoName string, repoPath string, opts Options) {
 	cfg := ReadWorkDirConfig(workDirPath)
 	cfg.Repos[repoName] = repoPath
-	configPath = filepath.Join(workDirPath, ".dupver", "config.toml")
-	SaveWorkDirConfig(configPath, cfg, true)
+	SaveWorkDirConfig(workDirPath, cfg, true, opts)
+}
+
+func ListWorkDirRepos(workDirPath string, opts Options) {
+	cfg := ReadWorkDirConfig(workDirPath)
+	maxLen := 0
+
+	for name, _ := range cfg.Repos {
+		if len(name) > maxLen {
+			maxLen = len(name)
+		}
+	}
+
+	fmtStr := "%" + strconv.Itoa(maxLen) + "s: %s\n"
+
+	for name, path := range cfg.Repos {
+		if opts.Verbosity == 0 {
+			fmt.Printf("%s %s\n", name, path)
+		} else {
+			fmt.Printf(fmtStr, name, path)
+		}
+	}
 }
 
 func UpdateWorkDirName(myWorkDirConfig workDirConfig, workDirName string) workDirConfig {
@@ -116,17 +140,6 @@ func UpdateWorkDirName(myWorkDirConfig workDirConfig, workDirName string) workDi
 	}
 
 	return myWorkDirConfig
-}
-
-func SaveWorkDirConfig(configPath string, myConfig workDirConfig, forceWrite bool) {
-	if _, err := os.Stat(configPath); err == nil && !forceWrite {
-		log.Fatal("Refusing to write existing project workdir config " + configPath)
-	}
-
-	f, _ := os.Create(configPath)
-	myEncoder := toml.NewEncoder(f)
-	myEncoder.Encode(myConfig)
-	f.Close()
 }
 
 func ReadWorkDirConfig(workDir string) workDirConfig {
@@ -159,6 +172,35 @@ func ReadWorkDirConfigFile(filePath string) workDirConfig {
 	return myConfig
 }
 
+func SaveWorkDirConfig(workDir string, myConfig workDirConfig, forceWrite bool, opts Options) {
+	var configPath string
+
+	if len(workDir) == 0 {
+		configPath = filepath.Join(".dupver", "config.toml")
+	} else {
+		configPath = filepath.Join(workDir, ".dupver", "config.toml")
+	}
+
+	SaveWorkDirConfigFile(configPath, myConfig, forceWrite, opts)
+}
+
+func SaveWorkDirConfigFile(configPath string, myConfig workDirConfig, forceWrite bool, opts Options) {
+	if _, err := os.Stat(configPath); err == nil && !forceWrite {
+		// panic("Refusing to write existing project workdir config " + configPath)
+		log.Fatal("Refusing to write existing project workdir config " + configPath)
+	}
+
+	if opts.Verbosity >= 2 {
+		fmt.Printf("Writing config:\n%+v\n", myConfig)
+		fmt.Printf("to: %s\n", configPath)
+	}
+
+	f, _ := os.Create(configPath)
+	myEncoder := toml.NewEncoder(f)
+	myEncoder.Encode(myConfig)
+	f.Close()
+}
+
 func WorkDirStatus(workDir string, snapshot Commit, opts Options) {
 	workDirPrefix := ""
 
@@ -174,7 +216,7 @@ func WorkDirStatus(workDir string, snapshot Commit, opts Options) {
 	}
 
 	if opts.Verbosity >= 2 {
-		fmt.Printf("Comparing changes for wd \"%s\" (prefix: \"%s\"\n", workDir, workDirPrefix)
+		fmt.Printf("Comparing changes for wd \"%s\" (prefix: \"%s\")\n", workDir, workDirPrefix)
 	}
 
 	myFileInfo := make(map[string]fileInfo)
@@ -210,12 +252,12 @@ func WorkDirStatus(workDir string, snapshot Commit, opts Options) {
 					if opts.Color {
 						fmt.Printf("%s", colorCyan)
 					}
-		
+
 					fmt.Printf("M %s\n", curPath)
-		
+
 					if opts.Color {
 						fmt.Printf("%s", colorReset)
-					}						
+					}
 					// fmt.Printf("M %s\n", curPath)
 					changes = true
 				}
@@ -223,12 +265,12 @@ func WorkDirStatus(workDir string, snapshot Commit, opts Options) {
 				if opts.Color {
 					fmt.Printf("%s", colorWhite)
 				}
-	
-				fmt.Printf("M %s\n", curPath)
-	
+
+				fmt.Printf("U %s\n", curPath)
+
 				if opts.Color {
 					fmt.Printf("%s", colorReset)
-				}					
+				}
 			}
 		} else if !strings.HasPrefix(curPath, path.Join(workDirPrefix, ".dupver")) {
 			if opts.Color {
@@ -239,7 +281,7 @@ func WorkDirStatus(workDir string, snapshot Commit, opts Options) {
 
 			if opts.Color {
 				fmt.Printf("%s", colorReset)
-			}			
+			}
 			changes = true
 		}
 
@@ -280,7 +322,7 @@ func WriteHead(headPath string, myHead Head, opts Options) {
 	CreateFolder(dir, opts.Verbosity)
 
 	if opts.Verbosity >= 2 {
-		fmt.Println("Writing head to " +  headPath)
+		fmt.Println("Writing head to " + headPath)
 	}
 
 	f, err := os.Create(headPath)
@@ -291,17 +333,19 @@ func WriteHead(headPath string, myHead Head, opts Options) {
 
 	myEncoder := toml.NewEncoder(f)
 	myEncoder.Encode(myHead)
-	f.Close()	
+	f.Close()
 }
 
-func ReadHead(headPath string) Head {
+func ReadHead(headPath string, opts Options) Head {
 	var myHead Head
 	f, err := os.Open(headPath)
 
 	if err != nil {
 		//panic(fmt.Sprintf("Error: Could not read head file %s", headPath))
-		fmt.Printf("No head file exists, returning defaut head struct\n")
-		return Head{BranchName: "main"}
+		if opts.Verbosity >= 2 {
+			fmt.Printf("No head file exists, returning default head struct\n")
+		}
+		return Head{Branch: "main"}
 	}
 	if _, err := toml.DecodeReader(f, &myHead); err != nil {
 		panic(fmt.Sprintf("Error:could not decode head file %s", headPath))
@@ -310,5 +354,3 @@ func ReadHead(headPath string) Head {
 	f.Close()
 	return myHead
 }
-
-

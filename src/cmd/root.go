@@ -1,36 +1,11 @@
-/*
-Copyright © 2020 Art Barnes <art@pin3.io>
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
-
-1. Redistributions of source code must retain the above copyright notice,
-   this list of conditions and the following disclaimer.
-
-2. Redistributions in binary form must reproduce the above copyright notice,
-   this list of conditions and the following disclaimer in the documentation
-   and/or other materials provided with the distribution.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-POSSIBILITY OF SUCH DAMAGE.
-*/
 package cmd
 
 import (
 	"fmt"
-	"github.com/spf13/cobra"
 	"os"
 	"path/filepath"
+
+	"github.com/spf13/cobra"
 
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/viper"
@@ -39,16 +14,14 @@ import (
 var cfgFile string
 var RepoName string
 var RepoPath string
-// var DestRepoName string // need this?
-var DestRepoPath string
-// var BranchID string // for copy - move to copy.go?
-// var SnapshotID string // for copy - move to copy.go?
+var Branch string
+var AllBranches bool
 var WorkDirPath string
+var Debug bool
 var Verbose bool
 var Quiet bool
 var Monochrome bool
 var Color bool
-
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -82,13 +55,15 @@ func init() {
 	// will be global for your application.
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.main.yaml)")
-	rootCmd.PersistentFlags().StringVarP(&RepoName, "repo-name", "n", "main", "repository name")
+	rootCmd.PersistentFlags().StringVarP(&RepoName, "repo-name", "n", "", "repository name")
 	rootCmd.PersistentFlags().StringVarP(&RepoPath, "repo-path", "r", "", "repository path")
-	rootCmd.PersistentFlags().StringVarP(&DestRepoPath, "dest-repo-path", "d", "", "destination repository path")
-	rootCmd.PersistentFlags().StringVarP(&WorkDirPath, "workdir-path", "d", "", "project working directory path")
+	rootCmd.PersistentFlags().StringVarP(&WorkDirPath, "workdir-path", "w", "", "project working directory path")
+	rootCmd.PersistentFlags().StringVarP(&Branch, "branch", "b", "", "branch name")
+	rootCmd.PersistentFlags().BoolVarP(&AllBranches, "all-branches", "A", false, "branch name")
+	rootCmd.PersistentFlags().BoolVarP(&Verbose, "debug", "d", false, "debug output")
 	rootCmd.PersistentFlags().BoolVarP(&Verbose, "verbose", "v", false, "verbose output")
-	rootCmd.PersistentFlags().BoolVarP(&Quiet, "quiet", "q", false, "quiet output")		
-	rootCmd.PersistentFlags().BoolVarP(&Monochrome, "monochrome", "M", false, "monochrome output")		
+	rootCmd.PersistentFlags().BoolVarP(&Quiet, "quiet", "q", false, "quiet output")
+	rootCmd.PersistentFlags().BoolVarP(&Monochrome, "monochrome", "M", false, "monochrome output")
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.

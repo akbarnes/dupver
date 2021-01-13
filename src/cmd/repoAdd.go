@@ -9,29 +9,33 @@ import (
 
 // repoAddCmd represents the repoAdd command
 var repoAddCmd = &cobra.Command{
-	Use:   "add",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+	Use:   "add [repo_path] [repo_name]",
+	Short: "Add a repository the current working directory",
+	Long: `This adds an additional repository
+to the current project working directory. 
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+The first optional positional argument
+allows for the repository path to be specified. The second optional
+positional argument allows for the repository name to be specified.
+These take precedence over the global command-line flags. While
+the positional arguments are considered optional, if they are
+ommitted the path and name must be specified by the global
+command-line flags.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		repoName := RepoName
 		repoPath := RepoPath
 
 		if len(args) >= 1 {
-			repoName = args[0]
+			repoPath = args[0]
 		}
 
 		if len(args) >= 2 {
-			repoPath = args[1]
+			repoName = args[1]
 		}
 
 		// TODO: Read repoPath from environment variable if empty
-		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Verbose, Quiet)
-		
+		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Debug, Verbose, Quiet)
+
 		if Monochrome || Quiet {
 			opts.Color = false
 		}
