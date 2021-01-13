@@ -1,14 +1,14 @@
 package dupver
 
 import (
-	"os"
-	"path/filepath"
-	"io"
 	"archive/tar"
 	"bufio"
 	"fmt"
+	"io"
 	"log"
+	"os"
 	"path"
+	"path/filepath"
 	"strings"
 	// "github.com/BurntSushi/toml"
 )
@@ -23,12 +23,12 @@ const colorCyan string = "\033[36m"
 const colorWhite string = "\033[37m"
 
 type Options struct {
-	Verbosity int
-	Color bool
-	WorkDirName string
-	RepoName string
-	RepoPath string
-	Branch string
+	Verbosity    int
+	Color        bool
+	WorkDirName  string
+	RepoName     string
+	RepoPath     string
+	Branch       string
 	DestRepoName string
 	DestRepoPath string
 }
@@ -43,7 +43,7 @@ func CalculateVerbosity(debug bool, verbose bool, quiet bool) int {
 	if quiet {
 		return 0
 	}
-	
+
 	if debug {
 		return 3
 	}
@@ -64,14 +64,13 @@ func CreateFolder(folderName string, verbosity int) {
 	if verbosity >= 1 {
 		fmt.Printf("Creating folder %s\n", folderName)
 	}
-	os.MkdirAll(folderName, 0777)		
+	os.MkdirAll(folderName, 0777)
 }
 
 func CreateSubFolder(parentFolder string, subFolder string, verbosity int) {
 	folderPath := path.Join(parentFolder, subFolder)
 	CreateFolder(folderPath, verbosity)
 }
-
 
 func GetHome() string {
 	for _, e := range os.Environ() {
@@ -94,23 +93,23 @@ func TimeToPath(timeStr string) string {
 // Copy the src file to dst. Any existing file will be overwritten and will not
 // copy file attributes.
 func CopyFile(src, dst string) error {
-    in, err := os.Open(src)
-    if err != nil {
-        return err
-    }
-    defer in.Close()
+	in, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer in.Close()
 
-    out, err := os.Create(dst)
-    if err != nil {
-        return err
-    }
-    defer out.Close()
+	out, err := os.Create(dst)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
 
-    _, err = io.Copy(out, in)
-    if err != nil {
-        return err
-    }
-    return out.Close()
+	_, err = io.Copy(out, in)
+	if err != nil {
+		return err
+	}
+	return out.Close()
 }
 
 func CreateRandomTarFile(workDirFolder string, repoPath string) string {
@@ -196,7 +195,18 @@ func WriteRandomTar(buf *os.File, workDirFolder string, repoPath string) {
 	// myConfig.WorkDirName = workDirName
 	// myEncoder := toml.NewEncoder(tw)
 	// myEncoder.Encode(myConfig)
-	cfgStr := fmt.Sprintf("WorkDirName = \"%s\"\nRepoPath = \"%s\"", workDirName, repoPath)
+
+	// WorkDirName = "ep-risk-characterization"
+	// Branch = "main"
+	// DefaultRepo = "main"
+
+	// [Repos]
+	//   main = "C:\\Users\\305232\\.dupver_repo"
+
+	cfgStr := fmt.Sprintf("WorkDirName = \"%s\"\n", workDirName)
+	cfgStr = cfgStr + "Branch = \"main\"\n"
+	cfgStr = cfgStr + "DefaultRepo = \"main\"\n\n"
+	cfgStr = cfgStr + fmt.Sprintf("[Repos]\n  main = \"%s\"", strings.Replace(repoPath, "\\", "\\\\", -1))
 	bytes := []byte(cfgStr)
 
 	hdr = &tar.Header{

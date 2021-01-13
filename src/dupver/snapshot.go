@@ -203,17 +203,17 @@ func CopySnapshot(snapshotId string, sourceRepoPath string, destRepoPath string,
 	}
 }
 
-func CommitFile(filePath string, parentIds []string, msg string, opts Options) {
+func CommitFile(filePath string, parentIds []string, msg string, opts Options) Commit {
 	var myWorkDirConfig workDirConfig
 
 	t := time.Now()
 
-	var mySnapshot Commit
+	var snap Commit
 	// var myHead Head
-	mySnapshot.ID = RandHexString(SNAPSHOT_ID_LEN)
-	mySnapshot.Time = t.Format("2006/01/02 15:04:05")
-	mySnapshot = UpdateMessage(mySnapshot, msg, filePath)
-	mySnapshot.Files, myWorkDirConfig, _ = ReadTarFileIndex(filePath, opts.Verbosity)
+	snap.ID = RandHexString(SNAPSHOT_ID_LEN)
+	snap.Time = t.Format("2006/01/02 15:04:05")
+	snap = UpdateMessage(snap, msg, filePath)
+	snap.Files, myWorkDirConfig, _ = ReadTarFileIndex(filePath, opts.Verbosity)
 
 	if len(opts.RepoName) == 0 {
 		opts.RepoName = myWorkDirConfig.DefaultRepo
@@ -231,7 +231,7 @@ func CommitFile(filePath string, parentIds []string, msg string, opts Options) {
 		opts.Branch = myWorkDirConfig.Branch
 	}
 
-	mySnapshot.Branch = opts.Branch
+	snap.Branch = opts.Branch
 
 	myRepoConfig := ReadRepoConfigFile(path.Join(opts.RepoPath, "config.toml"))
 	branchFolder := path.Join(opts.RepoPath, "branches", opts.WorkDirName)
@@ -242,24 +242,24 @@ func CommitFile(filePath string, parentIds []string, msg string, opts Options) {
 		fmt.Printf("Branch: %s\nParent commit: %s\n", opts.Branch, myBranch.CommitID)
 	}
 
-	mySnapshot.ParentIDs = append([]string{myBranch.CommitID}, parentIds...)
+	snap.ParentIDs = append([]string{myBranch.CommitID}, parentIds...)
 
 	chunkIDs, chunkPacks := PackFile(filePath, opts.RepoPath, myRepoConfig.ChunkerPolynomial, opts.Verbosity)
-	mySnapshot.ChunkIDs = chunkIDs
+	snap.ChunkIDs = chunkIDs
 
 	snapshotFolder := path.Join(opts.RepoPath, "snapshots", opts.WorkDirName)
-	snapshotBasename := fmt.Sprintf("%s", mySnapshot.ID[0:40])
+	snapshotBasename := fmt.Sprintf("%s", snap.ID[0:40])
 	os.Mkdir(snapshotFolder, 0777)
 	snapshotPath := path.Join(snapshotFolder, snapshotBasename+".json")
-	WriteSnapshot(snapshotPath, mySnapshot)
+	WriteSnapshot(snapshotPath, snap)
 
 	// Do I really need to track commit id in head??
-	myBranch.CommitID = mySnapshot.ID
+	myBranch.CommitID = snap.ID
 
 	WriteBranch(branchPath, myBranch, opts.Verbosity)
 
 	treeFolder := path.Join(opts.RepoPath, "trees")
-	treeBasename := mySnapshot.ID[0:40]
+	treeBasename := snap.ID[0:40]
 	os.Mkdir(treeFolder, 0777)
 	treePath := path.Join(treeFolder, treeBasename+".json")
 	WriteTree(treePath, chunkPacks)
@@ -269,14 +269,16 @@ func CommitFile(filePath string, parentIds []string, msg string, opts Options) {
 			fmt.Printf("%s", colorGreen)
 		}
 
-		fmt.Printf("Created snapshot %s (%s)\n", mySnapshot.ID[0:16], mySnapshot.ID)
+		fmt.Printf("Created snapshot %s (%s)\n", snap.ID[0:16], snap.ID)
 
 		if opts.Color {
 			fmt.Printf("%s", colorReset)
 		}
 	} else {
-		fmt.Println(mySnapshot.ID)
+		fmt.Println(snap.ID)
 	}
+
+	return snap
 }
 
 func UpdateMessage(mySnapshot Commit, msg string, filePath string) Commit {
