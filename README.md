@@ -4,7 +4,6 @@
 Dupver is a minimalist deduplicating version control system in Go based on 
 the Restic chunking library. It is most similar to the binary
 version control system Boar https://bitbucket.org/mats_ekberg/boar/wiki/Home, 
-and to a lesser extent the commercial offering Perforce,
 though it borrows design conventions from the deduplicating backup
 applications Duplicacy, Restic and Borg.
 Dupver does not track files, rather it stores commits as snapshots more like
@@ -21,6 +20,32 @@ repositories.
 
 Dupver has not been tested on repository sizes more than
 a few GB, but it is expected to scale up to the low 100's of GB. 
+
+## Other Similar Software
+
+### Binary VCS
+
+### Boar 
+https://bitbucket.org/mats_ekberg/boar/wiki/Home
+An earlier binary VCS written in Python. This also uses as central repository. It has a simple and well-documented repository format, though only performs file-level deduplication. Block-level deduplication is available, but Linux-only. 
+
+### Dud
+https://github.com/kevin-hanselman/dud
+
+### Perforce
+Commercial software. AFAIK performs file-level deduplication with compression at the file level.
+
+### Deduplicating Storage
+
+#### Zbackup
+This allows for a single file such as a tar archive to be stored with block-level deduplication and retrieved with a unique hash.
+
+#### Bup
+Deduplicating backup software based on the Git packfile format. I'm lumping it under storage because it still retains the ability to store a single file such as a tar archive and retrieve it with a unique hash.
+
+### Deduplicating Backup Software
+This includes Borg, Restic and Duplicacy.
+
 
 ## Setup
 [Binary releases](https://github.com/akbarnes/dupver/releases) are provided for MacOS/Linux/Windows. Copy them somewhere in your path. To build from source run `go build` or `go install`.
