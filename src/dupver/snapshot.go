@@ -353,7 +353,7 @@ func GetFullSnapshotId(snapshotId string, opts Options) string {
 		n := len(snapshotId) - 1
 		sid := filepath.Base(snapshotPath)
 		sid = sid[0 : len(sid)-5]
-		fmt.Printf("path: %s\nsid: %s\n", snapshotPath, sid)
+		// fmt.Printf("path: %s\nsid: %s\n", snapshotPath, sid)
 
 		if len(sid) < len(snapshotId) {
 			n = len(sid) - 1
@@ -512,21 +512,20 @@ func PrintSnapshots(snapshotId string, maxSnapshots int, opts Options) {
 	}
 }
 
-func PrintAllSnapshots(snapshot string, opts Options) {
+func PrintAllSnapshots(snapshotId string, opts Options) {
 	// fmt.Printf("Verbosity = %d\n", opts.Verbosity)
-	snapshotPaths := ListSnapshots(opts)
 	// print a specific revision
 
 	if opts.Verbosity >= 1 {
 		fmt.Printf("Branch: %s\n", opts.Branch)
 	}
 
-	if len(snapshot) == 0 {
+	if len(snapshotId) == 0 {
 		if opts.Verbosity >= 1 {
 			fmt.Println("Snapshot History")
 		}
 
-		for _, snapshotPath := range snapshotPaths {
+		for _, snapshotPath := range ListSnapshots(opts) {
 			// fmt.Printf("Path: %s\n", snapshotPath)
 			PrintSnapshot(ReadSnapshotFile(snapshotPath), 10, opts)
 		}
@@ -535,29 +534,15 @@ func PrintAllSnapshots(snapshot string, opts Options) {
 			fmt.Println("Snapshot")
 		}
 
-		for _, snapshotPath := range snapshotPaths {
-			// if i >= 1 {
-			// 	fmt.Println("\n")
-			// }
-
-			n := len(snapshotPath)
-			snapshotId := snapshotPath[n-SNAPSHOT_ID_LEN-5 : n-5]
-
-			if snapshotId[0:8] == snapshot {
-				snap := ReadSnapshotFile(snapshotPath)
-				b := opts.Branch
-
-				if len(b) == 0 || len(b) > 0 && b == snap.Branch {
-					PrintSnapshot(snap, 0, opts)
-				}
-			}
-		}
+		snap := ReadSnapshot(snapshotId, opts)
+		// PrintSnapshot(snap, 0, opts)
+		PrintSnapshotFiles(snap, 0, opts)
 	}
 }
 
 func PrintSnapshot(mySnapshot Commit, maxFiles int, opts Options) {
 	if opts.Verbosity <= 0 {
-		fmt.Printf("%s\n", mySnapshot.ID)
+		fmt.Printf("%s %s %s\n", mySnapshot.ID, mySnapshot.Time, mySnapshot.Message)
 		return
 	}
 
@@ -579,4 +564,26 @@ func PrintSnapshot(mySnapshot Commit, maxFiles int, opts Options) {
 	}
 
 	fmt.Printf("\n")
+}
+
+// "Files": [
+//     {
+//       "Path": "Arduino/",
+//       "ModTime": "2019/06/27 05:25:16",
+//       "Size": 0,
+//       "Hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+//     },
+
+func PrintSnapshotFiles(mySnapshot Commit, maxFiles int, opts Options) {
+	for i, file := range mySnapshot.Files {
+		if opts.Verbosity == 0 {
+			fmt.Printf("%s\n%d\n%s\n\n", file.ModTime, file.Size, file.Path)
+		} else {
+			fmt.Printf("MTime: %s\nSize: %dB\nPath: %s\n\n", file.ModTime, file.Size, file.Path)
+		}
+
+		if maxFiles > 0 && i >= maxFiles {
+			break
+		}
+	}
 }

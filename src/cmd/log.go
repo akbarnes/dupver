@@ -68,10 +68,7 @@ a commit ID to print in additional detail.`,
 			fmt.Println("")
 		}
 
-		myHead := dupver.ReadHead(headPath, opts)
-
-		snapshotId := myHead.CommitID
-		numSnapshots := 0
+		snapshotId := ""
 
 		if opts.Verbosity >= 2 {
 			fmt.Println("Commit ID:")
@@ -82,14 +79,17 @@ a commit ID to print in additional detail.`,
 		// TODO: Yeesh...move this mess into a function
 		if len(args) >= 1 {
 			snapshotId = dupver.GetFullSnapshotId(args[0], opts)
-			numSnapshots = 1
+		}
+
+		if opts.Verbosity >= 2 {
+			fmt.Printf("Full snapshot ID: %s\n", snapshotId)
 		}
 
 		if Monochrome || Quiet {
 			opts.Color = false
 		}
 
-		dupver.PrintSnapshots(snapshotId, numSnapshots, opts)
+		dupver.PrintAllSnapshots(snapshotId, opts)
 	},
 }
 

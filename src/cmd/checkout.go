@@ -40,6 +40,7 @@ To specify a tar file name, use the --output flag.`,
 			}
 		}
 
+		opts.WorkDirName = cfg.WorkDirName
 		opts.RepoName = RepoName
 		opts.RepoPath = RepoPath
 
