@@ -80,6 +80,10 @@ var commitCmd = &cobra.Command{
 			opts.Color = false
 		}
 
+        if len(WorkDirPath) > 0 {
+            os.Chdir(WorkDirPath)
+        }
+
 		opts.RepoName = RepoName
 		opts.RepoPath = RepoPath
 		opts.Branch = Branch

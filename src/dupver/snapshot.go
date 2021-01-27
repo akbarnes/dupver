@@ -238,7 +238,7 @@ func CommitFile(filePath string, parentIds []string, msg string, opts Options) C
 	branchPath := path.Join(branchFolder, myWorkDirConfig.Branch+".toml")
 	myBranch := ReadBranch(branchPath)
 
-	if opts.Verbosity >= 1 {
+	if opts.Verbosity >= 2 {
 		fmt.Printf("Branch: %s\nParent commit: %s\n", opts.Branch, myBranch.CommitID)
 	}
 

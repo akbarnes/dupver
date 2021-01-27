@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+    "os"
 	// "log"
 
 	"github.com/akbarnes/dupver/src/dupver"
@@ -24,6 +25,10 @@ with the --monochrome flag.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg := dupver.ReadWorkDirConfig(WorkDirPath)
 		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Debug, Verbose, Quiet)
+
+        if len(WorkDirPath) > 0 {
+            os.Chdir(WorkDirPath)
+        }
 
 		if opts.Verbosity >= 2 {
 			fmt.Printf("cfg:\n%+v\n\n", cfg)
@@ -74,7 +79,7 @@ with the --monochrome flag.`,
 			opts.Color = false
 		}
 
-		dupver.WorkDirStatus(WorkDirPath, mySnapshot, opts)
+		dupver.WorkDirStatus("", mySnapshot, opts)
 	},
 }
 

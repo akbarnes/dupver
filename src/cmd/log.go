@@ -23,7 +23,7 @@ a commit ID to print in additional detail.`,
 		// fmt.Println("Verbosity:")
 		// fmt.Println(opts.Verbosity)
 		// fmt.Println("")
-    
+
         if len(WorkDirPath) > 0 {
             os.Chdir(WorkDirPath)
         }
