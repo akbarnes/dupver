@@ -579,7 +579,19 @@ func PrintSnapshotFiles(mySnapshot Commit, maxFiles int, opts Options) {
 		if opts.Verbosity == 0 {
 			fmt.Printf("%s\n%d\n%s\n\n", file.ModTime, file.Size, file.Path)
 		} else {
-			fmt.Printf("MTime: %s\nSize: %dB\nPath: %s\n\n", file.ModTime, file.Size, file.Path)
+			fmt.Printf("%s ", file.ModTime)
+
+			if file.Size >= 1e9 {
+				fmt.Printf("%5.1f GB ", float64(file.Size)/1e9)
+			} else if file.Size >= 1e6 {
+				fmt.Printf("%5.1f MB ", float64(file.Size)/1e6)
+			} else if file.Size >= 1e3 {
+				fmt.Printf("%5.1f kB ", float64(file.Size)/1e3)
+			} else {
+				fmt.Printf("%5d B  ", file.Size)
+			}
+
+			fmt.Printf("%s\n", file.Path)
 		}
 
 		if maxFiles > 0 && i >= maxFiles {

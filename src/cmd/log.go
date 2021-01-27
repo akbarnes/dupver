@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"path/filepath"
+    "os"
 
 	"github.com/akbarnes/dupver/src/dupver"
 	"github.com/spf13/cobra"
@@ -22,6 +23,10 @@ a commit ID to print in additional detail.`,
 		// fmt.Println("Verbosity:")
 		// fmt.Println(opts.Verbosity)
 		// fmt.Println("")
+    
+        if len(WorkDirPath) > 0 {
+            os.Chdir(WorkDirPath)
+        }
 
 		if opts.Verbosity >= 2 {
 			fmt.Println("cfg:")
