@@ -33,12 +33,14 @@ type Options struct {
 	DestRepoPath string
 }
 
+// Halt if error parameter is not nil
 func Check(e error) {
 	if e != nil {
 		panic(e)
 	}
 }
 
+// Calculate the verbosity level given parameters
 func CalculateVerbosity(debug bool, verbose bool, quiet bool) int {
 	if quiet {
 		return 0
@@ -55,11 +57,13 @@ func CalculateVerbosity(debug bool, verbose bool, quiet bool) int {
 	return 1
 }
 
+// Set the verbosity level given command-line flags
 func SetVerbosity(opts Options, debug bool, verbose bool, quiet bool) Options {
 	opts.Verbosity = CalculateVerbosity(debug, verbose, quiet)
 	return opts
 }
 
+// Create a folder path
 func CreateFolder(folderName string, verbosity int) {
 	if verbosity >= 1 {
 		fmt.Printf("Creating folder %s\n", folderName)
@@ -67,11 +71,13 @@ func CreateFolder(folderName string, verbosity int) {
 	os.MkdirAll(folderName, 0777)
 }
 
+// Create a subfolder given a parent folder
 func CreateSubFolder(parentFolder string, subFolder string, verbosity int) {
 	folderPath := path.Join(parentFolder, subFolder)
 	CreateFolder(folderPath, verbosity)
 }
 
+// Get the user's home folder path
 func GetHome() string {
 	for _, e := range os.Environ() {
 		pair := strings.SplitN(e, "=", 2)
@@ -86,12 +92,13 @@ func GetHome() string {
 	return ""
 }
 
+// Convert a Date/Time string into a format that is a valid file path
 func TimeToPath(timeStr string) string {
 	return strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(timeStr, ":", "-"), "/", "-"), " ", "T")
 }
 
-// Copy the src file to dst. Any existing file will be overwritten and will not
-// copy file attributes.
+// Copy the source file to a destination file. Any existing file 
+// will be overwritten and will not copy file attributes.
 func CopyFile(src, dst string) error {
 	in, err := os.Open(src)
 	if err != nil {
@@ -112,25 +119,8 @@ func CopyFile(src, dst string) error {
 	return out.Close()
 }
 
-func CreateRandomTarFile(workDirFolder string, repoPath string) string {
-	var fileName string
-	fileName = "test_" + RandString(24, HexChars) + ".tar"
-	WriteRandomTarFile(fileName, workDirFolder, repoPath)
-	return fileName
-}
-
-func WriteRandomTarFile(fileName string, workDirFolder string, repoPath string) {
-	f, err := os.Create(fileName)
-
-	if err != nil {
-		panic(fmt.Sprintf("Error creating random tar file %s", fileName))
-	}
-
-	WriteRandomTar(f, workDirFolder, repoPath)
-	// WriteRandom(f, 50000, 100, HexChars)
-	f.Close()
-}
-
+// Given a filename, create a random text file 
+// with the specified number of lines and column width
 func WriteRandomText(f *os.File, numLines int, numCols int, charset string) {
 	w := bufio.NewWriter(f)
 
@@ -147,6 +137,32 @@ func WriteRandomText(f *os.File, numLines int, numCols int, charset string) {
 	w.Flush()
 }
 
+// Given a working directory and repository, create a randomly named 
+// tar file with a dupver workdir configuration and a set of 10 50 MB 
+// random binary files
+func CreateRandomTarFile(workDirFolder string, repoPath string) string {
+	var fileName string
+	fileName = "test_" + RandString(24, HexChars) + ".tar"
+	WriteRandomTarFile(fileName, workDirFolder, repoPath)
+	return fileName
+}
+
+// Given a filename, create a tar file with a dupver  workdir configuration 
+// and and a set of 10 50 MB random binary files
+func WriteRandomTarFile(fileName string, workDirFolder string, repoPath string) {
+	f, err := os.Create(fileName)
+
+	if err != nil {
+		panic(fmt.Sprintf("Error creating random tar file %s", fileName))
+	}
+
+	WriteRandomTar(f, workDirFolder, repoPath)
+	// WriteRandom(f, 50000, 100, HexChars)
+	f.Close()
+}
+
+// Given a file handle, create a tar file with a dupver workdir configuration
+// and and a set of 10 50 MB random binary files
 func WriteRandomTar(buf *os.File, workDirFolder string, repoPath string) {
 	nFiles := 10
 

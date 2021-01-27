@@ -26,10 +26,12 @@ type workDirConfig struct {
 	Repos map[string]string
 }
 
+// Create a valid project name given a folder name
 func FolderToWorkDirName(folder string) string {
 	return strings.ReplaceAll(strings.ToLower(folder), " ", "-")
 }
 
+// Initialize a project working directory with a working directory configuration
 func InitWorkDir(workDirFolder string, workDirName string, opts Options) {
 	var configPath string
 	repoName := opts.RepoName
@@ -107,12 +109,14 @@ func InitWorkDir(workDirFolder string, workDirName string, opts Options) {
 
 var configPath string
 
+// Add a new repository to the working directory configuration
 func AddRepoToWorkDir(workDirPath string, repoName string, repoPath string, opts Options) {
 	cfg := ReadWorkDirConfig(workDirPath)
 	cfg.Repos[repoName] = repoPath
 	SaveWorkDirConfig(workDirPath, cfg, true, opts)
 }
 
+// List the repositories in the working directory configuration
 func ListWorkDirRepos(workDirPath string, opts Options) {
 	cfg := ReadWorkDirConfig(workDirPath)
 	maxLen := 0
@@ -134,6 +138,7 @@ func ListWorkDirRepos(workDirPath string, opts Options) {
 	}
 }
 
+// Change the project name in the working directory configuration
 func UpdateWorkDirName(myWorkDirConfig workDirConfig, workDirName string) workDirConfig {
 	if len(workDirName) > 0 {
 		myWorkDirConfig.WorkDirName = workDirName
@@ -142,6 +147,8 @@ func UpdateWorkDirName(myWorkDirConfig workDirConfig, workDirName string) workDi
 	return myWorkDirConfig
 }
 
+// Load a project working directory configuration given 
+// the working directory path
 func ReadWorkDirConfig(workDir string) workDirConfig {
 	var configPath string
 
@@ -154,6 +161,8 @@ func ReadWorkDirConfig(workDir string) workDirConfig {
 	return ReadWorkDirConfigFile(configPath)
 }
 
+// Load a project working directory configuration given 
+// the project working directory configuration file path
 func ReadWorkDirConfigFile(filePath string) workDirConfig {
 	var myConfig workDirConfig
 
@@ -172,6 +181,8 @@ func ReadWorkDirConfigFile(filePath string) workDirConfig {
 	return myConfig
 }
 
+// Save a project working directory configuration given 
+// the working directory path
 func SaveWorkDirConfig(workDir string, myConfig workDirConfig, forceWrite bool, opts Options) {
 	var configPath string
 
@@ -184,6 +195,8 @@ func SaveWorkDirConfig(workDir string, myConfig workDirConfig, forceWrite bool, 
 	SaveWorkDirConfigFile(configPath, myConfig, forceWrite, opts)
 }
 
+// Save a project working directory configuration given 
+// the project working directory configuration file path
 func SaveWorkDirConfigFile(configPath string, myConfig workDirConfig, forceWrite bool, opts Options) {
 	if _, err := os.Stat(configPath); err == nil && !forceWrite {
 		// panic("Refusing to write existing project workdir config " + configPath)
@@ -201,6 +214,8 @@ func SaveWorkDirConfigFile(configPath string, myConfig workDirConfig, forceWrite
 	f.Close()
 }
 
+// Compare the status of files in a working directory
+// against a snapshot
 func WorkDirStatus(workDir string, snapshot Commit, opts Options) {
 	workDirPrefix := ""
 
