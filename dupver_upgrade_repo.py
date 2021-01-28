@@ -13,20 +13,10 @@ cfg_path = ".dupver/config.toml"
 with open(cfg_path) as f:
     cfg = toml.load(f)
 
-time = datetime.now().strftime("%Y-%m-%dT%H-%M-%S")
-cfg_backup_path = f".dupver/config-{time}.toml"
-os.rename(cfg_path, cfg_backup_path)
-
-cfg['DefaultRepo'] = 'main'
-cfg['Repos'] = {'main': cfg['RepoPath']}
-
-with open(cfg_path, 'w') as f:
-    toml.dump(cfg, f)
-
-## Update repos to v0.4 format
+## Update repos to v0.8 format
 # 1. Add prev pointers to snapshot files
-# 2. Add branch & head pointers
-# 3. Convert snapshot filenames to drop date
+# 2. Add branch pointer
+# 3. Set branch to main
 
 # glob the snapshots
 snapshot_path = os.path.join(cfg['RepoPath'], 'snapshots', cfg['WorkDirName'])
@@ -44,13 +34,13 @@ with open(snapshots[0]) as f:
     s = json.load(f)
 
 cid = s['ID']
+s['Branch'] = 'main'
 
 if 'ParentIDs' in s and s['ParentIDs'] is not None:
     print(f"Non-empty parent id {s['ParentIDs']} in first file")
 else:
     print('No parent ids')
     s['ParentIDs'] = []
-    s.pop('Tags', 'ignore_missing')
     
 new_snapshot_path = os.path.join(cfg['RepoPath'], 'snapshots', cfg['WorkDirName'], f"{cid}.json")
 print(f"Writing snapshot 1 to {new_snapshot_path}")
@@ -68,6 +58,7 @@ for i in range(1,len(snapshots)):
     with open(sp) as f:
         s = json.load(f)
 
+    s['Branch'] = 'main'
     cid = s['ID']
 
     if 'ParentIDs' in s and s['ParentIDs'] is not None:
@@ -81,7 +72,6 @@ for i in range(1,len(snapshots)):
         s['ParentIDs'] = [pid]
 
     # save as cid
-    s.pop('Tags', 'ignore_missing')
     new_snapshot_path = os.path.join(cfg['RepoPath'], 'snapshots', cfg['WorkDirName'], f"{cid}.json")
     print(f"Writing snapshot {i+1} to {new_snapshot_path}")
 
@@ -89,15 +79,6 @@ for i in range(1,len(snapshots)):
         json.dump(s, f, indent=2)
 
     pid = cid
-
-# now create head, branch
-h = {'CommitID': cid, 'BranchName': 'main'}
-b = {'CommitID': cid}
-
-head_path = '.dupver/head.toml'
-print(f"Writing head to {head_path}")
-with open(head_path,'w') as f:
-    toml.dump(h, f)
 
 branch_folder = os.path.join(cfg['RepoPath'], 'branches', cfg['WorkDirName'])
 branch_path = os.path.join(branch_folder, "main.toml")
@@ -109,14 +90,5 @@ print(f"Writing branch to {branch_path}")
 with open(branch_path, 'w') as f:
     toml.dump(b, f)
 
-# ───────┬───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-#        │ File: .dupver/config.toml
-# ───────┼───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-#    1   │ WorkDirName = "altra-lone-peak-2.5s-ii"
-#    2   │ DefaultRepo = "main"
-#    3   │ RepoPath = "/Users/art/.dupver_repo"
-#    4   │ 
-#    5   │ [Repos]
-#    6   │   main = "/Users/art/.dupver_repo"
 
 

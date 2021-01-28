@@ -17,6 +17,7 @@ time = datetime.now().strftime("%Y-%m-%dT%H-%M-%S")
 cfg_backup_path = f".dupver/config-{time}.toml"
 os.rename(cfg_path, cfg_backup_path)
 
+cfg["Version"] = '0.8'
 cfg["Branch"] = 'main'
 cfg['DefaultRepo'] = 'main'
 cfg['Repos'] = {'main': cfg.pop('RepoPath')}
