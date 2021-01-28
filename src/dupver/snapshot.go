@@ -466,6 +466,11 @@ func LastSnapshot(opts Options) Commit {
 	}
 
 	sort.Strings(snapshotDates)
+
+	if len(snapshotDates) == 0 {
+		panic("No snapshots")
+	}
+
 	return snapshotsByDate[snapshotDates[len(snapshotDates)-1]]
 }
 
