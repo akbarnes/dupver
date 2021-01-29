@@ -56,6 +56,8 @@ const TREE_ID_LEN int = 40
 // CopyBranch - a bit trickier as need to rename branches to reponame.branch
 //              and repo will need to have a unique name
 //              stick with names in workdir for now
+
+// Copy a snapshot given a snapshot ID, source repo path and dest repo path
 func CopySnapshot(snapshotId string, sourceRepoPath string, destRepoPath string, opts Options) {
 	fmt.Printf("Copying snapshot %s: %s -> %s\n", snapshotId, sourceRepoPath, destRepoPath)
 	sourceSnapshotsFolder := filepath.Join(sourceRepoPath, "snapshots", opts.WorkDirName)
@@ -203,6 +205,9 @@ func CopySnapshot(snapshotId string, sourceRepoPath string, destRepoPath string,
 	}
 }
 
+// Commit a tar file into the repository. Project working directory name,
+// branch and repository path are specified in the .dupver/config.toml
+// file within the tar file
 func CommitFile(filePath string, parentIds []string, msg string, opts Options) Commit {
 	var myWorkDirConfig workDirConfig
 
@@ -213,7 +218,7 @@ func CommitFile(filePath string, parentIds []string, msg string, opts Options) C
 	snap.ID = RandHexString(SNAPSHOT_ID_LEN)
 	snap.Time = t.Format("2006/01/02 15:04:05")
 	snap = UpdateMessage(snap, msg, filePath)
-	snap.Files, myWorkDirConfig, _ = ReadTarFileIndex(filePath, opts.Verbosity)
+	snap.Files, myWorkDirConfig = ReadTarFileIndex(filePath, opts.Verbosity)
 
 	if len(opts.RepoName) == 0 {
 		opts.RepoName = myWorkDirConfig.DefaultRepo
@@ -281,6 +286,7 @@ func CommitFile(filePath string, parentIds []string, msg string, opts Options) C
 	return snap
 }
 
+// Remove PowerShell artifact of leading .\ in commit messages
 func UpdateMessage(mySnapshot Commit, msg string, filePath string) Commit {
 	if len(msg) == 0 {
 		msg = strings.Replace(filePath[0:len(filePath)-4], ".\\", "", -1)
@@ -290,6 +296,8 @@ func UpdateMessage(mySnapshot Commit, msg string, filePath string) Commit {
 	return mySnapshot
 }
 
+// Write a snapshot to disk given a file path
+// TODO: Change this to WriteSnapshotFile?
 func WriteSnapshot(snapshotPath string, mySnapshot Commit) {
 	f, err := os.Create(snapshotPath)
 
@@ -302,6 +310,8 @@ func WriteSnapshot(snapshotPath string, mySnapshot Commit) {
 	f.Close()
 }
 
+// Create a pointer-style tag given tag name and snapshot ID
+// Repo path is specified in options structure
 func CreateTag(tagName string, snapshotId string, opts Options) {
 	tagFolder := path.Join(opts.RepoPath, "tags", opts.WorkDirName)
 	tagPath := path.Join(tagFolder, tagName+".toml")

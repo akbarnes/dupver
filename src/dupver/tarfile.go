@@ -16,24 +16,26 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
-
-func ReadTarFileIndex(filePath string, verbosity int) ([]fileInfo, workDirConfig, Head) {
+// Read the files, workdir configuration and head from a tar file
+// given a filename
+func ReadTarFileIndex(filePath string, verbosity int) ([]fileInfo, workDirConfig) {
 	tarFile, err := os.Open(filePath)
 
 	if err != nil {
 		log.Fatal(fmt.Sprintf("Error: Could not open input tar file %s when reading index", filePath))
 	}
 
-	files, myConfig, myHead := ReadTarIndex(tarFile, verbosity)
+	files, myConfig := ReadTarIndex(tarFile, verbosity)
 	tarFile.Close()
 
-	return files, myConfig, myHead
+	return files, myConfig
 }
 
-func ReadTarIndex(tarFile *os.File, verbosity int) ([]fileInfo, workDirConfig, Head) {
+// Read the files, workdir configuration and head from a tar file
+// given a file object
+func ReadTarIndex(tarFile *os.File, verbosity int) ([]fileInfo, workDirConfig) {
 	files := []fileInfo{}
 	var myConfig workDirConfig
-	var myHead Head
 	// var baseFolder string
 	// var configPath string
 	maxFiles := 10
@@ -73,19 +75,6 @@ func ReadTarIndex(tarFile *os.File, verbosity int) ([]fileInfo, workDirConfig, H
 			// fmt.Printf("Read config\nworkdir name: %s\nrepo path: %s\n", myConfig.WorkDirName, myConfig.RepoPath)
 		}
 
-		if strings.HasSuffix(hdr.Name, ".dupver/head.toml") {
-			if verbosity >= 1 {
-				fmt.Printf("Reading head file %s\n", hdr.Name)
-			}
-
-
-			if _, err := toml.DecodeReader(tr, &myHead); err != nil {
-				panic(fmt.Sprintf("Error decoding head file %s while reading tar file index", hdr.Name))
-			}
-
-			// fmt.Printf("Read config\nworkdir name: %s\nrepo path: %s\n", myConfig.WorkDirName, myConfig.RepoPath)
-		}		
-
 		var myFileInfo fileInfo
 
 		bytes := make([]byte, hdr.Size)
@@ -122,5 +111,5 @@ func ReadTarIndex(tarFile *os.File, verbosity int) ([]fileInfo, workDirConfig, H
 		fmt.Printf("...\nSkipping %d more files\n", i-maxFiles)
 	}
 
-	return files, myConfig, myHead
+	return files, myConfig
 }

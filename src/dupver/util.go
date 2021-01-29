@@ -2,7 +2,7 @@ package dupver
 
 import (
 	"archive/tar"
-	"bufio"
+	// "bufio"
 	"fmt"
 	"io"
 	"log"
@@ -117,24 +117,6 @@ func CopyFile(src, dst string) error {
 		return err
 	}
 	return out.Close()
-}
-
-// Given a filename, create a random text file 
-// with the specified number of lines and column width
-func WriteRandomText(f *os.File, numLines int, numCols int, charset string) {
-	w := bufio.NewWriter(f)
-
-	b := make([]byte, numCols)
-
-	for r := 0; r < numLines; r += 1 {
-		for c := range b {
-			b[c] = charset[seededRand.Intn(len(charset))]
-		}
-
-		fmt.Fprintf(w, "%s\n", b)
-	}
-
-	w.Flush()
 }
 
 // Given a working directory and repository, create a randomly named 

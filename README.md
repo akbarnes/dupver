@@ -21,30 +21,8 @@ repositories.
 Dupver has not been tested on repository sizes more than
 a few GB, but it is expected to scale up to the low 100's of GB. 
 
-## Other Similar Software
-
-### Binary VCS
-
-### Boar 
-https://bitbucket.org/mats_ekberg/boar/wiki/Home
-An earlier binary VCS written in Python. This also uses as central repository. It has a simple and well-documented repository format, though only performs file-level deduplication. Block-level deduplication is available, but Linux-only. 
-
-### Dud
-https://github.com/kevin-hanselman/dud
-
-### Perforce
-Commercial software. AFAIK performs file-level deduplication with compression at the file level.
-
-### Deduplicating Storage
-
-#### Zbackup
-This allows for a single file such as a tar archive to be stored with block-level deduplication and retrieved with a unique hash.
-
-#### Bup
-Deduplicating backup software based on the Git packfile format. I'm lumping it under storage because it still retains the ability to store a single file such as a tar archive and retrieve it with a unique hash.
-
-### Deduplicating Backup Software
-This includes Borg, Restic and Duplicacy.
+There are a number of [similar software projects](similar-software.md) both
+in terms of technical implementation and use case.
 
 
 ## Setup
@@ -55,12 +33,9 @@ This includes Borg, Restic and Duplicacy.
 2. Add branch & head pointers
 3. Convert snapshot filenames to drop date
 
-## TODO:
-- [ ] Split ReadHead into ReadHead & ReadHeadFile, or combine ReadWorkDirConfig & ReadWorkDirConfigFile into a single function
-- [ ] Add tags as pointers to commits
-- [ ] remove parent-ids parameter
-- [ ] Remove branches, though leave this in the repo. Use a mapping of "/" to "_branch_" in the workdir name going to the repo folders. Need to simplify stuff 
-
+## Update repos to v0.8  format
+1. Remove head pointers
+2. Add main branch tag to snapshots
 
 ## Usage
 

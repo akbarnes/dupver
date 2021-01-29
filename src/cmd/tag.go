@@ -53,8 +53,14 @@ specifed commit id. If only a tag is specified `,
 			fmt.Printf("Head path: %s\n\n", headPath)
 		}
 
-		myHead := dupver.ReadHead(headPath, opts)
-		snapshotId := myHead.CommitID
+		var snapshotId string
+
+		if len(args) >= 1 {
+			snapshotId = dupver.GetFullSnapshotId(args[0], opts)
+		} else {
+			mySnapshot := dupver.LastSnapshot(opts)	
+			snapshotId = mySnapshot.ID
+		}
 
 		if opts.Verbosity >= 2 {
 			fmt.Printf("Commit ID: %s\n\n", snapshotId)

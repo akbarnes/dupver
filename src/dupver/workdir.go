@@ -31,7 +31,8 @@ func FolderToWorkDirName(folder string) string {
 	return strings.ReplaceAll(strings.ToLower(folder), " ", "-")
 }
 
-// Initialize a project working directory with a working directory configuration
+// Initialize a project working directory configuration 
+// given the working directory path and project name
 func InitWorkDir(workDirFolder string, workDirName string, opts Options) {
 	var configPath string
 	repoName := opts.RepoName
@@ -106,8 +107,6 @@ func InitWorkDir(workDirFolder string, workDirName string, opts Options) {
 	myConfig.WorkDirName = workDirName
 	SaveWorkDirConfigFile(configPath, myConfig, false, opts)
 }
-
-var configPath string
 
 // Add a new repository to the working directory configuration
 func AddRepoToWorkDir(workDirPath string, repoName string, repoPath string, opts Options) {
@@ -330,42 +329,4 @@ func WorkDirStatus(workDir string, snapshot Commit, opts Options) {
 	if !changes && opts.Verbosity >= 1 {
 		fmt.Printf("No changes detected\n")
 	}
-}
-
-func WriteHead(headPath string, myHead Head, opts Options) {
-	dir := filepath.Dir(headPath)
-	CreateFolder(dir, opts.Verbosity)
-
-	if opts.Verbosity >= 2 {
-		fmt.Println("Writing head to " + headPath)
-	}
-
-	f, err := os.Create(headPath)
-
-	if err != nil {
-		panic(fmt.Sprintf("Error: Could not create head file %s", headPath))
-	}
-
-	myEncoder := toml.NewEncoder(f)
-	myEncoder.Encode(myHead)
-	f.Close()
-}
-
-func ReadHead(headPath string, opts Options) Head {
-	var myHead Head
-	f, err := os.Open(headPath)
-
-	if err != nil {
-		//panic(fmt.Sprintf("Error: Could not read head file %s", headPath))
-		if opts.Verbosity >= 2 {
-			fmt.Printf("No head file exists, returning default head struct\n")
-		}
-		return Head{Branch: "main"}
-	}
-	if _, err := toml.DecodeReader(f, &myHead); err != nil {
-		panic(fmt.Sprintf("Error:could not decode head file %s", headPath))
-	}
-
-	f.Close()
-	return myHead
 }

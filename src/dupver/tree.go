@@ -9,6 +9,8 @@ import (
 	"os"
 )
 
+// Write out a JSON tree file, given a chunk to pack map
+// and a filename for the tree
 func WriteTree(treePath string, chunkPacks map[string]string) {
 	f, err := os.Create(treePath)
 
@@ -22,6 +24,8 @@ func WriteTree(treePath string, chunkPacks map[string]string) {
 	f.Close()
 }
 
+// Read a JSON tree file into a chunk-pack map 
+// given a repository path
 func ReadTrees(repoPath string) map[string]string {
 	treesGlob := path.Join(repoPath, "trees", "*.json")
 	// fmt.Println(treesGlob)
