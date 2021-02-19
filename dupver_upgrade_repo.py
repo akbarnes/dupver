@@ -19,7 +19,8 @@ with open(cfg_path) as f:
 # 3. Set branch to main
 
 # glob the snapshots
-snapshot_path = os.path.join(cfg['RepoPath'], 'snapshots', cfg['WorkDirName'])
+repo_path = cfg['Repos'][cfg['DefaultRepo']]
+snapshot_path = os.path.join(repo_path, 'snapshots', cfg['WorkDirName'])
 print(f'Snapshot path: {snapshot_path}\n')
 snapshots = glob(os.path.join(snapshot_path, '*.json'))
 snapshots = sorted(snapshots)
