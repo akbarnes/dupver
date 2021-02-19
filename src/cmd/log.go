@@ -2,8 +2,8 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
-    "os"
 
 	"github.com/akbarnes/dupver/src/dupver"
 	"github.com/spf13/cobra"
@@ -18,15 +18,22 @@ var logCmd = &cobra.Command{
 If an optional positional argument is provided, this will specify
 a commit ID to print in additional detail.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		cfg := dupver.ReadWorkDirConfig(WorkDirPath)
+		cfg, err := dupver.ReadWorkDirConfig(WorkDirPath)
 		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Debug, Verbose, Quiet)
+
+		if err != nil {
+			// Todo: handle invalid configuration file
+			fmt.Println("Could not read configuration file. Has the project working directory been initialized?")
+			os.Exit(0)
+		}
+
 		// fmt.Println("Verbosity:")
 		// fmt.Println(opts.Verbosity)
 		// fmt.Println("")
 
-        if len(WorkDirPath) > 0 {
-            os.Chdir(WorkDirPath)
-        }
+		if len(WorkDirPath) > 0 {
+			os.Chdir(WorkDirPath)
+		}
 
 		if opts.Verbosity >= 2 {
 			fmt.Println("cfg:")

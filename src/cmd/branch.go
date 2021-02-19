@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 	// "log"
 	// "path/filepath"
 
@@ -15,8 +16,14 @@ var branchCmd = &cobra.Command{
 	Short: "Switch project working directory to a branch",
 	Long:  `This will switch a project working directory to the specified branch. `,
 	Run: func(cmd *cobra.Command, args []string) {
-		cfg := dupver.ReadWorkDirConfig(WorkDirPath)
+		cfg, err := dupver.ReadWorkDirConfig(WorkDirPath)
 		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Debug, Verbose, Quiet)
+
+		if err != nil {
+			// Todo: handle invalid configuration file
+			fmt.Println("Could not read configuration file. Has the project working directory been initialized?")
+			os.Exit(0)
+		}
 
 		if opts.Verbosity >= 2 {
 			fmt.Println("cfg:")

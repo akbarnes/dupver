@@ -2,7 +2,8 @@ package cmd
 
 import (
 	"fmt"
-    "os"
+	"os"
+
 	// "log"
 
 	"github.com/akbarnes/dupver/src/dupver"
@@ -23,12 +24,18 @@ chunks rather than diffs). For usage as part of a comm
 	and pipeline, colors can be disabled
 with the --monochrome flag.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		cfg := dupver.ReadWorkDirConfig(WorkDirPath)
+		cfg, err := dupver.ReadWorkDirConfig(WorkDirPath)
 		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Debug, Verbose, Quiet)
 
-        if len(WorkDirPath) > 0 {
-            os.Chdir(WorkDirPath)
-        }
+		if err != nil {
+			// Todo: handle invalid configuration file
+			fmt.Println("Could not read configuration file. Has the project working directory been initialized?")
+			os.Exit(0)
+		}
+
+		if len(WorkDirPath) > 0 {
+			os.Chdir(WorkDirPath)
+		}
 
 		if opts.Verbosity >= 2 {
 			fmt.Printf("cfg:\n%+v\n\n", cfg)

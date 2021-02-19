@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/akbarnes/dupver/src/dupver"
 	"github.com/spf13/cobra"
@@ -22,8 +23,14 @@ a tar file with the default name
 workdir_name-YYYY-MM-DDThh-mm-ss-commit_id[0:15].tar.
 To specify a tar file name, use the --output flag.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		cfg := dupver.ReadWorkDirConfig(WorkDirPath)
+		cfg, err := dupver.ReadWorkDirConfig(WorkDirPath)
 		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Debug, Verbose, Quiet)
+
+		if err != nil {
+			// Todo: handle invalid configuration file
+			fmt.Println("Could not read configuration file. Has the project working directory been initialized?")
+			os.Exit(0)
+		}
 
 		if Monochrome || Quiet {
 			opts.Color = false

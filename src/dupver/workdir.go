@@ -1,17 +1,17 @@
 package dupver
 
 import (
+	"errors"
 	"fmt"
 	"log"
+	"os"
 	"path"
 	"path/filepath"
-
-	// "io"
-	// "bufio"
-	"os"
 	"strconv"
 	"strings"
 
+	// "io"
+	// "bufio"
 	// "crypto/sha256"
 	// "encoding/json"
 
@@ -20,7 +20,7 @@ import (
 
 type workDirConfig struct {
 	WorkDirName string
-	Branch string
+	Branch      string
 	DefaultRepo string
 	// RepoPath    string
 	Repos map[string]string
@@ -31,7 +31,7 @@ func FolderToWorkDirName(folder string) string {
 	return strings.ReplaceAll(strings.ToLower(folder), " ", "-")
 }
 
-// Initialize a project working directory configuration 
+// Initialize a project working directory configuration
 // given the working directory path and project name
 func InitWorkDir(workDirFolder string, workDirName string, opts Options) {
 	var configPath string
@@ -110,15 +110,28 @@ func InitWorkDir(workDirFolder string, workDirName string, opts Options) {
 
 // Add a new repository to the working directory configuration
 func AddRepoToWorkDir(workDirPath string, repoName string, repoPath string, opts Options) {
-	cfg := ReadWorkDirConfig(workDirPath)
+	cfg, err := ReadWorkDirConfig(workDirPath)
+
+	if err != nil {
+		// Todo: handle invalid configuration file
+		fmt.Println("Could not read configuration file. Has the project working directory been initialized?")
+		os.Exit(0)
+	}
+
 	cfg.Repos[repoName] = repoPath
 	SaveWorkDirConfig(workDirPath, cfg, true, opts)
 }
 
 // List the repositories in the working directory configuration
 func ListWorkDirRepos(workDirPath string, opts Options) {
-	cfg := ReadWorkDirConfig(workDirPath)
+	cfg, err := ReadWorkDirConfig(workDirPath)
 	maxLen := 0
+
+	if err != nil {
+		// Todo: handle invalid configuration file
+		fmt.Println("Could not read configuration file. Has the project working directory been initialized?")
+		os.Exit(0)
+	}
 
 	for name, _ := range cfg.Repos {
 		if len(name) > maxLen {
@@ -146,9 +159,9 @@ func UpdateWorkDirName(myWorkDirConfig workDirConfig, workDirName string) workDi
 	return myWorkDirConfig
 }
 
-// Load a project working directory configuration given 
+// Load a project working directory configuration given
 // the working directory path
-func ReadWorkDirConfig(workDir string) workDirConfig {
+func ReadWorkDirConfig(workDir string) (workDirConfig, error) {
 	var configPath string
 
 	if len(workDir) == 0 {
@@ -160,27 +173,27 @@ func ReadWorkDirConfig(workDir string) workDirConfig {
 	return ReadWorkDirConfigFile(configPath)
 }
 
-// Load a project working directory configuration given 
+// Load a project working directory configuration given
 // the project working directory configuration file path
-func ReadWorkDirConfigFile(filePath string) workDirConfig {
+func ReadWorkDirConfigFile(filePath string) (workDirConfig, error) {
 	var myConfig workDirConfig
 
 	f, err := os.Open(filePath)
 
 	if err != nil {
-		log.Fatal(fmt.Sprintf("Could not open project working directory config file %s", filePath))
+		return workDirConfig{}, errors.New("config file missing")
 	}
 
 	if _, err = toml.DecodeReader(f, &myConfig); err != nil {
-		log.Fatal(fmt.Sprintf("Could not decode TOML in project working directory config file %s", filePath))
+		log.Fatal("Invalid configuration file " + filePath)
 	}
 
 	f.Close()
 
-	return myConfig
+	return myConfig, nil
 }
 
-// Save a project working directory configuration given 
+// Save a project working directory configuration given
 // the working directory path
 func SaveWorkDirConfig(workDir string, myConfig workDirConfig, forceWrite bool, opts Options) {
 	var configPath string
@@ -194,7 +207,7 @@ func SaveWorkDirConfig(workDir string, myConfig workDirConfig, forceWrite bool, 
 	SaveWorkDirConfigFile(configPath, myConfig, forceWrite, opts)
 }
 
-// Save a project working directory configuration given 
+// Save a project working directory configuration given
 // the project working directory configuration file path
 func SaveWorkDirConfigFile(configPath string, myConfig workDirConfig, forceWrite bool, opts Options) {
 	if _, err := os.Stat(configPath); err == nil && !forceWrite {

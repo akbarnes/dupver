@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 	// "log"
 	"path/filepath"
 
@@ -19,9 +20,15 @@ Without any arguments this will list tags for the repository. If a
 tag name and commit id are provided, this will add a tag for the 
 specifed commit id. If only a tag is specified `,
 	Run: func(cmd *cobra.Command, args []string) {
-		cfg := dupver.ReadWorkDirConfig(WorkDirPath)
+		cfg, err := dupver.ReadWorkDirConfig(WorkDirPath)
 		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Debug, Verbose, Quiet)
 		tagName := ""
+
+		if err != nil {
+			// Todo: handle invalid configuration file
+			fmt.Println("Could not read configuration file. Has the project working directory been initialized?")
+			os.Exit(0)
+		}
 
 		if opts.Verbosity >= 2 {
 			fmt.Println("cfg:")
@@ -58,7 +65,7 @@ specifed commit id. If only a tag is specified `,
 		if len(args) >= 1 {
 			snapshotId = dupver.GetFullSnapshotId(args[0], opts)
 		} else {
-			mySnapshot := dupver.LastSnapshot(opts)	
+			mySnapshot := dupver.LastSnapshot(opts)
 			snapshotId = mySnapshot.ID
 		}
 
