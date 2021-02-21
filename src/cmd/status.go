@@ -75,7 +75,13 @@ with the --monochrome flag.`,
 			snapshotId := dupver.GetFullSnapshotId(args[0], opts)
 			mySnapshot = dupver.ReadSnapshot(snapshotId, opts)
 		} else {
-			mySnapshot = dupver.LastSnapshot(opts)
+			mySnapshot, err = dupver.LastSnapshot(opts)
+
+			if err != nil {
+				if opts.Verbosity >= 1 {
+					fmt.Printf("No snapshots")
+				}
+			}
 		}
 
 		if opts.Verbosity >= 2 {

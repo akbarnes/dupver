@@ -1,18 +1,18 @@
 package dupver
 
 import (
+	"archive/zip"
 	"encoding/json"
 	"errors"
 	"fmt"
-
-	// "log"
-	"archive/zip"
 	"os"
 	"path"
 	"path/filepath"
 	"sort"
 	"strings"
 	"time"
+
+	// "log"
 
 	"github.com/BurntSushi/toml"
 )
@@ -448,7 +448,7 @@ func ListSnapshots(opts Options) []string {
 	return snapshotPaths
 }
 
-func LastSnapshot(opts Options) Commit {
+func LastSnapshot(opts Options) (Commit, error) {
 	repoPath := opts.RepoPath
 	projectName := opts.WorkDirName
 
@@ -478,7 +478,7 @@ func LastSnapshot(opts Options) Commit {
 	sort.Strings(snapshotDates)
 
 	if len(snapshotDates) == 0 {
-		panic("No snapshots")
+		return Commit{}, errors.New("no snapshots")
 	}
 
 	return snapshotsByDate[snapshotDates[len(snapshotDates)-1]]
