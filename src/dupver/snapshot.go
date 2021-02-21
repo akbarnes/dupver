@@ -18,7 +18,6 @@ import (
 )
 
 type Commit struct {
-	// TarFileName string
 	ID        string
 	Branch    string
 	Message   string
@@ -26,13 +25,6 @@ type Commit struct {
 	ParentIDs []string
 	Files     []fileInfo
 	ChunkIDs  []string
-}
-
-type Head struct {
-	Branch    string
-	CommitID  string // use this for detached head, but do I need this?
-	Branches  map[string]string
-	CommitIDs map[string]string
 }
 
 type Branch struct {
@@ -324,6 +316,11 @@ func CreateTag(tagName string, snapshotId string, opts Options) {
 	WriteBranch(tagPath, myTag, opts.Verbosity)
 }
 
+
+// Save the current branch head to a file
+// TODO: Update this to use opts structure
+// TODO: Change this to WriteBranchFile?
+// TODO: Change this to take in a file stream? - Probably not, why would I need to?
 func WriteBranch(branchPath string, myBranch Branch, verbosity int) {
 	dir := filepath.Dir(branchPath)
 	CreateFolder(dir, verbosity)
@@ -338,6 +335,8 @@ func WriteBranch(branchPath string, myBranch Branch, verbosity int) {
 	f.Close()
 }
 
+// Read the current branch head from a file
+// TODO: Add some better error handling rather than the printf on line 346
 func ReadBranch(branchPath string) Branch {
 	var myBranch Branch
 	f, err := os.Open(branchPath)
@@ -356,6 +355,9 @@ func ReadBranch(branchPath string) Branch {
 	return myBranch
 }
 
+// Given a partial snapshot ID, return the full snapshot ID
+// by looking through the snapshots for a project
+ // TODO: return an error if no match
 func GetFullSnapshotId(snapshotId string, opts Options) string {
 	snapshotPaths := ListSnapshots(opts)
 
@@ -375,10 +377,10 @@ func GetFullSnapshotId(snapshotId string, opts Options) string {
 		}
 	}
 
-	// TODO: return an error if no match
 	return snapshotId
 }
 
+// Read a snapshot given a full snapshot ID
 func ReadSnapshot(snapshot string, opts Options) Commit {
 	snapshotsFolder := filepath.Join(opts.RepoPath, "snapshots", opts.WorkDirName)
 	snapshotPath := filepath.Join(snapshotsFolder, snapshot+".json")
@@ -390,6 +392,7 @@ func ReadSnapshot(snapshot string, opts Options) Commit {
 	return ReadSnapshotFile(snapshotPath)
 }
 
+// Read a snapshot given a file path
 func ReadSnapshotFile(snapshotPath string) Commit {
 	var mySnapshot Commit
 	f, err := os.Open(snapshotPath)
@@ -409,6 +412,7 @@ func ReadSnapshotFile(snapshotPath string) Commit {
 	return mySnapshot
 }
 
+// Read a snapshot given a partial snapshot ID
 func ReadSnapshotId(snapshotId string, opts Options) (Commit, error) {
 	snapshotPaths := ListSnapshots(opts)
 
@@ -422,18 +426,6 @@ func ReadSnapshotId(snapshotId string, opts Options) (Commit, error) {
 	}
 
 	return Commit{}, errors.New(fmt.Sprintf("Could not find snapshot %s", snapshotId))
-}
-
-func GetRevIndex(revision int, numCommits int) int {
-	revIndex := numCommits - 1
-
-	if revision > 0 {
-		revIndex = revision - 1
-	} else if revision < 0 {
-		revIndex = numCommits + revision
-	}
-
-	return revIndex
 }
 
 func ListSnapshots(opts Options) []string {
@@ -481,7 +473,7 @@ func LastSnapshot(opts Options) (Commit, error) {
 		return Commit{}, errors.New("no snapshots")
 	}
 
-	return snapshotsByDate[snapshotDates[len(snapshotDates)-1]]
+	return snapshotsByDate[snapshotDates[len(snapshotDates)-1]], nil
 }
 
 func PrintSnapshots(snapshotId string, maxSnapshots int, opts Options) {

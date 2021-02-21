@@ -1,4 +1,4 @@
-package cmd
+	package cmd
 
 import (
 	"fmt"
@@ -65,7 +65,12 @@ specifed commit id. If only a tag is specified `,
 		if len(args) >= 1 {
 			snapshotId = dupver.GetFullSnapshotId(args[0], opts)
 		} else {
-			mySnapshot := dupver.LastSnapshot(opts)
+			mySnapshot, err := dupver.LastSnapshot(opts)
+
+			if err != nil {
+				fmt.Println("No snapshots found in project working directory. Have you initialized and commited yet?")
+				os.Exit(1)
+			}
 			snapshotId = mySnapshot.ID
 		}
 

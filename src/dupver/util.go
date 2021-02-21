@@ -63,7 +63,7 @@ func SetVerbosity(opts Options, debug bool, verbose bool, quiet bool) Options {
 	return opts
 }
 
-// Create a folder path
+// Create a folder path with appropriate permissions
 func CreateFolder(folderName string, verbosity int) {
 	if verbosity >= 1 {
 		fmt.Printf("Creating folder %s\n", folderName)

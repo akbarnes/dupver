@@ -79,7 +79,7 @@ func TestWorkDirInit(t *testing.T) {
 
 	dupver.InitWorkDir(workDirFolder, projectName, opts)
 
-	cfg := dupver.ReadWorkDirConfig(workDirFolder)
+	cfg, _ := dupver.ReadWorkDirConfig(workDirFolder)
 
 	if cfg.Repos[cfg.DefaultRepo] != repoPath {
 		t.Error("Incorrect repo path retrieved")
@@ -132,7 +132,7 @@ func TestCommit(t *testing.T) {
 	snapshot := dupver.CommitFile(fileName, []string{}, msg, opts)
 
 	// ----------- Commit the tar file  ----------- //
-	myWorkDirConfig := dupver.ReadWorkDirConfig(workDirFolder)
+	myWorkDirConfig, _ := dupver.ReadWorkDirConfig(workDirFolder)
 	dupver.PrintAllSnapshots("", opts)
 
 	fmt.Printf("snapshot: %+v\n\n", snapshot)

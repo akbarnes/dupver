@@ -24,7 +24,7 @@ a commit ID to print in additional detail.`,
 		if err != nil {
 			// Todo: handle invalid configuration file
 			fmt.Println("Could not read configuration file. Has the project working directory been initialized?")
-			os.Exit(0)
+			os.Exit(1)
 		}
 
 		// fmt.Println("Verbosity:")

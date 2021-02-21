@@ -22,7 +22,6 @@ type workDirConfig struct {
 	WorkDirName string
 	Branch      string
 	DefaultRepo string
-	// RepoPath    string
 	Repos map[string]string
 }
 
@@ -130,7 +129,7 @@ func ListWorkDirRepos(workDirPath string, opts Options) {
 	if err != nil {
 		// Todo: handle invalid configuration file
 		fmt.Println("Could not read configuration file. Has the project working directory been initialized?")
-		os.Exit(0)
+		os.Exit(1)
 	}
 
 	for name, _ := range cfg.Repos {
