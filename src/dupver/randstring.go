@@ -11,10 +11,12 @@ var seededRand *rand.Rand = rand.New(
 
 const HexChars = "0123456789abcdef"
 
+// Return a random string of specified length with hexadecimal characters
 func RandHexString(length int) string {
 	return RandString(length, HexChars)
 }
 
+// Return a random string of specified length with an arbitrary character set
 func RandString(length int, charset string) string {
 	b := make([]byte, length)
 

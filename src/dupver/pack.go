@@ -25,7 +25,7 @@ type packIndex struct {
 	ChunkIDs []string
 }
 
-
+// Pack a file to the repository given a file path
 func PackFile(filePath string, repoPath string, mypoly chunker.Pol, verbosity int) ([]string, map[string]string) {
 	f, err := os.Open(filePath)
 
@@ -37,7 +37,7 @@ func PackFile(filePath string, repoPath string, mypoly chunker.Pol, verbosity in
 	return chunkIDs, chunkPacks
 }
 
-
+// Pack a file stream to the repository
 // func WritePacks(f *os.File, repoPath string, poly int) map[string]string {
 func WritePacks(f *os.File, repoPath string, poly chunker.Pol, verbosity int) ([]string, map[string]string) {
 	const maxPackSize uint = 104857600 // 100 MB
@@ -159,7 +159,7 @@ func WritePacks(f *os.File, repoPath string, poly chunker.Pol, verbosity int) ([
 	return chunkIDs, newChunkPacks 
 }
 
-
+// Unpack a file from the repository to a specified file path
 func UnpackFile(filePath string, repoPath string, chunkIds []string, opts Options) {
 	chunkPacks := ReadTrees(repoPath)
 
@@ -173,7 +173,8 @@ func UnpackFile(filePath string, repoPath string, chunkIds []string, opts Option
 	f.Close()
 }
 
-// TODO: change name to something other than read
+// Unpack a file from the repository to an output stream
+// TODO: change name to something other than read (UnpackData?)
 func ReadPacks(tarFile *os.File, repoPath string, chunkIds []string, chunkPacks map[string]string, opts Options) {
 	for i, chunkId := range chunkIds {
 		packId := chunkPacks[chunkId]
@@ -212,6 +213,7 @@ func ReadPacks(tarFile *os.File, repoPath string, chunkIds []string, chunkPacks 
 	}
 }
 
+// Read a chunk from a specified repository given a chunk ID and chunk-pack mapping
 func LoadChunk(repoPath string, chunkId string, chunkPacks map[string]string, opts Options) []byte {
 	packId := chunkPacks[chunkId]
 

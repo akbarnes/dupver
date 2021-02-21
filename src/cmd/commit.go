@@ -17,6 +17,8 @@ import (
 var Add bool
 var Message string
 
+// Write a project working directory to a tar file in temp
+// given a working directory path and the path of its parent folder
 func CreateTar(parentPath string, commitPath string, opts dupver.Options) string {
 	tarFile := dupver.RandHexString(40) + ".tar"
 	tarFolder := filepath.Join(dupver.GetHome(), "temp")
@@ -34,6 +36,8 @@ func CreateTar(parentPath string, commitPath string, opts dupver.Options) string
 	return tarPath
 }
 
+// Write a project working directory to a tar file
+// given a working directory path, parent folder path and tar file path
 func CompressTar(parentPath string, commitPath string, tarPath string, opts dupver.Options) string {
 	if len(tarPath) == 0 {
 		tarPath = commitPath + ".tar"

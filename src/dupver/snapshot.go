@@ -428,6 +428,7 @@ func ReadSnapshotId(snapshotId string, opts Options) (Commit, error) {
 	return Commit{}, errors.New(fmt.Sprintf("Could not find snapshot %s", snapshotId))
 }
 
+// Return a list of the snapshot files for a given repository and project
 func ListSnapshots(opts Options) []string {
 	snapshotsFolder := path.Join(opts.RepoPath, "snapshots", opts.WorkDirName)
 	snapshotGlob := path.Join(snapshotsFolder, "*.json")
@@ -440,6 +441,7 @@ func ListSnapshots(opts Options) []string {
 	return snapshotPaths
 }
 
+// Return the most recent snapshot structure for the current project
 func LastSnapshot(opts Options) (Commit, error) {
 	repoPath := opts.RepoPath
 	projectName := opts.WorkDirName
@@ -476,6 +478,8 @@ func LastSnapshot(opts Options) (Commit, error) {
 	return snapshotsByDate[snapshotDates[len(snapshotDates)-1]], nil
 }
 
+// Print snapshots sorted in ascending order by date
+// TODO: change the name to PrintSnapshotsByDate?
 func PrintSnapshots(snapshotId string, maxSnapshots int, opts Options) {
 	repoPath := opts.RepoPath
 	projectName := opts.WorkDirName
@@ -519,6 +523,8 @@ func PrintSnapshots(snapshotId string, maxSnapshots int, opts Options) {
 	}
 }
 
+// Print snapshots without sorting
+// TODO: Check if this is redundant
 func PrintAllSnapshots(snapshotId string, opts Options) {
 	// fmt.Printf("Verbosity = %d\n", opts.Verbosity)
 	// print a specific revision
@@ -547,6 +553,7 @@ func PrintAllSnapshots(snapshotId string, opts Options) {
 	}
 }
 
+// Print a snapshot structure
 func PrintSnapshot(mySnapshot Commit, maxFiles int, opts Options) {
 	if opts.Verbosity <= 0 {
 		fmt.Printf("%s %s %s\n", mySnapshot.ID, mySnapshot.Time, mySnapshot.Message)
@@ -581,6 +588,7 @@ func PrintSnapshot(mySnapshot Commit, maxFiles int, opts Options) {
 //       "Hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
 //     },
 
+// Print the list of files stored in a snapshot
 func PrintSnapshotFiles(mySnapshot Commit, maxFiles int, opts Options) {
 	for i, file := range mySnapshot.Files {
 		if opts.Verbosity == 0 {

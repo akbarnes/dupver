@@ -17,6 +17,7 @@ type repoConfig struct {
 	ChunkerPolynomial chunker.Pol
 }
 
+// Initialize a repository
 func InitRepo(repoPath string, repoName string, chunkerPolynomial string, opts Options) {
 	if len(repoPath) == 0 {
 		repoPath = path.Join(GetHome(), ".dupver_repo")
@@ -76,6 +77,8 @@ func InitRepo(repoPath string, repoName string, chunkerPolynomial string, opts O
 	SaveRepoConfig(repoPath, myConfig, opts.Verbosity)
 }
 
+// Save a repository configuration to file
+// TODO: Should I add SaveRepoCondfigFile?
 func SaveRepoConfig(repoPath string, myConfig repoConfig, verbosity int) {
 	// TODO: add a check to make sure I don't over`write` existing
 	configPath := path.Join(repoPath, "config.toml")
@@ -99,6 +102,8 @@ func SaveRepoConfig(repoPath string, myConfig repoConfig, verbosity int) {
 	f.Close()
 }
 
+// Read a repository configuration given a file path
+// TODO: Should I add ReadRepoConfig?
 func ReadRepoConfigFile(filePath string) repoConfig {
 	var myConfig repoConfig
 
