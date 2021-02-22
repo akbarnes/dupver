@@ -2,7 +2,12 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+	"os/exec"
+	"log"
+	"path/filepath"
 
+	"github.com/akbarnes/dupver/src/dupver"
 	"github.com/spf13/cobra"
 )
 
@@ -17,7 +22,81 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("diff called")
+		cfg, err := dupver.ReadWorkDirConfig(WorkDirPath)
+		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Debug, Verbose, Quiet)
+
+		if err != nil {
+			// Todo: handle invalid configuration file
+			fmt.Println("Could not read configuration file. Has the project working directory been initialized?")
+			os.Exit(1)
+		}
+
+		if Monochrome || Quiet {
+			opts.Color = false
+		}
+
+		if len(RepoName) == 0 {
+			RepoName = cfg.DefaultRepo
+		}
+
+		if len(RepoPath) == 0 {
+			RepoPath = cfg.Repos[RepoName]
+			if opts.Verbosity >= 2 {
+				fmt.Printf("Updating repo path to %s\n", RepoPath)
+			}
+		}
+
+		opts.WorkDirName = cfg.WorkDirName
+		opts.RepoName = RepoName
+		opts.RepoPath = RepoPath
+
+		var snap dupver.Commit
+
+		// snapshotId := dupver.GetFullSnapshotId(args[0], opts)
+		if len(args) >= 1 {
+			snapshotId := dupver.GetFullSnapshotId(args[0], opts)
+			snap = dupver.ReadSnapshot(snapshotId, opts)
+		} else {
+			// TODO: check if err is not nil
+			snap, err = dupver.LastSnapshot(opts)
+		}
+
+		tarFile := dupver.RandHexString(40) + ".tar"
+		tarFolder := filepath.Join(dupver.GetHome(), "temp")
+		tarPath := filepath.Join(tarFolder, tarFile)
+
+		dupver.UnpackFile(tarPath, opts.RepoPath, snap.ChunkIDs, opts)
+
+		if opts.Verbosity >= 1 {
+			fmt.Printf("Wrote to %s\n", tarPath)
+		} else {
+			fmt.Printf(tarPath)
+		}
+
+		dir, err := os.Getwd()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		containingFolder := filepath.Dir(dir)
+		workdirFolder := filepath.Base(dir)
+
+
+		diffCmd := exec.Command("bcomp.exe", tarPath, workdirFolder)
+		diffCmd.Dir = containingFolder
+		diffCmd.Start()
+	
+		// if opts.Verbosity >= 1 {
+		// 	log.Printf("Running tar cfv %s %s", tarPath, cleanCommitPath)
+		// }
+	
+		// output, err := tarCmd.CombinedOutput()
+	
+		// if err != nil {
+		// 	log.Fatal(fmt.Sprintf("Tar command failed\nOutput:\n%s\nError:\n%s\n", output, err))
+		// } else if opts.Verbosity >= 3 {
+		// 	fmt.Printf("Ran tar command with output:\n%s\n", output)
+		// }	
 	},
 }
 
