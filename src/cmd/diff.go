@@ -22,6 +22,7 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		prefs, err := dupver.ReadPrefs()
 		cfg, err := dupver.ReadWorkDirConfig(WorkDirPath)
 		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Debug, Verbose, Quiet)
 
@@ -100,7 +101,7 @@ to quickly create a Cobra application.`,
 
 		committedFolder := filepath.Join(tarFolder, workdirFolder)
 
-		diffCmd := exec.Command("bcomp.exe", committedFolder, workdirFolder)
+		diffCmd := exec.Command(prefs.DiffTool, committedFolder, workdirFolder)
 		diffCmd.Dir = containingFolder
 		diffCmd.Start()
 	

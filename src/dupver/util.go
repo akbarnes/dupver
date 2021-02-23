@@ -10,7 +10,8 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
-	// "github.com/BurntSushi/toml"
+	"errors"
+	"github.com/BurntSushi/toml"
 )
 
 const colorReset string = "\033[0m"
@@ -21,6 +22,17 @@ const colorBlue string = "\033[34m"
 const colorPurple string = "\033[35m"
 const colorCyan string = "\033[36m"
 const colorWhite string = "\033[37m"
+
+// DiffTool = "bcompare.exe"
+// DefaultRepo = "main"
+
+// [Repos]
+//   main = "C:\\Users\\Art\\.dupver_repo"
+
+type Preferences struct {
+	DiffTool string
+	DefaultRepo string
+}
 
 type Options struct {
 	Verbosity    int
@@ -248,3 +260,32 @@ func WriteRandomTar(buf *os.File, workDirFolder string, repoPath string) {
 		log.Fatal(err)
 	}
 }
+
+// Load global preferences
+func ReadPrefs() (Preferences, error) {
+	prefsPath := filepath.Join(GetHome(), ".dupver", "prefs.toml")
+	return ReadPrefsFile(prefsPath)
+}
+
+// Load global preferences give a preferences file path
+func ReadPrefsFile(filePath string) (Preferences, error) {
+	var prefs Preferences
+	// TODO: set this differently for linux
+	prefs.DiffTool = "bcompare"
+	prefs.DefaultRepo = filepath.Join(GetHome(), ".dupver_repo")
+
+	f, err := os.Open(filePath)
+
+	if err != nil {
+		return prefs, errors.New("Preferences file missing")
+	}
+
+	if _, err = toml.DecodeReader(f, &prefs); err != nil {
+		log.Fatal("Invalid preferences file " + filePath)
+	}
+
+	f.Close()
+
+	return prefs, nil
+}
+
