@@ -61,9 +61,10 @@ to quickly create a Cobra application.`,
 			snap, err = dupver.LastSnapshot(opts)
 		}
 
-		tarFile := dupver.RandHexString(40) + ".tar"
-		tarFolder := filepath.Join(dupver.GetHome(), "temp")
-		tarPath := filepath.Join(tarFolder, tarFile)
+		randStr := dupver.RandHexString(40)
+		tarFolder := filepath.Join(dupver.GetHome(), "temp", randStr)
+		dupver.CreateFolder(tarFolder, opts.Verbosity	)
+		tarPath := filepath.Join(tarFolder, "snapshot.tar")
 
 		dupver.UnpackFile(tarPath, opts.RepoPath, snap.ChunkIDs, opts)
 
@@ -78,7 +79,7 @@ to quickly create a Cobra application.`,
 		tarCmd.Dir = tarFolder
 	
 		if opts.Verbosity >= 1 {
-			log.Printf("Running tar xfv %s %s", tarPath)
+			log.Printf("Running tar xfv %s", tarPath)
 		}
 	
 		output, err := tarCmd.CombinedOutput()
