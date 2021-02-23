@@ -73,6 +73,22 @@ to quickly create a Cobra application.`,
 			fmt.Printf(tarPath)
 		}
 
+		// TODO: Create a temporary folder to extract the tar file to
+		tarCmd := exec.Command("tar", "xfv", tarPath)
+		tarCmd.Dir = tarFolder
+	
+		if opts.Verbosity >= 1 {
+			log.Printf("Running tar xfv %s %s", tarPath)
+		}
+	
+		output, err := tarCmd.CombinedOutput()
+	
+		if err != nil {
+			log.Fatal(fmt.Sprintf("Tar command failed\nOutput:\n%s\nError:\n%s\n", output, err))
+		} else if opts.Verbosity >= 3 {
+			fmt.Printf("Ran tar command with output:\n%s\n", output)
+		}
+
 		dir, err := os.Getwd()
 		if err != nil {
 			log.Fatal(err)
@@ -81,8 +97,9 @@ to quickly create a Cobra application.`,
 		containingFolder := filepath.Dir(dir)
 		workdirFolder := filepath.Base(dir)
 
+		committedFolder := filepath.Join(tarFolder, workdirFolder)
 
-		diffCmd := exec.Command("bcomp.exe", tarPath, workdirFolder)
+		diffCmd := exec.Command("bcomp.exe", committedFolder, workdirFolder)
 		diffCmd.Dir = containingFolder
 		diffCmd.Start()
 	
