@@ -13,7 +13,7 @@ import (
 	"time"
 
 	// "log"
-
+	"github.com/akbarnes/dupver/src/fancy_print"
 	"github.com/BurntSushi/toml"
 )
 
@@ -529,21 +529,17 @@ func PrintAllSnapshots(snapshotId string, opts Options) {
 	// fmt.Printf("Verbosity = %d\n", opts.Verbosity)
 	// print a specific revision
 
-	if Verbosity >= NoticeLevel {
-		fmt.Printf("Branch: %s\n", opts.Branch)
-	}
+	fancy_print.Notice("Branch: " + opts.Branch)
 
 	if len(snapshotId) == 0 {
-		if Verbosity >= NoticeLevel {
-			fmt.Println("Snapshot History")
-		}
+		fancy_print.Notice("Snapshot History")
 
 		for _, snapshotPath := range ListSnapshots(opts) {
 			// fmt.Printf("Path: %s\n", snapshotPath)
 			PrintSnapshot(ReadSnapshotFile(snapshotPath), 10, opts)
 		}
 	} else {
-		if Verbosity >= NoticeLevel {
+		if fancy_print.Verbosity >= fancy_print.NoticeLevel {
 			fmt.Println("Snapshot")
 		}
 
@@ -555,20 +551,14 @@ func PrintAllSnapshots(snapshotId string, opts Options) {
 
 // Print a snapshot structure
 func PrintSnapshot(mySnapshot Commit, maxFiles int, opts Options) {
-	if Verbosity <= WarningLevel {
+	if fancy_print.Verbosity <= fancy_print.WarningLevel {
 		fmt.Printf("%s %s %s\n", mySnapshot.ID, mySnapshot.Time, mySnapshot.Message)
 		return
 	}
 
-	if ColorOutput {
-		fmt.Printf("%s", colorGreen)
-	}
-
+	fancy_print.SetColor(colorGreen)
 	fmt.Printf("ID: %s (%s)", mySnapshot.ID[0:8], mySnapshot.ID)
-
-	if ColorOutput {
-		fmt.Printf("%s", colorReset)
-	}
+	fancy_print.ResetColor()
 
 	fmt.Printf("\n")
 	fmt.Printf("Time: %s\n", mySnapshot.Time)
@@ -591,7 +581,7 @@ func PrintSnapshot(mySnapshot Commit, maxFiles int, opts Options) {
 // Print the list of files stored in a snapshot
 func PrintSnapshotFiles(mySnapshot Commit, maxFiles int, opts Options) {
 	for i, file := range mySnapshot.Files {
-		if Verbosity <= WarningLevel {
+		if fancy_print.Verbosity <= fancy_print.WarningLevel {
 			fmt.Printf("%s\n%d\n%s\n\n", file.ModTime, file.Size, file.Path)
 		} else {
 			fmt.Printf("%s ", file.ModTime)

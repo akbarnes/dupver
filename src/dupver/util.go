@@ -14,20 +14,6 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
-type VerbosityLevel int
-
-const (
-	CriticalLevel VerbosityLevel = iota + 1
-	ErrorLevel
-	WarningLevel
-	NoticeLevel
-	InfoLevel
-	DebugLevel
-)
-
-var Verbosity = NoticeLevel
-var ColorOutput = true
-
 const colorReset string = "\033[0m"
 const colorRed string = "\033[31m"
 const colorGreen string = "\033[32m"
@@ -87,27 +73,6 @@ func CalculateVerbosity(debug bool, verbose bool, quiet bool) int {
 func SetVerbosity(opts Options, debug bool, verbose bool, quiet bool) Options {
 	opts.Verbosity = CalculateVerbosity(debug, verbose, quiet)
 	return opts
-}
-
-// Disable colored output if monochrome flag is true
-func SetColor(monochrome bool) {
-	if monochrome {
-		ColorOutput = false
-	}
-}
-
-// Set the verbosity level given command-line flags
-func SetVerbosityLevel(debug bool, verbose bool, quiet bool) {
-	if quiet {
-		Verbosity = WarningLevel
-		ColorOutput = false
-	} else if debug {
-		Verbosity = DebugLevel
-	} else if verbose {
-		Verbosity = InfoLevel
-	} else {
-		Verbosity = NoticeLevel
-	}	
 }
 
 // Create a folder path with appropriate permissions
