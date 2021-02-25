@@ -529,12 +529,12 @@ func PrintAllSnapshots(snapshotId string, opts Options) {
 	// fmt.Printf("Verbosity = %d\n", opts.Verbosity)
 	// print a specific revision
 
-	if opts.Verbosity >= 1 {
+	if Verbosity >= NoticeLevel {
 		fmt.Printf("Branch: %s\n", opts.Branch)
 	}
 
 	if len(snapshotId) == 0 {
-		if opts.Verbosity >= 1 {
+		if Verbosity >= NoticeLevel {
 			fmt.Println("Snapshot History")
 		}
 
@@ -543,7 +543,7 @@ func PrintAllSnapshots(snapshotId string, opts Options) {
 			PrintSnapshot(ReadSnapshotFile(snapshotPath), 10, opts)
 		}
 	} else {
-		if opts.Verbosity >= 1 {
+		if Verbosity >= NoticeLevel {
 			fmt.Println("Snapshot")
 		}
 
@@ -555,18 +555,18 @@ func PrintAllSnapshots(snapshotId string, opts Options) {
 
 // Print a snapshot structure
 func PrintSnapshot(mySnapshot Commit, maxFiles int, opts Options) {
-	if opts.Verbosity <= 0 {
+	if Verbosity <= WarningLevel {
 		fmt.Printf("%s %s %s\n", mySnapshot.ID, mySnapshot.Time, mySnapshot.Message)
 		return
 	}
 
-	if opts.Color {
+	if ColorOutput {
 		fmt.Printf("%s", colorGreen)
 	}
 
 	fmt.Printf("ID: %s (%s)", mySnapshot.ID[0:8], mySnapshot.ID)
 
-	if opts.Color {
+	if ColorOutput {
 		fmt.Printf("%s", colorReset)
 	}
 
@@ -591,7 +591,7 @@ func PrintSnapshot(mySnapshot Commit, maxFiles int, opts Options) {
 // Print the list of files stored in a snapshot
 func PrintSnapshotFiles(mySnapshot Commit, maxFiles int, opts Options) {
 	for i, file := range mySnapshot.Files {
-		if opts.Verbosity == 0 {
+		if Verbosity <= WarningLevel {
 			fmt.Printf("%s\n%d\n%s\n\n", file.ModTime, file.Size, file.Path)
 		} else {
 			fmt.Printf("%s ", file.ModTime)

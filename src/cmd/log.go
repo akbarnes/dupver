@@ -20,6 +20,8 @@ a commit ID to print in additional detail.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg, err := dupver.ReadWorkDirConfig(WorkDirPath)
 		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Debug, Verbose, Quiet)
+		dupver.SetColor(Monochrome)
+		dupver.SetVerbosityLevel(Debug, Verbose, Quiet)
 
 		if err != nil {
 			// Todo: handle invalid configuration file
@@ -27,15 +29,12 @@ a commit ID to print in additional detail.`,
 			os.Exit(1)
 		}
 
-		// fmt.Println("Verbosity:")
-		// fmt.Println(opts.Verbosity)
-		// fmt.Println("")
 
 		if len(WorkDirPath) > 0 {
 			os.Chdir(WorkDirPath)
 		}
 
-		if opts.Verbosity >= 2 {
+		if dupver.Verbosity >= dupver.InfoLevel {
 			fmt.Println("cfg:")
 			fmt.Println(cfg)
 			fmt.Printf("\nRepo name: %s\nRepo path: %s\n\n", RepoName, RepoPath)
@@ -48,7 +47,7 @@ a commit ID to print in additional detail.`,
 		if len(RepoPath) == 0 {
 			RepoPath = cfg.Repos[RepoName]
 
-			if opts.Verbosity >= 2 {
+			if dupver.Verbosity >= dupver.InfoLevel {
 				fmt.Printf("Updating repo path to %s\n", RepoPath)
 			}
 		}
@@ -66,7 +65,7 @@ a commit ID to print in additional detail.`,
 			opts.Branch = ""
 		}
 
-		if opts.Verbosity >= 2 {
+		if dupver.Verbosity >= dupver.InfoLevel {
 			fmt.Println("opts:")
 			fmt.Println(opts)
 			fmt.Println("")
@@ -74,7 +73,7 @@ a commit ID to print in additional detail.`,
 
 		headPath := filepath.Join(opts.RepoPath, "branches", cfg.WorkDirName, "main.toml")
 
-		if opts.Verbosity >= 2 {
+		if dupver.Verbosity >= dupver.InfoLevel {
 			fmt.Println("Head path:")
 			fmt.Println(headPath)
 			fmt.Println("")
@@ -82,7 +81,7 @@ a commit ID to print in additional detail.`,
 
 		snapshotId := ""
 
-		if opts.Verbosity >= 2 {
+		if dupver.Verbosity >= dupver.InfoLevel {
 			fmt.Println("Commit ID:")
 			fmt.Println(snapshotId)
 			fmt.Println("")
@@ -93,7 +92,7 @@ a commit ID to print in additional detail.`,
 			snapshotId = dupver.GetFullSnapshotId(args[0], opts)
 		}
 
-		if opts.Verbosity >= 2 {
+		if dupver.Verbosity >= dupver.InfoLevel {
 			fmt.Printf("Full snapshot ID: %s\n", snapshotId)
 		}
 
