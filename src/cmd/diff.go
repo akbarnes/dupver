@@ -22,9 +22,9 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		prefs, err := dupver.ReadPrefs()
 		cfg, err := dupver.ReadWorkDirConfig(WorkDirPath)
 		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Debug, Verbose, Quiet)
+		prefs, err := dupver.ReadPrefs(opts)
 
 		if err != nil {
 			// Todo: handle invalid configuration file

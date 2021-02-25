@@ -135,6 +135,7 @@ var commitCmd = &cobra.Command{
 
 			tarFile := CreateTar(containingFolder, workdirFolder, opts)
 			dupver.CommitFile(tarFile, []string{}, Message, opts)
+			os.Remove(tarFile) // Delete the temporary file 
 		}
 	},
 }

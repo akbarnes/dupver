@@ -262,13 +262,13 @@ func WriteRandomTar(buf *os.File, workDirFolder string, repoPath string) {
 }
 
 // Load global preferences
-func ReadPrefs() (Preferences, error) {
+func ReadPrefs(opts Options) (Preferences, error) {
 	prefsPath := filepath.Join(GetHome(), ".dupver", "prefs.toml")
-	return ReadPrefsFile(prefsPath)
+	return ReadPrefsFile(prefsPath, opts)
 }
 
-// Load global preferences give a preferences file path
-func ReadPrefsFile(filePath string) (Preferences, error) {
+// Load global preferences given a preferences file path
+func ReadPrefsFile(filePath string, opts Options) (Preferences, error) {
 	var prefs Preferences
 	// TODO: set this differently for linux
 	prefs.DiffTool = "bcompare"
@@ -277,6 +277,8 @@ func ReadPrefsFile(filePath string) (Preferences, error) {
 	f, err := os.Open(filePath)
 
 	if err != nil {
+		log.Println("Preferences file missing, creating default")
+		SavePrefsFile(filePath, prefs, false, opts)
 		return prefs, errors.New("Preferences file missing")
 	}
 
@@ -289,3 +291,28 @@ func ReadPrefsFile(filePath string) (Preferences, error) {
 	return prefs, nil
 }
 
+// Save global preferences
+func SavePrefs(prefs Preferences, forceWrite bool, opts Options) {
+	prefsPath := filepath.Join(GetHome(), ".dupver", "prefs.toml")
+	SavePrefsFile(prefsPath, prefs, forceWrite, opts)
+}
+
+// Save global preferences given a preferences file
+func SavePrefsFile(prefsPath string, prefs Preferences, forceWrite bool, opts Options) {
+	if _, err := os.Stat(prefsPath); err == nil && !forceWrite {
+		// panic("Refusing to write existing project workdir config " + configPath)
+		log.Fatal("Refusing to write existing preferences " + prefsPath)
+	}
+
+	if opts.Verbosity >= 2 {
+		fmt.Printf("Writing prefs:\n%+v\n", prefs)
+		fmt.Printf("to: %s\n", prefsPath)
+	}
+
+	CreateSubFolder(GetHome(), ".dupver", opts.Verbosity)
+
+	f, _ := os.Create(prefsPath)
+	myEncoder := toml.NewEncoder(f)
+	myEncoder.Encode(prefs)
+	f.Close()
+}
