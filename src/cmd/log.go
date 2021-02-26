@@ -34,8 +34,8 @@ a commit ID to print in additional detail.`,
 			os.Chdir(WorkDirPath)
 		}
 
-		fancy_print.Debugf("cfg: %+v\n", cfg)
-		fancy_print.Debugf("\nRepo name: %s\nRepo path: %s\n\n", RepoName, RepoPath)
+		fancy_print.Debugf("Workdir Configuration: %+v\n", cfg)
+		fancy_print.Debugf("Repo name: %s\nRepo path: %s\n", RepoName, RepoPath)
 
 		if len(RepoName) == 0 {
 			RepoName = cfg.DefaultRepo
@@ -43,10 +43,7 @@ a commit ID to print in additional detail.`,
 
 		if len(RepoPath) == 0 {
 			RepoPath = cfg.Repos[RepoName]
-
-			if fancy_print.Verbosity >= fancy_print.InfoLevel {
-				fmt.Printf("Updating repo path to %s\n", RepoPath)
-			}
+			fancy_print.Debugf("Updating repo path to %s\n", RepoPath)
 		}
 
 		if len(Branch) == 0 {
@@ -62,36 +59,18 @@ a commit ID to print in additional detail.`,
 			opts.Branch = ""
 		}
 
-		if fancy_print.Verbosity >= fancy_print.InfoLevel {
-			fmt.Println("opts:")
-			fmt.Println(opts)
-			fmt.Println("")
-		}
-
+		fancy_print.Debugf("Options: %+v\n", opts)
 		headPath := filepath.Join(opts.RepoPath, "branches", cfg.WorkDirName, "main.toml")
-
-		if fancy_print.Verbosity >= fancy_print.InfoLevel {
-			fmt.Println("Head path:")
-			fmt.Println(headPath)
-			fmt.Println("")
-		}
-
+		fancy_print.Debugf("Head path: %s\n", headPath)
 		snapshotId := ""
-
-		if fancy_print.Verbosity >= fancy_print.InfoLevel {
-			fmt.Println("Commit ID:")
-			fmt.Println(snapshotId)
-			fmt.Println("")
-		}
+		fancy_print.Debugf("Commit ID: %s\n", snapshotId)
 
 		// TODO: Yeesh...move this mess into a function
 		if len(args) >= 1 {
 			snapshotId = dupver.GetFullSnapshotId(args[0], opts)
 		}
 
-		if fancy_print.Verbosity >= fancy_print.InfoLevel {
-			fmt.Printf("Full snapshot ID: %s\n", snapshotId)
-		}
+		fancy_print.Debugf("Full snapshot ID: %s\n\n", snapshotId)
 
 		if Monochrome || Quiet {
 			opts.Color = false
