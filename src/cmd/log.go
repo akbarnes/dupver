@@ -36,11 +36,8 @@ a commit ID to print in additional detail.`,
 			os.Chdir(WorkDirPath)
 		}
 
-		if fancy_print.Verbosity >= fancy_print.InfoLevel {
-			fmt.Println("cfg:")
-			fmt.Println(cfg)
-			fmt.Printf("\nRepo name: %s\nRepo path: %s\n\n", RepoName, RepoPath)
-		}
+		fancy_print.Debugf("cfg: %+v\n", cfg)
+		fancy_print.Debugf("\nRepo name: %s\nRepo path: %s\n\n", RepoName, RepoPath)
 
 		if len(RepoName) == 0 {
 			RepoName = cfg.DefaultRepo
