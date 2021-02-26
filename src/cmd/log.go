@@ -21,9 +21,7 @@ a commit ID to print in additional detail.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg, err := dupver.ReadWorkDirConfig(WorkDirPath)
 		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Debug, Verbose, Quiet)
-		fancy_print.InitPrinting()
-		fancy_print.SetVerbosityLevel(Debug, Verbose, Quiet)
-		fancy_print.SetColoredOutput(Monochrome)
+		fancy_print.Setup(Debug, Verbose, Quiet, Monochrome)
 
 		if err != nil {
 			// Todo: handle invalid configuration file

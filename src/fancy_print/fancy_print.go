@@ -30,6 +30,13 @@ var Verbosity = NoticeLevel
 var ColorOutput = true
 var logger *log.Logger
 
+// Setup everything
+func Setup(debug bool, verbose bool, quiet bool, monochrome bool) {
+	InitPrinting()
+	SetVerbosityLevel(debug, verbose, quiet)
+	SetColoredOutput(monochrome)
+}
+
 // Initialize Go logger (used to print to stderr)
 func InitPrinting() {
 	logger = log.New(os.Stderr, "", 0)
@@ -68,20 +75,38 @@ func ResetColor() {
 	}
 }
 
-func Notice(msg string) {
+func Notice(msg interface{}) {
 	if Verbosity >= NoticeLevel {
 		logger.Println(msg)
 	}
 }
 
-func Info(msg string) {
+func Noticef(msg string, a ...interface{}) {
+	if Verbosity >= InfoLevel {
+		logger.Printf(msg, a...)
+	}
+}
+
+func Info(msg interface{}) {
 	if Verbosity >= InfoLevel {
 		logger.Println(msg)
 	}
 }
 
-func Debug(msg string) {
+func Infof(msg string, a ...interface{}) {
+	if Verbosity >= InfoLevel {
+		logger.Printf(msg, a...)
+	}
+}
+
+func Debug(msg interface{}) {
 	if Verbosity >= DebugLevel {
 		logger.Println(msg)
+	}
+}
+
+func Debugf(msg string, a ...interface{}) {
+	if Verbosity >= DebugLevel {
+		logger.Printf(msg, a...)
 	}
 }
