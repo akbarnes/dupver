@@ -384,11 +384,7 @@ func GetFullSnapshotId(snapshotId string, opts Options) string {
 func ReadSnapshot(snapshot string, opts Options) Commit {
 	snapshotsFolder := filepath.Join(opts.RepoPath, "snapshots", opts.WorkDirName)
 	snapshotPath := filepath.Join(snapshotsFolder, snapshot+".json")
-
-	if opts.Verbosity >= 2 {
-		fmt.Printf("Snapshot path: %s\n", snapshotPath)
-	}
-
+	fancy_print.Debugf("Snapshot path: %s\n", snapshotPath)
 	return ReadSnapshotFile(snapshotPath)
 }
 
@@ -456,10 +452,7 @@ func LastSnapshot(opts Options) (Commit, error) {
 
 	// TODO: sort the snapshots by date
 	for _, snapshotPath := range snapshotPaths {
-		if opts.Verbosity >= 2 {
-			fmt.Printf("Snapshot path: %s\n\n", snapshotPath)
-		}
-
+		fancy_print.Debugf("Snapshot path: %s\n\n", snapshotPath)
 		snap := ReadSnapshotFile(snapshotPath)
 
 		if len(branch) == 0 || len(branch) > 0 && branch == snap.Branch {
@@ -496,10 +489,7 @@ func PrintSnapshots(snapshotId string, maxSnapshots int, opts Options) {
 
 	// TODO: sort the snapshots by date
 	for _, snapshotPath := range snapshotPaths {
-		if opts.Verbosity >= 2 {
-			fmt.Printf("Snapshot path: %s\n\n", snapshotPath)
-		}
-
+		fancy_print.Debugf("Snapshot path: %s\n\n", snapshotPath)
 		mySnapshot := ReadSnapshotFile(snapshotPath)
 		snapshotsByDate[mySnapshot.Time] = mySnapshot
 		snapshotDates = append(snapshotDates, mySnapshot.Time)
