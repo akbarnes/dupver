@@ -5,7 +5,7 @@ import (
 	"os"
 
 	// "log"
-
+	"github.com/akbarnes/dupver/src/fancy_print"
 	"github.com/akbarnes/dupver/src/dupver"
 	"github.com/spf13/cobra"
 )
@@ -26,6 +26,7 @@ with the --monochrome flag.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg, err := dupver.ReadWorkDirConfig(WorkDirPath)
 		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Debug, Verbose, Quiet)
+		fancy_print.Setup(Debug, Verbose, Quiet, Monochrome)
 
 		if err != nil {
 			// Todo: handle invalid configuration file
@@ -37,19 +38,16 @@ with the --monochrome flag.`,
 			os.Chdir(WorkDirPath)
 		}
 
-		if opts.Verbosity >= 2 {
-			fmt.Printf("cfg:\n%+v\n\n", cfg)
-			fmt.Printf("\nRepo name: %s\nRepo path: %s\n\n", RepoName, RepoPath)
-		}
+		fancy_print.Debugf("Workdir Configuration: %+v\n", cfg)
+		fancy_print.Debugf("Repo name: %s\nRepo path: %s\n", RepoName, RepoPath)
+
 		if len(RepoName) == 0 {
 			RepoName = cfg.DefaultRepo
 		}
 
 		if len(RepoPath) == 0 {
 			RepoPath = cfg.Repos[RepoName]
-			if opts.Verbosity >= 2 {
-				fmt.Printf("Updating repo path to %s\n", RepoPath)
-			}
+			fancy_print.Debugf("Updating repo path to %s\n", RepoPath)
 		}
 
 		if len(Branch) == 0 {
@@ -65,10 +63,7 @@ with the --monochrome flag.`,
 			opts.Branch = ""
 		}
 
-		if opts.Verbosity >= 2 {
-			fmt.Printf("opts:\n%+v\n\n", opts)
-		}
-
+		fancy_print.Debugf("Options: %+v\n", opts)
 		var mySnapshot dupver.Commit
 
 		if len(args) >= 1 {
@@ -78,15 +73,11 @@ with the --monochrome flag.`,
 			mySnapshot, err = dupver.LastSnapshot(opts)
 
 			if err != nil {
-				if opts.Verbosity >= 1 {
-					fmt.Printf("No snapshots")
-				}
+				fancy_print.Notice("No snapshots")
 			}
 		}
 
-		if opts.Verbosity >= 2 {
-			fmt.Printf("Snapshot commit ID: %s\n", mySnapshot.ID)
-		}
+		fancy_print.Debugf("Snapshot commit ID: %s\n", mySnapshot.ID)
 
 		if Monochrome || Quiet {
 			opts.Color = false
