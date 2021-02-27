@@ -7,6 +7,7 @@ import (
 	"log"
 	"path/filepath"
 
+	"github.com/akbarnes/dupver/src/fancyprint"
 	"github.com/akbarnes/dupver/src/dupver"
 	"github.com/spf13/cobra"
 )
@@ -24,11 +25,12 @@ to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg, err := dupver.ReadWorkDirConfig(WorkDirPath)
 		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Debug, Verbose, Quiet)
+		fancyprint.Setup(Debug, Verbose, Quiet, Monochrome)
 		prefs, err := dupver.ReadPrefs(opts)
 
 		if err != nil {
 			// Todo: handle invalid configuration file
-			fmt.Println("Could not read configuration file. Has the project working directory been initialized?")
+			fancyprint.Warn("Could not read configuration file. Has the project working directory been initialized?")
 			os.Exit(1)
 		}
 
@@ -42,9 +44,7 @@ to quickly create a Cobra application.`,
 
 		if len(RepoPath) == 0 {
 			RepoPath = cfg.Repos[RepoName]
-			if opts.Verbosity >= 2 {
-				fmt.Printf("Updating repo path to %s\n", RepoPath)
-			}
+			fancyprint.Debugf("Updating repo path to %s\n", RepoPath)
 		}
 
 		opts.WorkDirName = cfg.WorkDirName
@@ -68,21 +68,12 @@ to quickly create a Cobra application.`,
 		tarPath := filepath.Join(tarFolder, "snapshot.tar")
 
 		dupver.UnpackFile(tarPath, opts.RepoPath, snap.ChunkIDs, opts)
-
-		if opts.Verbosity >= 1 {
-			fmt.Printf("Wrote to %s\n", tarPath)
-		} else {
-			fmt.Printf(tarPath)
-		}
+		fancyprint.Debugf("Wrote to %s\n", tarPath)
 
 		// TODO: Create a temporary folder to extract the tar file to
 		tarCmd := exec.Command("tar", "xfv", tarPath)
 		tarCmd.Dir = tarFolder
-	
-		if opts.Verbosity >= 1 {
-			log.Printf("Running tar xfv %s", tarPath)
-		}
-	
+		fancyprint.Debugf("Running tar xfv %s", tarPath)	
 		output, err := tarCmd.CombinedOutput()
 	
 		if err != nil {
@@ -103,19 +94,7 @@ to quickly create a Cobra application.`,
 
 		diffCmd := exec.Command(prefs.DiffTool, committedFolder, workdirFolder)
 		diffCmd.Dir = containingFolder
-		diffCmd.Start()
-	
-		// if opts.Verbosity >= 1 {
-		// 	log.Printf("Running tar cfv %s %s", tarPath, cleanCommitPath)
-		// }
-	
-		// output, err := tarCmd.CombinedOutput()
-	
-		// if err != nil {
-		// 	log.Fatal(fmt.Sprintf("Tar command failed\nOutput:\n%s\nError:\n%s\n", output, err))
-		// } else if opts.Verbosity >= 3 {
-		// 	fmt.Printf("Ran tar command with output:\n%s\n", output)
-		// }	
+		diffCmd.Start()	
 	},
 }
 

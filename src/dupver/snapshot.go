@@ -13,7 +13,7 @@ import (
 	"time"
 
 	// "log"
-	"github.com/akbarnes/dupver/src/fancy_print"
+	"github.com/akbarnes/dupver/src/fancyprint"
 	"github.com/BurntSushi/toml"
 )
 
@@ -384,7 +384,7 @@ func GetFullSnapshotId(snapshotId string, opts Options) string {
 func ReadSnapshot(snapshot string, opts Options) Commit {
 	snapshotsFolder := filepath.Join(opts.RepoPath, "snapshots", opts.WorkDirName)
 	snapshotPath := filepath.Join(snapshotsFolder, snapshot+".json")
-	fancy_print.Debugf("Snapshot path: %s\n", snapshotPath)
+	fancyprint.Debugf("Snapshot path: %s\n", snapshotPath)
 	return ReadSnapshotFile(snapshotPath)
 }
 
@@ -452,7 +452,7 @@ func LastSnapshot(opts Options) (Commit, error) {
 
 	// TODO: sort the snapshots by date
 	for _, snapshotPath := range snapshotPaths {
-		fancy_print.Debugf("Snapshot path: %s\n\n", snapshotPath)
+		fancyprint.Debugf("Snapshot path: %s\n\n", snapshotPath)
 		snap := ReadSnapshotFile(snapshotPath)
 
 		if len(branch) == 0 || len(branch) > 0 && branch == snap.Branch {
@@ -489,7 +489,7 @@ func PrintSnapshots(snapshotId string, maxSnapshots int, opts Options) {
 
 	// TODO: sort the snapshots by date
 	for _, snapshotPath := range snapshotPaths {
-		fancy_print.Debugf("Snapshot path: %s\n\n", snapshotPath)
+		fancyprint.Debugf("Snapshot path: %s\n\n", snapshotPath)
 		mySnapshot := ReadSnapshotFile(snapshotPath)
 		snapshotsByDate[mySnapshot.Time] = mySnapshot
 		snapshotDates = append(snapshotDates, mySnapshot.Time)
@@ -519,17 +519,17 @@ func PrintAllSnapshots(snapshotId string, opts Options) {
 	// fmt.Printf("Verbosity = %d\n", opts.Verbosity)
 	// print a specific revision
 
-	fancy_print.Notice("Branch: " + opts.Branch)
+	fancyprint.Noticef("Branch: %s\n", opts.Branch)
 
 	if len(snapshotId) == 0 {
-		fancy_print.Notice("Snapshot History")
+		fancyprint.Notice("Snapshot History")
 
 		for _, snapshotPath := range ListSnapshots(opts) {
 			// fmt.Printf("Path: %s\n", snapshotPath)
 			PrintSnapshot(ReadSnapshotFile(snapshotPath), 10, opts)
 		}
 	} else {
-		if fancy_print.Verbosity >= fancy_print.NoticeLevel {
+		if fancyprint.Verbosity >= fancyprint.NoticeLevel {
 			fmt.Println("Snapshot")
 		}
 
@@ -541,14 +541,14 @@ func PrintAllSnapshots(snapshotId string, opts Options) {
 
 // Print a snapshot structure
 func PrintSnapshot(mySnapshot Commit, maxFiles int, opts Options) {
-	if fancy_print.Verbosity <= fancy_print.WarningLevel {
+	if fancyprint.Verbosity <= fancyprint.WarningLevel {
 		fmt.Printf("%s %s %s\n", mySnapshot.ID, mySnapshot.Time, mySnapshot.Message)
 		return
 	}
 
-	fancy_print.SetColor(colorGreen)
+	fancyprint.SetColor(colorGreen)
 	fmt.Printf("ID: %s (%s)", mySnapshot.ID[0:8], mySnapshot.ID)
-	fancy_print.ResetColor()
+	fancyprint.ResetColor()
 
 	fmt.Printf("\n")
 	fmt.Printf("Time: %s\n", mySnapshot.Time)
@@ -571,7 +571,7 @@ func PrintSnapshot(mySnapshot Commit, maxFiles int, opts Options) {
 // Print the list of files stored in a snapshot
 func PrintSnapshotFiles(mySnapshot Commit, maxFiles int, opts Options) {
 	for i, file := range mySnapshot.Files {
-		if fancy_print.Verbosity <= fancy_print.WarningLevel {
+		if fancyprint.Verbosity <= fancyprint.WarningLevel {
 			fmt.Printf("%s\n%d\n%s\n\n", file.ModTime, file.Size, file.Path)
 		} else {
 			fmt.Printf("%s ", file.ModTime)

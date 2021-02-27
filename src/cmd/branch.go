@@ -6,6 +6,7 @@ import (
 	// "log"
 	// "path/filepath"
 
+	"github.com/akbarnes/dupver/src/fancyprint"
 	"github.com/akbarnes/dupver/src/dupver"
 	"github.com/spf13/cobra"
 )
@@ -18,21 +19,17 @@ var branchCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg, err := dupver.ReadWorkDirConfig(WorkDirPath)
 		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Debug, Verbose, Quiet)
+		fancyprint.Setup(Debug, Verbose, Quiet, Monochrome)
 
 		if err != nil {
 			// Todo: handle invalid configuration file
-			fmt.Println("Could not read configuration file. Has the project working directory been initialized?")
+			fancyprint.Warn("Could not read configuration file. Has the project working directory been initialized?")
 			os.Exit(1)
 		}
 
-		if opts.Verbosity >= 2 {
-			fmt.Println("cfg:")
-			fmt.Println(cfg)
-		}
 
-		if opts.Verbosity >= 2 {
-			fmt.Printf("\nOld name: %s\n", cfg.WorkDirName)
-		}
+		fancyprint.Debugf("Workdir configuration: %+v\n", cfg)
+		fancyprint.Debugf("\nOld name: %s\n", cfg.WorkDirName)
 
 		if Monochrome || Quiet {
 			opts.Color = false
@@ -47,17 +44,15 @@ var branchCmd = &cobra.Command{
 				cfg.Branch = branch
 			}
 
-			if opts.Verbosity >= 2 {
-				fmt.Printf("\nNew name: %s\n", cfg.WorkDirName)
-			}
+			fancyprint.Debugf("\nNew name: %s\n", cfg.WorkDirName)
 
 			dupver.SaveWorkDirConfig(WorkDirPath, cfg, true, opts)
 		} else {
-			if opts.Verbosity >= 1 {
-				fmt.Printf("Current branch: ")
+			if opts.Verbosity <= 1 {
+				fmt.Println(cfg.Branch)
+			} else {
+				fmt.Printf("Current branch: %s\n", cfg.Branch)
 			}
-
-			fmt.Println(cfg.Branch)
 		}
 	},
 }

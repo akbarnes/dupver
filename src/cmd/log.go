@@ -1,11 +1,11 @@
 package cmd
 
 import (
-	"fmt"
+	// "fmt"
 	"os"
 	"path/filepath"
 
-	"github.com/akbarnes/dupver/src/fancy_print"
+	"github.com/akbarnes/dupver/src/fancyprint"
 	"github.com/akbarnes/dupver/src/dupver"
 	"github.com/spf13/cobra"
 )
@@ -21,11 +21,11 @@ a commit ID to print in additional detail.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg, err := dupver.ReadWorkDirConfig(WorkDirPath)
 		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Debug, Verbose, Quiet)
-		fancy_print.Setup(Debug, Verbose, Quiet, Monochrome)
+		fancyprint.Setup(Debug, Verbose, Quiet, Monochrome)
 
 		if err != nil {
 			// Todo: handle invalid configuration file
-			fmt.Println("Could not read configuration file. Has the project working directory been initialized?")
+			fancyprint.Warn("Could not read configuration file. Has the project working directory been initialized?")
 			os.Exit(1)
 		}
 
@@ -34,8 +34,8 @@ a commit ID to print in additional detail.`,
 			os.Chdir(WorkDirPath)
 		}
 
-		fancy_print.Debugf("Workdir Configuration: %+v\n", cfg)
-		fancy_print.Debugf("Repo name: %s\nRepo path: %s\n", RepoName, RepoPath)
+		fancyprint.Debugf("Workdir Configuration: %+v\n", cfg)
+		fancyprint.Debugf("Repo name: %s\nRepo path: %s\n", RepoName, RepoPath)
 
 		if len(RepoName) == 0 {
 			RepoName = cfg.DefaultRepo
@@ -43,7 +43,7 @@ a commit ID to print in additional detail.`,
 
 		if len(RepoPath) == 0 {
 			RepoPath = cfg.Repos[RepoName]
-			fancy_print.Debugf("Updating repo path to %s\n", RepoPath)
+			fancyprint.Debugf("Updating repo path to %s\n", RepoPath)
 		}
 
 		if len(Branch) == 0 {
@@ -59,18 +59,18 @@ a commit ID to print in additional detail.`,
 			opts.Branch = ""
 		}
 
-		fancy_print.Debugf("Options: %+v\n", opts)
+		fancyprint.Debugf("Options: %+v\n", opts)
 		headPath := filepath.Join(opts.RepoPath, "branches", cfg.WorkDirName, "main.toml")
-		fancy_print.Debugf("Head path: %s\n", headPath)
+		fancyprint.Debugf("Head path: %s\n", headPath)
 		snapshotId := ""
-		fancy_print.Debugf("Commit ID: %s\n", snapshotId)
+		fancyprint.Debugf("Commit ID: %s\n", snapshotId)
 
 		// TODO: Yeesh...move this mess into a function
 		if len(args) >= 1 {
 			snapshotId = dupver.GetFullSnapshotId(args[0], opts)
 		}
 
-		fancy_print.Debugf("Full snapshot ID: %s\n\n", snapshotId)
+		fancyprint.Debugf("Full snapshot ID: %s\n\n", snapshotId)
 
 		if Monochrome || Quiet {
 			opts.Color = false

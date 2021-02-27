@@ -8,11 +8,18 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/akbarnes/dupver/src/fancyprint"
 	"github.com/akbarnes/dupver/src/dupver"
 )
 
 func TestWorkRepoInit(t *testing.T) {
 	opts := dupver.Options{Color: false, Verbosity: 2}
+	debug := false
+	verbose := true
+	quiet := false
+	monochrome := false
+	fancyprint.Setup(debug, verbose, quiet, monochrome)
+	
 	homeDir := dupver.GetHome()
 
 	if len(homeDir) == 0 {

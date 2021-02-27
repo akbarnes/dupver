@@ -3,6 +3,7 @@ package cmd
 import (
 	// "fmt"
 
+	"github.com/akbarnes/dupver/src/fancyprint"
 	"github.com/akbarnes/dupver/src/dupver"
 	"github.com/spf13/cobra"
 )
@@ -20,6 +21,8 @@ specify the location of the project working directory.
 Otherwise, the current working directory is used.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Debug, Verbose, Quiet)
+		fancyprint.Setup(Debug, Verbose, Quiet, Monochrome)
+
 		workDirPath := WorkDirPath
 
 		if len(RepoName) == 0 {

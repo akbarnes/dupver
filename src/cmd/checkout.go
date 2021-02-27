@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/akbarnes/dupver/src/fancyprint"
 	"github.com/akbarnes/dupver/src/dupver"
 	"github.com/spf13/cobra"
 )
@@ -25,10 +26,11 @@ To specify a tar file name, use the --output flag.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg, err := dupver.ReadWorkDirConfig(WorkDirPath)
 		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Debug, Verbose, Quiet)
+		fancyprint.Setup(Debug, Verbose, Quiet, Monochrome)
 
 		if err != nil {
 			// Todo: handle invalid configuration file
-			fmt.Println("Could not read configuration file. Has the project working directory been initialized?")
+			fancyprint.Warn("Could not read configuration file. Has the project working directory been initialized?")
 			os.Exit(1)
 		}
 
@@ -42,9 +44,7 @@ To specify a tar file name, use the --output flag.`,
 
 		if len(RepoPath) == 0 {
 			RepoPath = cfg.Repos[RepoName]
-			if opts.Verbosity >= 2 {
-				fmt.Printf("Updating repo path to %s\n", RepoPath)
-			}
+			fancyprint.Debugf("Updating repo path to %s\n", RepoPath)
 		}
 
 		opts.WorkDirName = cfg.WorkDirName
@@ -61,10 +61,10 @@ To specify a tar file name, use the --output flag.`,
 
 		dupver.UnpackFile(OutFile, opts.RepoPath, snap.ChunkIDs, opts)
 
-		if opts.Verbosity >= 1 {
-			fmt.Printf("Wrote to %s\n", OutFile)
+		if fancyprint.Verbosity <= fancyprint.WarningLevel {
+			fmt.Println(OutFile)
 		} else {
-			fmt.Printf(OutFile)
+			fmt.Printf("Wrote to %s\n", OutFile)
 		}
 	},
 }

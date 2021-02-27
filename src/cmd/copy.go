@@ -1,9 +1,10 @@
 package cmd
 
 import (
-	"fmt"
+	// "fmt"
 	"os"
 
+	"github.com/akbarnes/dupver/src/fancyprint"
 	"github.com/akbarnes/dupver/src/dupver"
 	"github.com/spf13/cobra"
 )
@@ -55,10 +56,11 @@ will limit only a single specified snapshot id to be copied.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg, err := dupver.ReadWorkDirConfig(WorkDirPath)
 		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Debug, Verbose, Quiet)
+		fancyprint.Setup(Debug, Verbose, Quiet, Monochrome)
 
 		if err != nil {
 			// Todo: handle invalid configuration file
-			fmt.Println("Could not read configuration file. Has the project working directory been initialized?")
+			fancyprint.Warn("Could not read configuration file. Has the project working directory been initialized?")
 			os.Exit(1)
 		}
 
@@ -68,10 +70,7 @@ will limit only a single specified snapshot id to be copied.`,
 
 		if len(RepoPath) == 0 {
 			RepoPath = cfg.Repos[RepoName]
-
-			if opts.Verbosity >= 2 {
-				fmt.Printf("Updating repo path to %s\n", RepoPath)
-			}
+			fancyprint.Debugf("Updating repo path to %s\n", RepoPath)
 		}
 
 		if len(Branch) == 0 {
@@ -117,10 +116,7 @@ will limit only a single specified snapshot id to be copied.`,
 				snap := dupver.ReadSnapshotFile(snapshotPath)
 
 				// fmt.Printf("Path: %s\n", snapshotPath)
-				if opts.Verbosity >= 2 {
-					fmt.Printf("Copying snapshot %s\n", snap.ID)
-				}
-
+				fancyprint.Infof("Copying snapshot %s\n", snap.ID)
 				branch := opts.Branch
 
 				if len(branch) == 0 || len(branch) > 0 && branch == snap.Branch {

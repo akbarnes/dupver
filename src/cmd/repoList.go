@@ -1,8 +1,7 @@
 package cmd
 
 import (
-	// "fmt"
-
+	"github.com/akbarnes/dupver/src/fancyprint"
 	"github.com/akbarnes/dupver/src/dupver"
 	"github.com/spf13/cobra"
 )
@@ -20,6 +19,7 @@ and repo path separated by a space.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// TODO: Read repoPath from environment variable if empty
 		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Debug, Verbose, Quiet)
+		fancyprint.Setup(Debug, Verbose, Quiet, Monochrome)
 
 		if Monochrome || Quiet {
 			opts.Color = false

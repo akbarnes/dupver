@@ -1,4 +1,4 @@
-package fancy_print
+package fancyprint
 
 import (
 	"fmt"
@@ -75,9 +75,23 @@ func ResetColor() {
 	}
 }
 
-func Notice(msg interface{}) {
+// Low verbosity
+func Warn(a ...interface{}) {
+	if Verbosity >= WarningLevel {
+		logger.Println(a...)
+	}
+}
+
+func Warnf(msg string, a ...interface{}) {
+	if Verbosity >= WarningLevel {
+		logger.Printf(msg, a...)
+	}
+}
+
+// Default verbosity
+func Notice(a ...interface{}) {
 	if Verbosity >= NoticeLevel {
-		logger.Println(msg)
+		logger.Println(a...)
 	}
 }
 
@@ -87,9 +101,10 @@ func Noticef(msg string, a ...interface{}) {
 	}
 }
 
-func Info(msg interface{}) {
+// Higher verbosity
+func Info(a ...interface{}) {
 	if Verbosity >= InfoLevel {
-		logger.Println(msg)
+		logger.Println(a...)
 	}
 }
 
@@ -99,9 +114,10 @@ func Infof(msg string, a ...interface{}) {
 	}
 }
 
-func Debug(msg interface{}) {
+// Highest verbosity
+func Debug(a ...interface{}) {
 	if Verbosity >= DebugLevel {
-		logger.Println(msg)
+		logger.Println(a...)
 	}
 }
 

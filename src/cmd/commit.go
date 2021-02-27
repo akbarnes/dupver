@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/akbarnes/dupver/src/fancyprint"
 	"github.com/akbarnes/dupver/src/dupver"
 	"github.com/spf13/cobra"
 )
@@ -25,10 +26,8 @@ func CreateTar(parentPath string, commitPath string, opts dupver.Options) string
 	tarPath := filepath.Join(tarFolder, tarFile)
 
 	// InitRepo(workDir)
-	if opts.Verbosity >= 1 {
-		fmt.Printf("Tar path: %s\n", tarPath)
-		fmt.Printf("Creating folder %s\n", tarFolder)
-	}
+	fancyprint.Debugf("Tar path: %s\n", tarPath)
+	fancyprint.Debugf("Creating folder %s\n", tarFolder)
 
 	os.Mkdir(tarFolder, 0777)
 
@@ -47,19 +46,14 @@ func CompressTar(parentPath string, commitPath string, tarPath string, opts dupv
 
 	tarCmd := exec.Command("tar", "cfv", tarPath, cleanCommitPath)
 	tarCmd.Dir = parentPath
-
-	if opts.Verbosity >= 1 {
-		log.Printf("Running tar cfv %s %s", tarPath, cleanCommitPath)
-	}
-
+	fancyprint.Debugf("Running tar cfv %s %s\n", tarPath, cleanCommitPath)
 	output, err := tarCmd.CombinedOutput()
 
 	if err != nil {
 		log.Fatal(fmt.Sprintf("Tar command failed\nOutput:\n%s\nError:\n%s\n", output, err))
-	} else if opts.Verbosity >= 3 {
-		fmt.Printf("Ran tar command with output:\n%s\n", output)
-	}
-
+	} 
+	
+	fancyprint.Debugf("Ran tar command with output:\n%s\n", output)
 	return tarPath
 }
 
@@ -79,6 +73,7 @@ var commitCmd = &cobra.Command{
 	this can be specified with the --message flag.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Debug, Verbose, Quiet)
+		fancyprint.Setup(Debug, Verbose, Quiet, Monochrome)
 
 		if Monochrome || Quiet {
 			opts.Color = false
@@ -102,15 +97,12 @@ var commitCmd = &cobra.Command{
 			containingFolder := filepath.Dir(commitFile)
 
 			if !strings.HasSuffix(commitFile, "tar") {
-				fmt.Printf("%s -> %s, %s\n", commitFile, containingFolder, commitFile)
+				fancyprint.Debugf("%s -> %s, %s\n", commitFile, containingFolder, commitFile)
 				tarFile = CreateTar(containingFolder, commitFile, opts)
 
 				if len(Message) == 0 {
 					Message = filepath.Base(commitFile)
-
-					if opts.Verbosity >= 1 {
-						fmt.Printf("Message not specified, setting to: %s\n", Message)
-					}
+					fancyprint.Debugf("Message not specified, setting to: %s\n", Message)
 				}
 			}
 
@@ -123,14 +115,11 @@ var commitCmd = &cobra.Command{
 
 			containingFolder := filepath.Dir(dir)
 			workdirFolder := filepath.Base(dir)
-			fmt.Printf("%s -> %s, %s\n", dir, containingFolder, workdirFolder)
+			fancyprint.Debugf("%s -> %s, %s\n", dir, containingFolder, workdirFolder)
 
 			if len(Message) == 0 {
 				Message = workdirFolder
-
-				if opts.Verbosity >= 1 {
-					fmt.Printf("Message not specified, setting to: %s\n", Message)
-				}
+				fancyprint.Infof("Message not specified, setting to: %s\n", Message)
 			}
 
 			tarFile := CreateTar(containingFolder, workdirFolder, opts)

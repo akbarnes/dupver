@@ -1,8 +1,7 @@
 package cmd
 
 import (
-	// "fmt"
-
+	"github.com/akbarnes/dupver/src/fancyprint"
 	"github.com/akbarnes/dupver/src/dupver"
 	"github.com/spf13/cobra"
 )
@@ -35,6 +34,7 @@ command-line flags.`,
 
 		// TODO: Read repoPath from environment variable if empty
 		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Debug, Verbose, Quiet)
+		fancyprint.Setup(Debug, Verbose, Quiet, Monochrome)
 
 		if Monochrome || Quiet {
 			opts.Color = false
