@@ -1,14 +1,15 @@
 	package cmd
 
 import (
-	"fmt"
+	// "fmt"
 	"os"
 	// "log"
 	"path/filepath"
 
-	"github.com/akbarnes/dupver/src/fancyprint"
-	"github.com/akbarnes/dupver/src/dupver"
 	"github.com/spf13/cobra"
+
+	"github.com/akbarnes/dupver/src/dupver"	
+	"github.com/akbarnes/dupver/src/fancyprint"
 )
 
 // statusCmd represents the status command
@@ -22,7 +23,7 @@ tag name and commit id are provided, this will add a tag for the
 specifed commit id. If only a tag is specified `,
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg, err := dupver.ReadWorkDirConfig(WorkDirPath)
-		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Debug, Verbose, Quiet)
+		opts := dupver.Options{}
 		tagName := ""
 
 		if err != nil {
@@ -31,35 +32,25 @@ specifed commit id. If only a tag is specified `,
 			os.Exit(0)
 		}
 
-		if opts.Verbosity >= 2 {
-			fmt.Println("cfg:")
-			fmt.Println(cfg)
-			fmt.Printf("\nRepo name: %s\nRepo path: %s\n\n", RepoName, RepoPath)
-		}
+		fancyprint.Debugf("Workdir Configuration: %+v\n", cfg)
+		fancyprint.Debugf("Repo name: %s\nRepo path: %s\n", RepoName, RepoPath)
+
 		if len(RepoName) == 0 {
 			RepoName = cfg.DefaultRepo
 		}
 
 		if len(RepoPath) == 0 {
 			RepoPath = cfg.Repos[RepoName]
-			if opts.Verbosity >= 2 {
-				fmt.Printf("Updating repo path to %s\n", RepoPath)
-			}
+			fancyprint.Debugf("Updating repo path to %s\n", RepoPath)
 		}
 
 		opts.WorkDirName = cfg.WorkDirName
 		opts.RepoName = RepoName
 		opts.RepoPath = RepoPath
 
-		if opts.Verbosity >= 2 {
-			fmt.Printf("opts:\n%+v\n\n", opts)
-		}
-
+		fancyprint.Debugf("Options: %+v\n", opts)
 		headPath := filepath.Join(opts.RepoPath, "branches", opts.WorkDirName, "main.toml")
-
-		if opts.Verbosity >= 2 {
-			fmt.Printf("Head path: %s\n\n", headPath)
-		}
+		fancyprint.Debugf("Head path: %s\n", headPath)
 
 		var snapshotId string
 
@@ -69,19 +60,13 @@ specifed commit id. If only a tag is specified `,
 			mySnapshot, err := dupver.LastSnapshot(opts)
 
 			if err != nil {
-				fmt.Println("No snapshots found in project working directory. Have you initialized and commited yet?")
-				os.Exit(1)
+				fancyprint.Warn("No snapshots found in project working directory. Have you initialized and commited yet?")
+				os.Exit(0)
 			}
 			snapshotId = mySnapshot.ID
 		}
 
-		if opts.Verbosity >= 2 {
-			fmt.Printf("Commit ID: %s\n\n", snapshotId)
-		}
-
-		if Monochrome || Quiet {
-			opts.Color = false
-		}
+		fancyprint.Debugf("Commit ID: %s\n", snapshotId)
 
 		if len(args) >= 1 {
 			tagName = args[0]

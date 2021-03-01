@@ -7,9 +7,10 @@ import (
 	"log"
 	"path/filepath"
 
-	"github.com/akbarnes/dupver/src/fancyprint"
-	"github.com/akbarnes/dupver/src/dupver"
 	"github.com/spf13/cobra"
+
+	"github.com/akbarnes/dupver/src/dupver"	
+	"github.com/akbarnes/dupver/src/fancyprint"
 )
 
 // diffCmd represents the diff command
@@ -24,7 +25,7 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg, err := dupver.ReadWorkDirConfig(WorkDirPath)
-		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Debug, Verbose, Quiet)
+		opts := dupver.Options{}
 		fancyprint.Setup(Debug, Verbose, Quiet, Monochrome)
 		prefs, err := dupver.ReadPrefs(opts)
 
@@ -32,10 +33,6 @@ to quickly create a Cobra application.`,
 			// Todo: handle invalid configuration file
 			fancyprint.Warn("Could not read configuration file. Has the project working directory been initialized?")
 			os.Exit(1)
-		}
-
-		if Monochrome || Quiet {
-			opts.Color = false
 		}
 
 		if len(RepoName) == 0 {
@@ -64,7 +61,7 @@ to quickly create a Cobra application.`,
 
 		randStr := dupver.RandHexString(40)
 		tarFolder := filepath.Join(dupver.GetHome(), "temp", randStr)
-		dupver.CreateFolder(tarFolder, opts.Verbosity	)
+		dupver.CreateFolder(tarFolder)
 		tarPath := filepath.Join(tarFolder, "snapshot.tar")
 
 		dupver.UnpackFile(tarPath, opts.RepoPath, snap.ChunkIDs, opts)
@@ -78,8 +75,8 @@ to quickly create a Cobra application.`,
 	
 		if err != nil {
 			log.Fatal(fmt.Sprintf("Tar command failed\nOutput:\n%s\nError:\n%s\n", output, err))
-		} else if opts.Verbosity >= 3 {
-			fmt.Printf("Ran tar command with output:\n%s\n", output)
+		} else {
+			fancyprint.Debugf("Ran tar command with output:\n%s\n", output)
 		}
 
 		dir, err := os.Getwd()

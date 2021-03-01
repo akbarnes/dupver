@@ -1,7 +1,7 @@
 package fancyprint
 
 import (
-	"fmt"
+	// "fmt"
 	"os"
 	"log"
 )
@@ -65,13 +65,26 @@ func SetColoredOutput(monochrome bool) {
 
 func SetColor(color string)	{
 	if ColorOutput {
-		fmt.Printf("%s", color)
+		logger.Print(color)
 	}
 }
 
 func ResetColor() {
 	if ColorOutput {
-		fmt.Printf("%s", ColorReset)
+		logger.Print(ColorReset)
+	}
+}
+
+// Low verbosity
+func Err(a ...interface{}) {
+	if Verbosity >= ErrorLevel {
+		logger.Println(a...)
+	}
+}
+
+func Errf(msg string, a ...interface{}) {
+	if Verbosity >= ErrorLevel {
+		logger.Printf(msg, a...)
 	}
 }
 

@@ -2,7 +2,7 @@ package dupver
 
 import (
 	"fmt"
-	"log"
+	// "log"
 	"os"
 	"path"
 
@@ -10,6 +10,8 @@ import (
 
 	"github.com/BurntSushi/toml"
 	"github.com/restic/chunker"
+
+	"github.com/akbarnes/dupver/src/fancyprint"
 )
 
 type repoConfig struct {
@@ -24,33 +26,22 @@ func InitRepo(repoPath string, repoName string, chunkerPolynomial string, opts O
 		fmt.Printf("Repo path not specified, setting to %s\n", repoPath)
 	}
 
-	CreateFolder(repoPath, opts.Verbosity)
-	CreateSubFolder(repoPath, "tags", opts.Verbosity)
-	CreateSubFolder(repoPath, "branches", opts.Verbosity)
-	CreateSubFolder(repoPath, "snapshots", opts.Verbosity)
-	CreateSubFolder(repoPath, "trees", opts.Verbosity)
-	CreateSubFolder(repoPath, "packs", opts.Verbosity)
+	CreateFolder(repoPath)
+	CreateSubFolder(repoPath, "tags")
+	CreateSubFolder(repoPath, "branches")
+	CreateSubFolder(repoPath, "snapshots")
+	CreateSubFolder(repoPath, "trees")
+	CreateSubFolder(repoPath, "packs")
 
 	snapshotsPath := path.Join(repoPath, "snapshots")
-
-	if opts.Verbosity >= 1 {
-		fmt.Printf("Creating folder %s\n", snapshotsPath)
-	}
-
+	fancyprint.Noticef("Creating folder %s\n", snapshotsPath)
 	os.MkdirAll(snapshotsPath, 0777)
 
 	treesPath := path.Join(repoPath, "trees")
-
-	if opts.Verbosity >= 1 {
-		fmt.Printf("Creating folder %s\n", treesPath)
-	}
-
+	fancyprint.Noticef("Creating folder %s\n", treesPath)
 	os.Mkdir(treesPath, 0777)
 
-	if opts.Verbosity >= 1 {
-		fmt.Printf("Chunker Polynomial: %s\n", chunkerPolynomial)
-	}
-
+	fancyprint.Debugf("Chunker Polynomial: %s\n", chunkerPolynomial)
 	var poly chunker.Pol
 
 	if len(chunkerPolynomial) == 0 {
@@ -65,8 +56,10 @@ func InitRepo(repoPath string, repoName string, chunkerPolynomial string, opts O
 		poly.UnmarshalJSON([]byte(chunkerPolynomial))
 	}
 
-	if opts.Verbosity >= 1 {
-		fmt.Printf("Chunker polynomial: %d\n", poly)
+	// TODO: Should this print to stderr?
+
+	if fancyprint.Verbosity >= fancyprint.NoticeLevel {
+		fmt.Println("Chunker polynomial: %d\n", poly)
 	} else {
 		fmt.Println(poly)
 	}
@@ -74,27 +67,26 @@ func InitRepo(repoPath string, repoName string, chunkerPolynomial string, opts O
 	var myConfig repoConfig
 	myConfig.Version = 2
 	myConfig.ChunkerPolynomial = poly
-	SaveRepoConfig(repoPath, myConfig, opts.Verbosity)
+	SaveRepoConfig(repoPath, myConfig)
 }
 
 // Save a repository configuration to file
 // TODO: Should I add SaveRepoCondfigFile?
-func SaveRepoConfig(repoPath string, myConfig repoConfig, verbosity int) {
+func SaveRepoConfig(repoPath string, myConfig repoConfig) {
 	// TODO: add a check to make sure I don't over`write` existing
 	configPath := path.Join(repoPath, "config.toml")
 
+	// TODO: Return an error here instead of exiting
 	if _, err := os.Stat(configPath); err == nil {
-		log.Fatal("Refusing to write existing repo config " + configPath)
+		fancyprint.Warnf("Refusing to write existing repo config " + configPath)
+		os.Exit(0)
 	}
 
-	if verbosity >= 1 {
-		fmt.Printf("Creating config %s\n", configPath)
-	}
-
+	fancyprint.Noticef("Creating config %s\n", configPath)
 	f, err := os.Create(configPath)
 
 	if err != nil {
-		log.Fatal(fmt.Sprintf("Error creating repo folder %s", repoPath))
+		panic(fmt.Sprintf("Error creating repo folder %s", repoPath))
 	}
 
 	myEncoder := toml.NewEncoder(f)

@@ -12,16 +12,9 @@ import (
 	"strings"
 	"errors"
 	"github.com/BurntSushi/toml"
-)
 
-const colorReset string = "\033[0m"
-const colorRed string = "\033[31m"
-const colorGreen string = "\033[32m"
-const colorYellow string = "\033[33m"
-const colorBlue string = "\033[34m"
-const colorPurple string = "\033[35m"
-const colorCyan string = "\033[36m"
-const colorWhite string = "\033[37m"
+	"github.com/akbarnes/dupver/src/fancyprint"
+)
 
 // DiffTool = "bcompare.exe"
 // DefaultRepo = "main"
@@ -35,8 +28,6 @@ type Preferences struct {
 }
 
 type Options struct {
-	Verbosity    int
-	Color        bool
 	WorkDirName  string
 	RepoName     string
 	RepoPath     string
@@ -69,24 +60,16 @@ func CalculateVerbosity(debug bool, verbose bool, quiet bool) int {
 	return 1
 }
 
-// Set the verbosity level given command-line flags
-func SetVerbosity(opts Options, debug bool, verbose bool, quiet bool) Options {
-	opts.Verbosity = CalculateVerbosity(debug, verbose, quiet)
-	return opts
-}
-
 // Create a folder path with appropriate permissions
-func CreateFolder(folderName string, verbosity int) {
-	if verbosity >= 1 {
-		fmt.Printf("Creating folder %s\n", folderName)
-	}
+func CreateFolder(folderName string) {
+	fancyprint.Infof("Creating folder %s\n", folderName)
 	os.MkdirAll(folderName, 0777)
 }
 
 // Create a subfolder given a parent folder
-func CreateSubFolder(parentFolder string, subFolder string, verbosity int) {
+func CreateSubFolder(parentFolder string, subFolder string) {
 	folderPath := path.Join(parentFolder, subFolder)
-	CreateFolder(folderPath, verbosity)
+	CreateFolder(folderPath)
 }
 
 // Get the user's home folder path
@@ -100,7 +83,7 @@ func GetHome() string {
 		}
 	}
 
-	fmt.Println("Warning! No home variable defined")
+	fancyprint.Warn("Warning! No home variable defined")
 	return ""
 }
 
@@ -197,7 +180,7 @@ func WriteRandomTar(buf *os.File, workDirFolder string, repoPath string) {
 
 	if len(repoPath) == 0 {
 		repoPath = path.Join(GetHome(), ".dupver_repo")
-		fmt.Printf("Repo path not specified, setting to %s\n", repoPath)
+		fancyprint.Warnf("Repo path not specified, setting to %s\n", repoPath)
 	}
 
 	// var myConfig workDirConfig
@@ -277,13 +260,13 @@ func ReadPrefsFile(filePath string, opts Options) (Preferences, error) {
 	f, err := os.Open(filePath)
 
 	if err != nil {
-		log.Println("Preferences file missing, creating default")
+		fancyprint.Warn("Preferences file missing, creating default")
 		SavePrefsFile(filePath, prefs, false, opts)
 		return prefs, errors.New("Preferences file missing")
 	}
 
 	if _, err = toml.DecodeReader(f, &prefs); err != nil {
-		log.Fatal("Invalid preferences file " + filePath)
+		panic(fmt.Sprintf("Invalid preferences file %s\n", filePath))
 	}
 
 	f.Close()
@@ -301,15 +284,13 @@ func SavePrefs(prefs Preferences, forceWrite bool, opts Options) {
 func SavePrefsFile(prefsPath string, prefs Preferences, forceWrite bool, opts Options) {
 	if _, err := os.Stat(prefsPath); err == nil && !forceWrite {
 		// panic("Refusing to write existing project workdir config " + configPath)
-		log.Fatal("Refusing to write existing preferences " + prefsPath)
+		panic(fmt.Sprintf("Refusing to write existing preferences %s\n", prefsPath))
 	}
 
-	if opts.Verbosity >= 2 {
-		fmt.Printf("Writing prefs:\n%+v\n", prefs)
-		fmt.Printf("to: %s\n", prefsPath)
-	}
+	fancyprint.Infof("Writing prefs:\n%+v\n", prefs)
+	fancyprint.Infof("to: %s\n", prefsPath)
 
-	CreateSubFolder(GetHome(), ".dupver", opts.Verbosity)
+	CreateSubFolder(GetHome(), ".dupver")
 
 	f, _ := os.Create(prefsPath)
 	myEncoder := toml.NewEncoder(f)

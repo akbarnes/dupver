@@ -1,9 +1,10 @@
 package cmd
 
 import (
-	"github.com/akbarnes/dupver/src/fancyprint"
-	"github.com/akbarnes/dupver/src/dupver"
 	"github.com/spf13/cobra"
+
+	"github.com/akbarnes/dupver/src/dupver"	
+	"github.com/akbarnes/dupver/src/fancyprint"
 )
 
 // repoAddCmd represents the repoAdd command
@@ -33,13 +34,8 @@ command-line flags.`,
 		}
 
 		// TODO: Read repoPath from environment variable if empty
-		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Debug, Verbose, Quiet)
+		opts := dupver.Options{}
 		fancyprint.Setup(Debug, Verbose, Quiet, Monochrome)
-
-		if Monochrome || Quiet {
-			opts.Color = false
-		}
-
 		dupver.AddRepoToWorkDir(WorkDirPath, repoName, repoPath, opts)
 	},
 }

@@ -4,9 +4,10 @@ import (
 	// "fmt"
 	"os"
 
-	"github.com/akbarnes/dupver/src/fancyprint"
-	"github.com/akbarnes/dupver/src/dupver"
 	"github.com/spf13/cobra"
+
+	"github.com/akbarnes/dupver/src/dupver"	
+	"github.com/akbarnes/dupver/src/fancyprint"
 )
 
 var UseDestPath bool
@@ -55,7 +56,7 @@ argument as a path. A second optional positional argument
 will limit only a single specified snapshot id to be copied.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg, err := dupver.ReadWorkDirConfig(WorkDirPath)
-		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Debug, Verbose, Quiet)
+		opts := dupver.Options{}
 		fancyprint.Setup(Debug, Verbose, Quiet, Monochrome)
 
 		if err != nil {
@@ -96,10 +97,6 @@ will limit only a single specified snapshot id to be copied.`,
 
 		if !UseDestPath {
 			destPath = cfg.Repos[args[0]]
-		}
-
-		if Monochrome || Quiet {
-			opts.Color = false
 		}
 
 		snapshotId := ""

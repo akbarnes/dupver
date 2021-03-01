@@ -5,10 +5,11 @@ import (
 	"os"
 	// "log"
 	// "path/filepath"
-
-	"github.com/akbarnes/dupver/src/fancyprint"
-	"github.com/akbarnes/dupver/src/dupver"
+	
 	"github.com/spf13/cobra"
+
+	"github.com/akbarnes/dupver/src/dupver"
+	"github.com/akbarnes/dupver/src/fancyprint"
 )
 
 // statusCmd represents the status command
@@ -18,7 +19,7 @@ var branchCmd = &cobra.Command{
 	Long:  `This will switch a project working directory to the specified branch. `,
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg, err := dupver.ReadWorkDirConfig(WorkDirPath)
-		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Debug, Verbose, Quiet)
+		opts := dupver.Options{}
 		fancyprint.Setup(Debug, Verbose, Quiet, Monochrome)
 
 		if err != nil {
@@ -27,14 +28,8 @@ var branchCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-
 		fancyprint.Debugf("Workdir configuration: %+v\n", cfg)
 		fancyprint.Debugf("\nOld name: %s\n", cfg.WorkDirName)
-
-		if Monochrome || Quiet {
-			opts.Color = false
-		}
-
 		branch := Branch
 
 		if len(args) >= 1 {
@@ -48,10 +43,10 @@ var branchCmd = &cobra.Command{
 
 			dupver.SaveWorkDirConfig(WorkDirPath, cfg, true, opts)
 		} else {
-			if opts.Verbosity <= 1 {
-				fmt.Println(cfg.Branch)
-			} else {
+			if fancyprint.Verbosity >= fancyprint.NoticeLevel {
 				fmt.Printf("Current branch: %s\n", cfg.Branch)
+			} else {
+				fmt.Println(cfg.Branch)
 			}
 		}
 	},

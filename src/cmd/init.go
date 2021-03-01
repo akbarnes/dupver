@@ -3,9 +3,10 @@ package cmd
 import (
 	// "fmt"
 
-	"github.com/akbarnes/dupver/src/fancyprint"
-	"github.com/akbarnes/dupver/src/dupver"
 	"github.com/spf13/cobra"
+
+	"github.com/akbarnes/dupver/src/dupver"	
+	"github.com/akbarnes/dupver/src/fancyprint"
 )
 
 var ProjectName string
@@ -20,7 +21,7 @@ If an optional positional argument is provided, this will
 specify the location of the project working directory. 
 Otherwise, the current working directory is used.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Debug, Verbose, Quiet)
+		opts := dupver.Options{}
 		fancyprint.Setup(Debug, Verbose, Quiet, Monochrome)
 
 		workDirPath := WorkDirPath
@@ -42,11 +43,6 @@ Otherwise, the current working directory is used.`,
 		}
 
 		// TODO: Read repoPath from environment variable if empty
-
-		if Monochrome || Quiet {
-			opts.Color = false
-		}
-
 		dupver.InitWorkDir(workDirPath, ProjectName, opts)
 	},
 }

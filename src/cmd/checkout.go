@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/akbarnes/dupver/src/fancyprint"
-	"github.com/akbarnes/dupver/src/dupver"
 	"github.com/spf13/cobra"
+
+	"github.com/akbarnes/dupver/src/dupver"	
+	"github.com/akbarnes/dupver/src/fancyprint"
 )
 
 var OutFile string
@@ -25,17 +26,13 @@ workdir_name-YYYY-MM-DDThh-mm-ss-commit_id[0:15].tar.
 To specify a tar file name, use the --output flag.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg, err := dupver.ReadWorkDirConfig(WorkDirPath)
-		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Debug, Verbose, Quiet)
+		opts := dupver.Options{}
 		fancyprint.Setup(Debug, Verbose, Quiet, Monochrome)
 
 		if err != nil {
 			// Todo: handle invalid configuration file
 			fancyprint.Warn("Could not read configuration file. Has the project working directory been initialized?")
 			os.Exit(1)
-		}
-
-		if Monochrome || Quiet {
-			opts.Color = false
 		}
 
 		if len(RepoName) == 0 {

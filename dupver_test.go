@@ -13,7 +13,7 @@ import (
 )
 
 func TestWorkRepoInit(t *testing.T) {
-	opts := dupver.Options{Color: false, Verbosity: 2}
+	opts := dupver.Options{}
 	debug := false
 	verbose := true
 	quiet := false
@@ -59,7 +59,7 @@ func TestWorkRepoInit(t *testing.T) {
 }
 
 func TestWorkDirInit(t *testing.T) {
-	opts := dupver.Options{Color: false, Verbosity: 2}
+	opts := dupver.Options{}
 	homeDir := dupver.GetHome()
 
 	if len(homeDir) == 0 {
@@ -101,7 +101,7 @@ func TestWorkDirInit(t *testing.T) {
 }
 
 func TestCommit(t *testing.T) {
-	opts := dupver.Options{Color: false, Verbosity: 2}
+	opts := dupver.Options{}
 	msg := "Commit random data"
 
 	// ----------- Create a repo ----------- //

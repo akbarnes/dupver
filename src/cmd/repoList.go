@@ -1,9 +1,10 @@
 package cmd
 
 import (
-	"github.com/akbarnes/dupver/src/fancyprint"
-	"github.com/akbarnes/dupver/src/dupver"
 	"github.com/spf13/cobra"
+
+	"github.com/akbarnes/dupver/src/dupver"	
+	"github.com/akbarnes/dupver/src/fancyprint"
 )
 
 // repoListCmd represents the repoList command
@@ -18,13 +19,8 @@ be applied and each row of the output will be the repo name
 and repo path separated by a space.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// TODO: Read repoPath from environment variable if empty
-		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Debug, Verbose, Quiet)
+		opts := dupver.Options{}
 		fancyprint.Setup(Debug, Verbose, Quiet, Monochrome)
-
-		if Monochrome || Quiet {
-			opts.Color = false
-		}
-
 		dupver.ListWorkDirRepos(WorkDirPath, opts)
 	},
 }

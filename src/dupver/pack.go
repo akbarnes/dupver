@@ -12,6 +12,8 @@ import (
 	"archive/zip"
 	// "github.com/vmihailenco/msgpack/v5"
 	"log"
+
+	"github.com/akbarnes/dupver/src/fancyprint"
 )
 
 
@@ -26,20 +28,20 @@ type packIndex struct {
 }
 
 // Pack a file to the repository given a file path
-func PackFile(filePath string, repoPath string, mypoly chunker.Pol, verbosity int) ([]string, map[string]string) {
+func PackFile(filePath string, repoPath string, mypoly chunker.Pol) ([]string, map[string]string) {
 	f, err := os.Open(filePath)
 
 	if err != nil {
 		log.Fatal(fmt.Sprintf("Could not open file when packing %s", filePath))
 	}
-	chunkIDs, chunkPacks := WritePacks(f, repoPath, mypoly, verbosity)
+	chunkIDs, chunkPacks := WritePacks(f, repoPath, mypoly)
 	f.Close()
 	return chunkIDs, chunkPacks
 }
 
 // Pack a file stream to the repository
 // func WritePacks(f *os.File, repoPath string, poly int) map[string]string {
-func WritePacks(f *os.File, repoPath string, poly chunker.Pol, verbosity int) ([]string, map[string]string) {
+func WritePacks(f *os.File, repoPath string, poly chunker.Pol) ([]string, map[string]string) {
 	const maxPackSize uint = 104857600 // 100 MB
 	mychunker := chunker.New(f, chunker.Pol(poly))
 	buf := make([]byte, 8*1024*1024) // reuse this buffer
@@ -64,9 +66,9 @@ func WritePacks(f *os.File, repoPath string, poly chunker.Pol, verbosity int) ([
 
 		newPackNum++		
 
-		if verbosity >= 2 {
-			fmt.Printf("Creating pack file %3d: %s\n", newPackNum, packPath)	
-		} else if verbosity == 1 {
+		fancyprint.Debugf("Creating pack file %3d: %s\n", newPackNum, packPath)	
+		
+		if fancyprint.Verbosity <= fancyprint.NoticeLevel {
 			fmt.Printf("Creating pack number: %3d, ID: %s\n", newPackNum, packId[0:16])	
 		}
 
@@ -91,8 +93,6 @@ func WritePacks(f *os.File, repoPath string, poly chunker.Pol, verbosity int) ([
 				panic("Error chunking input file")
 			}
 	
-				
-			
 			i++
 			chunkId := fmt.Sprintf("%064x", sha256.Sum256(chunk.Data))
 			chunkIDs = append(chunkIDs, chunkId)
@@ -101,17 +101,12 @@ func WritePacks(f *os.File, repoPath string, poly chunker.Pol, verbosity int) ([
 			totalChunkNum++
 
 			if _, ok := chunkPacks[chunkId]; ok {
-				if verbosity >= 3 {
-					fmt.Printf("Skipping Chunk ID %s already in pack %s\n", chunkId[0:16], chunkPacks[chunkId][0:16])
-				}
-
+				fancyprint.Infof("Skipping Chunk ID %s already in pack %s\n", chunkId[0:16], chunkPacks[chunkId][0:16])
 				dupChunkNum++
 				dupDataSize += int(chunk.Length)
 			} else {	
-				if verbosity >= 2 {
-					fmt.Printf("Chunk %d: chunk size %d kB, total size %d kB, ", i, chunk.Length/1024, curPackSize/1024)
-					fmt.Printf("chunk ID: %s\n",chunkId[0:16])
-				}
+				fancyprint.Infof("Chunk %d: chunk size %d kB, total size %d kB, ", i, chunk.Length/1024, curPackSize/1024)
+				fancyprint.Infof("chunk ID: %s\n",chunkId[0:16])
 				chunkPacks[chunkId] = packId
 				newChunkPacks[chunkId] = packId
 
@@ -131,30 +126,25 @@ func WritePacks(f *os.File, repoPath string, poly chunker.Pol, verbosity int) ([
 		}	
 
 
-		if verbosity >= 2 {
-			if stillReadingInput {
-				fmt.Printf("Pack size %d exceeds max size %d\n", curPackSize, maxPackSize)		
-			}
-
-			fmt.Printf("Reached end of input, closing zip file\n")
+		if stillReadingInput {
+			fancyprint.Info("Pack size %d exceeds max size %d\n", curPackSize, maxPackSize)		
 		}
 
+		fancyprint.Info("Reached end of input, closing zip file\n")
 		zipWriter.Close()
 		zipFile.Close()
 	}
 
-	if verbosity >= 1 {
-		newChunkNum := totalChunkNum - dupChunkNum
-		newDataSize := totalDataSize - dupDataSize
+	newChunkNum := totalChunkNum - dupChunkNum
+	newDataSize := totalDataSize - dupDataSize
 
-		newMb := float64(newDataSize)/1e6
-		dupMb := float64(dupDataSize)/1e6
-		totalMb := float64(totalDataSize)/1e6
+	newMb := float64(newDataSize)/1e6
+	dupMb := float64(dupDataSize)/1e6
+	totalMb := float64(totalDataSize)/1e6
 
-		fmt.Printf("%0.2f new, %0.2f duplicate, %0.2f total MB raw data stored\n", newMb, dupMb, totalMb)
-		fmt.Printf("%d new, %d duplicate, %d total chunks\n", newChunkNum, dupChunkNum, totalChunkNum)
-		fmt.Printf("%d packs stored, %0.2f chunks/pack\n", newPackNum, float64(newChunkNum)/float64(newPackNum))
-	}
+	fancyprint.Noticef("%0.2f new, %0.2f duplicate, %0.2f total MB raw data stored\n", newMb, dupMb, totalMb)
+	fancyprint.Noticef("%d new, %d duplicate, %d total chunks\n", newChunkNum, dupChunkNum, totalChunkNum)
+	fancyprint.Noticef("%d packs stored, %0.2f chunks/pack\n", newPackNum, float64(newChunkNum)/float64(newPackNum))
 
 	return chunkIDs, newChunkPacks 
 }
@@ -166,7 +156,7 @@ func UnpackFile(filePath string, repoPath string, chunkIds []string, opts Option
 	f, err := os.Create(filePath)
 
 	if err != nil {
-		log.Fatal(fmt.Sprintf("Could not create output file %s while unpacking", filePath))
+		panic(fmt.Sprintf("Could not create output file %s while unpacking", filePath))
 	}
 
 	ReadPacks(f, repoPath, chunkIds, chunkPacks, opts)
@@ -179,10 +169,7 @@ func ReadPacks(tarFile *os.File, repoPath string, chunkIds []string, chunkPacks 
 	for i, chunkId := range chunkIds {
 		packId := chunkPacks[chunkId]
 		packPath := path.Join(repoPath, "packs", packId[0:2], packId + ".zip")
-
-		if opts.Verbosity >= 2 {
-			fmt.Printf("Reading chunk %d %s \n from pack %s\n", i, chunkId, packPath)
-		}
+		fancyprint.Infof("Reading chunk %d %s \n from pack %s\n", i, chunkId, packPath)
 
 		// From https://golangcode.com/unzip-files-in-go/
 		r, err := zip.OpenReader(packPath)
@@ -197,7 +184,7 @@ func ReadPacks(tarFile *os.File, repoPath string, chunkIds []string, chunkPacks 
 				rc, err := f.Open()
 				
 				if err != nil {
-					panic(fmt.Sprintf("Error opnening pack/chunk %s/%s", packPath, h.Name))
+					panic(fmt.Sprintf("Error opening pack/chunk %s/%s", packPath, h.Name))
 				}
 
 				if _, err := io.Copy(tarFile, rc); err != nil {
@@ -224,9 +211,7 @@ func LoadChunk(repoPath string, chunkId string, chunkPacks map[string]string, op
 	packPath := path.Join(repoPath, "packs", packId[0:2], packId + ".zip")
 	data := []byte{}
 
-	if opts.Verbosity >= 2 {
-		fmt.Printf("Reading chunk %s \n from pack file %s\n", chunkId, packPath)
-	}
+	fancyprint.Infof("Reading chunk %s \n from pack file %s\n", chunkId, packPath)
 
 	// From https://golangcode.com/unzip-files-in-go/
 	packReader, err := zip.OpenReader(packPath)

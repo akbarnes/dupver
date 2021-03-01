@@ -16,6 +16,8 @@ import (
 	// "encoding/json"
 
 	"github.com/BurntSushi/toml"
+
+	"github.com/akbarnes/dupver/src/fancyprint"
 )
 
 type workDirConfig struct {
@@ -38,21 +40,17 @@ func InitWorkDir(workDirFolder string, workDirName string, opts Options) {
 	repoPath := opts.RepoPath
 	branch := opts.Branch
 
-	if opts.Verbosity >= 2 {
-		fmt.Printf("Workdir %s, name %s, repo %s\n", workDirFolder, workDirName, opts.RepoPath)
-	}
+	fancyprint.Noticef("Workdir %s, name %s, repo %s\n", workDirFolder, workDirName, opts.RepoPath)
 
 	if len(workDirFolder) == 0 {
-		CreateFolder(".dupver", opts.Verbosity)
+		CreateFolder(".dupver")
 		configPath = filepath.Join(".dupver", "config.toml")
 	} else {
-		CreateSubFolder(workDirFolder, ".dupver", opts.Verbosity)
+		CreateSubFolder(workDirFolder, ".dupver")
 		configPath = filepath.Join(workDirFolder, ".dupver", "config.toml")
 	}
 
-	if opts.Verbosity >= 2 {
-		fmt.Println("Writing workdir config file to: " + configPath)
-	}
+	fancyprint.Infof("Writing workdir config file to: " + configPath)
 
 	if len(workDirName) == 0 || workDirName == "." {
 		if len(workDirFolder) == 0 {
@@ -63,9 +61,7 @@ func InitWorkDir(workDirFolder string, workDirName string, opts Options) {
 			// _, folder := path.Split(dir)
 			folder := filepath.Base(dir)
 
-			if opts.Verbosity >= 3 {
-				fmt.Printf("Resolving folder %s to %s\n", dir, folder)
-			}
+			fancyprint.Debugf("Resolving folder %s to %s\n", dir, folder)
 			workDirName = FolderToWorkDirName(folder)
 		} else {
 			workDirName = FolderToWorkDirName(workDirFolder)
@@ -75,23 +71,18 @@ func InitWorkDir(workDirFolder string, workDirName string, opts Options) {
 			log.Fatal("Invalid project name: " + workDirName)
 		}
 
-		if opts.Verbosity >= 1 {
-			fmt.Printf("Workdir name not specified, setting to %s\n", workDirName)
-		}
+		fancyprint.Noticef("Workdir name not specified, setting to %s\n", workDirName)
 	}
 
 	if len(repoPath) == 0 {
 		repoPath = filepath.Join(GetHome(), ".dupver_repo")
-
-		if opts.Verbosity >= 1 {
-			fmt.Printf("Repo path not specified, setting to %s\n", repoPath)
-		}
+		fancyprint.Noticef("Repo path not specified, setting to %s\n", repoPath)
 	}
 
-	if opts.Verbosity == 0 {
-		fmt.Println(workDirName)
-	} else {
+	if fancyprint.Verbosity >= fancyprint.NoticeLevel {
 		fmt.Printf("Repo name: [%s]\n", repoName)
+	} else {
+		fmt.Println(workDirName)
 	}
 
 	var myConfig workDirConfig
@@ -113,7 +104,7 @@ func AddRepoToWorkDir(workDirPath string, repoName string, repoPath string, opts
 
 	if err != nil {
 		// Todo: handle invalid configuration file
-		fmt.Println("Could not read configuration file. Has the project working directory been initialized?")
+		fancyprint.Warn("Could not read configuration file. Has the project working directory been initialized?")
 		os.Exit(0)
 	}
 
@@ -128,8 +119,8 @@ func ListWorkDirRepos(workDirPath string, opts Options) {
 
 	if err != nil {
 		// Todo: handle invalid configuration file
-		fmt.Println("Could not read configuration file. Has the project working directory been initialized?")
-		os.Exit(1)
+		fancyprint.Warn("Could not read configuration file. Has the project working directory been initialized?")
+		os.Exit(0)
 	}
 
 	for name, _ := range cfg.Repos {
@@ -141,10 +132,10 @@ func ListWorkDirRepos(workDirPath string, opts Options) {
 	fmtStr := "%" + strconv.Itoa(maxLen) + "s: %s\n"
 
 	for name, path := range cfg.Repos {
-		if opts.Verbosity == 0 {
-			fmt.Printf("%s %s\n", name, path)
-		} else {
+		if fancyprint.Verbosity >= fancyprint.NoticeLevel {
 			fmt.Printf(fmtStr, name, path)
+		} else {
+			fmt.Printf("%s %s\n", name, path)
 		}
 	}
 }
@@ -184,7 +175,7 @@ func ReadWorkDirConfigFile(filePath string) (workDirConfig, error) {
 	}
 
 	if _, err = toml.DecodeReader(f, &myConfig); err != nil {
-		log.Fatal("Invalid configuration file " + filePath)
+		panic(fmt.Sprintf("Invalid configuration file: %s\n", filePath))
 	}
 
 	f.Close()
@@ -211,13 +202,11 @@ func SaveWorkDirConfig(workDir string, myConfig workDirConfig, forceWrite bool, 
 func SaveWorkDirConfigFile(configPath string, myConfig workDirConfig, forceWrite bool, opts Options) {
 	if _, err := os.Stat(configPath); err == nil && !forceWrite {
 		// panic("Refusing to write existing project workdir config " + configPath)
-		log.Fatal("Refusing to write existing project workdir config " + configPath)
+		panic(fmt.Sprintf("Refusing to write existing project workdir config: %s\n", configPath))
 	}
 
-	if opts.Verbosity >= 2 {
-		fmt.Printf("Writing config:\n%+v\n", myConfig)
-		fmt.Printf("to: %s\n", configPath)
-	}
+	fancyprint.Infof("Writing config:\n%+v\n", myConfig)
+	fancyprint.Infof("to: %s\n", configPath)
 
 	f, _ := os.Create(configPath)
 	myEncoder := toml.NewEncoder(f)
@@ -241,9 +230,7 @@ func WorkDirStatus(workDir string, snapshot Commit, opts Options) {
 		workDirPrefix = filepath.Base(cwd)
 	}
 
-	if opts.Verbosity >= 2 {
-		fmt.Printf("Comparing changes for wd \"%s\" (prefix: \"%s\")\n", workDir, workDirPrefix)
-	}
+	fancyprint.Infof("Comparing changes for wd \"%s\" (prefix: \"%s\")\n", workDir, workDirPrefix)
 
 	myFileInfo := make(map[string]fileInfo)
 	deletedFiles := make(map[string]bool)
@@ -275,39 +262,21 @@ func WorkDirStatus(workDir string, snapshot Commit, opts Options) {
 
 			if snapshotInfo.ModTime != info.ModTime().Format("2006/01/02 15:04:05") {
 				if !info.IsDir() && !strings.HasPrefix(curPath, path.Join(workDirPrefix, ".dupver")) {
-					if opts.Color {
-						fmt.Printf("%s", colorCyan)
-					}
-
+					fancyprint.SetColor(fancyprint.ColorCyan)
 					fmt.Printf("M %s\n", curPath)
-
-					if opts.Color {
-						fmt.Printf("%s", colorReset)
-					}
+					fancyprint.ResetColor()
 					// fmt.Printf("M %s\n", curPath)
 					changes = true
 				}
-			} else if opts.Verbosity >= 2 {
-				if opts.Color {
-					fmt.Printf("%s", colorWhite)
-				}
-
+			} else if fancyprint.Verbosity >= fancyprint.InfoLevel {
+				fancyprint.SetColor(fancyprint.ColorWhite)
 				fmt.Printf("U %s\n", curPath)
-
-				if opts.Color {
-					fmt.Printf("%s", colorReset)
-				}
+				fancyprint.ResetColor()
 			}
 		} else if !strings.HasPrefix(curPath, path.Join(workDirPrefix, ".dupver")) {
-			if opts.Color {
-				fmt.Printf("%s", colorGreen)
-			}
-
+			fancyprint.SetColor(fancyprint.ColorGreen)
 			fmt.Printf("+ %s\n", curPath)
-
-			if opts.Color {
-				fmt.Printf("%s", colorReset)
-			}
+			fancyprint.ResetColor()
 			changes = true
 		}
 
@@ -324,21 +293,14 @@ func WorkDirStatus(workDir string, snapshot Commit, opts Options) {
 		}
 
 		if deleted {
-			if opts.Color {
-				fmt.Printf("%s", colorRed)
-			}
-
+			fancyprint.SetColor(fancyprint.ColorRed)
 			fmt.Printf("- %s\n", file)
-
-			if opts.Color {
-				fmt.Printf("%s", colorReset)
-			}
-
+			fancyprint.ResetColor()
 			changes = true
 		}
 	}
 
-	if !changes && opts.Verbosity >= 1 {
-		fmt.Printf("No changes detected\n")
+	if !changes {
+		fancyprint.Infof("No changes detected\n")
 	}
 }

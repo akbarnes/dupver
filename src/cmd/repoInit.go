@@ -1,9 +1,10 @@
 package cmd
 
 import (
-	"github.com/akbarnes/dupver/src/fancyprint"
-	"github.com/akbarnes/dupver/src/dupver"
 	"github.com/spf13/cobra"
+
+	"github.com/akbarnes/dupver/src/dupver"	
+	"github.com/akbarnes/dupver/src/fancyprint"
 )
 
 var ChunkerPolynomial string
@@ -21,13 +22,8 @@ positional argument allows for the repository name to be specified.
 if no repository name is specified, the repository takes on the default
 name of "main."`,
 	Run: func(cmd *cobra.Command, args []string) {
-		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Debug, Verbose, Quiet)
+		opts := dupver.Options{}
 		fancyprint.Setup(Debug, Verbose, Quiet, Monochrome)
-
-		if Monochrome || Quiet {
-			opts.Color = false
-		}
-
 		repoName := RepoName
 		repoPath := RepoPath
 

@@ -2,7 +2,7 @@ package dupver
 
 import (
 	"fmt"
-	"log"
+	// "log"
 	"crypto/sha256"
 	"io"
 	"bufio"
@@ -14,18 +14,19 @@ import (
 	// "encoding/json"
 
 	"github.com/BurntSushi/toml"
+	"github.com/akbarnes/dupver/src/fancyprint"
 )
 
 // Read the files, workdir configuration and head from a tar file
 // given a filename
-func ReadTarFileIndex(filePath string, verbosity int) ([]fileInfo, workDirConfig) {
+func ReadTarFileIndex(filePath string) ([]fileInfo, workDirConfig) {
 	tarFile, err := os.Open(filePath)
 
 	if err != nil {
-		log.Fatal(fmt.Sprintf("Error: Could not open input tar file %s when reading index", filePath))
+		panic(fmt.Sprintf("Error: Could not open input tar file %s when reading index", filePath))
 	}
 
-	files, myConfig := ReadTarIndex(tarFile, verbosity)
+	files, myConfig := ReadTarIndex(tarFile)
 	tarFile.Close()
 
 	return files, myConfig
@@ -33,14 +34,14 @@ func ReadTarFileIndex(filePath string, verbosity int) ([]fileInfo, workDirConfig
 
 // Read the files, workdir configuration and head from a tar file
 // given a file object
-func ReadTarIndex(tarFile *os.File, verbosity int) ([]fileInfo, workDirConfig) {
+func ReadTarIndex(tarFile *os.File) ([]fileInfo, workDirConfig) {
 	files := []fileInfo{}
 	var myConfig workDirConfig
 	// var baseFolder string
 	// var configPath string
 	maxFiles := 10
 
-	if verbosity >= 1 {
+	if fancyprint.Verbosity >= fancyprint.NoticeLevel {
 		fmt.Println("Files:")
 	}
 
@@ -64,9 +65,7 @@ func ReadTarIndex(tarFile *os.File, verbosity int) ([]fileInfo, workDirConfig) {
 		// }
 
 		if strings.HasSuffix(hdr.Name, ".dupver/config.toml") {
-			if verbosity >= 1 {
-				fmt.Printf("Reading config file %s\n", hdr.Name)
-			}
+			fancyprint.Infof("Reading config file %s\n", hdr.Name)
 
 			if _, err := toml.DecodeReader(tr, &myConfig); err != nil {
 				panic(fmt.Sprintf("Error decoding repo configuration file %s while reading tar file index", hdr.Name))
@@ -100,14 +99,14 @@ func ReadTarIndex(tarFile *os.File, verbosity int) ([]fileInfo, workDirConfig) {
 
 		i++
 
-		if i <= maxFiles && verbosity >= 1 {
+		if i <= maxFiles && fancyprint.Verbosity >= fancyprint.NoticeLevel {
 			fmt.Printf("%2d: %s\n", i, hdr.Name)
 		}
 
 		files = append(files, myFileInfo)
 	}
 
-	if i > maxFiles && maxFiles > 0 && verbosity >= 1 {
+	if i > maxFiles && maxFiles > 0 && fancyprint.Verbosity >= fancyprint.NoticeLevel {
 		fmt.Printf("...\nSkipping %d more files\n", i-maxFiles)
 	}
 

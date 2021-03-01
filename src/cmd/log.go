@@ -5,9 +5,10 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/akbarnes/dupver/src/fancyprint"
-	"github.com/akbarnes/dupver/src/dupver"
 	"github.com/spf13/cobra"
+
+	"github.com/akbarnes/dupver/src/dupver"	
+	"github.com/akbarnes/dupver/src/fancyprint"
 )
 
 // logCmd represents the log command
@@ -20,7 +21,7 @@ If an optional positional argument is provided, this will specify
 a commit ID to print in additional detail.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg, err := dupver.ReadWorkDirConfig(WorkDirPath)
-		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Debug, Verbose, Quiet)
+		opts := dupver.Options{}
 		fancyprint.Setup(Debug, Verbose, Quiet, Monochrome)
 
 		if err != nil {
@@ -71,11 +72,6 @@ a commit ID to print in additional detail.`,
 		}
 
 		fancyprint.Debugf("Full snapshot ID: %s\n\n", snapshotId)
-
-		if Monochrome || Quiet {
-			opts.Color = false
-		}
-
 		dupver.PrintAllSnapshots(snapshotId, opts)
 	},
 }

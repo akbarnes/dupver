@@ -13,8 +13,8 @@ import (
 	"time"
 
 	// "log"
-	"github.com/akbarnes/dupver/src/fancyprint"
 	"github.com/BurntSushi/toml"
+	"github.com/akbarnes/dupver/src/fancyprint"
 )
 
 type Commit struct {
@@ -51,7 +51,7 @@ const TREE_ID_LEN int = 40
 
 // Copy a snapshot given a snapshot ID, source repo path and dest repo path
 func CopySnapshot(snapshotId string, sourceRepoPath string, destRepoPath string, opts Options) {
-	fmt.Printf("Copying snapshot %s: %s -> %s\n", snapshotId, sourceRepoPath, destRepoPath)
+	fancyprint.Noticef("Copying snapshot %s: %s -> %s\n", snapshotId, sourceRepoPath, destRepoPath)
 	sourceSnapshotsFolder := filepath.Join(sourceRepoPath, "snapshots", opts.WorkDirName)
 	destSnapshotsFolder := filepath.Join(destRepoPath, "snapshots", opts.WorkDirName)
 	os.Mkdir(destSnapshotsFolder, 0777)
@@ -59,7 +59,7 @@ func CopySnapshot(snapshotId string, sourceRepoPath string, destRepoPath string,
 	sourceSnapshotPath := filepath.Join(sourceSnapshotsFolder, snapshotId+".json")
 	destSnapshotPath := filepath.Join(destSnapshotsFolder, snapshotId+".json")
 
-	fmt.Printf("Copying %s -> %s\n", sourceSnapshotPath, destSnapshotPath)
+	fancyprint.Noticef("Copying %s -> %s\n", sourceSnapshotPath, destSnapshotPath)
 	CopyFile(sourceSnapshotPath, destSnapshotPath) // TODO: check error status
 	snapshot := ReadSnapshotFile(sourceSnapshotPath)
 	chunkIndex := 0
@@ -90,10 +90,9 @@ func CopySnapshot(snapshotId string, sourceRepoPath string, destRepoPath string,
 
 		newPackNum++
 
-		if opts.Verbosity >= 2 {
-			fmt.Printf("Creating pack file %3d: %s\n", newPackNum, destPackPath)
-		} else if opts.Verbosity == 1 {
-			fmt.Printf("Creating pack number: %3d, ID: %s\n", newPackNum, packId[0:16])
+		fancyprint.Infof("Creating pack file %3d: %s\n", newPackNum, destPackPath)
+		if fancyprint.Verbosity <= fancyprint.NoticeLevel {
+			fancyprint.Noticef("Creating pack number: %3d, ID: %s\n", newPackNum, packId[0:16])
 		}
 
 		zipFile, err := os.Create(destPackPath)
@@ -128,17 +127,12 @@ func CopySnapshot(snapshotId string, sourceRepoPath string, destRepoPath string,
 			totalChunkNum++
 
 			if _, ok := destChunkPacks[chunkId]; ok {
-				if opts.Verbosity >= 2 {
-					fmt.Printf("Skipping Chunk ID %s already in pack %s\n", chunkId[0:16], destChunkPacks[chunkId][0:16])
-				}
-
+				fancyprint.Infof("Skipping Chunk ID %s already in pack %s\n", chunkId[0:16], destChunkPacks[chunkId][0:16])
 				dupChunkNum++
 				dupDataSize += int(len(chunk))
 			} else {
-				if opts.Verbosity >= 2 {
-					fmt.Printf("Chunk %d: chunk size %d kB, total size %d kB, ", i, len(chunk)/1024, curPackSize/1024)
-					fmt.Printf("chunk ID: %s\n", chunkId[0:16])
-				}
+				fancyprint.Infof("Chunk %d: chunk size %d kB, total size %d kB, ", i, len(chunk)/1024, curPackSize/1024)
+				fancyprint.Infof("chunk ID: %s\n", chunkId[0:16])
 				destChunkPacks[chunkId] = packId
 				newChunkPacks[chunkId] = packId
 
@@ -157,30 +151,26 @@ func CopySnapshot(snapshotId string, sourceRepoPath string, destRepoPath string,
 			}
 		}
 
-		if opts.Verbosity >= 2 {
-			if stillReadingInput {
-				fmt.Printf("Pack size %d exceeds max size %d\n", curPackSize, maxPackSize)
-			}
-
-			fmt.Printf("Reached end of input, closing zip file\n")
+		if stillReadingInput {
+			fancyprint.Infof("Pack size %d exceeds max size %d\n", curPackSize, maxPackSize)
 		}
+
+		fancyprint.Info("Reached end of input, closing zip file")
 
 		zipWriter.Close()
 		zipFile.Close()
 	}
 
-	if opts.Verbosity >= 1 {
-		newChunkNum := totalChunkNum - dupChunkNum
-		newDataSize := totalDataSize - dupDataSize
+	newChunkNum := totalChunkNum - dupChunkNum
+	newDataSize := totalDataSize - dupDataSize
 
-		newMb := float64(newDataSize) / 1e6
-		dupMb := float64(dupDataSize) / 1e6
-		totalMb := float64(totalDataSize) / 1e6
+	newMb := float64(newDataSize) / 1e6
+	dupMb := float64(dupDataSize) / 1e6
+	totalMb := float64(totalDataSize) / 1e6
 
-		fmt.Printf("%0.2f new, %0.2f duplicate, %0.2f total MB raw data stored\n", newMb, dupMb, totalMb)
-		fmt.Printf("%d new, %d duplicate, %d total chunks\n", newChunkNum, dupChunkNum, totalChunkNum)
-		fmt.Printf("%d packs stored, %0.2f chunks/pack\n", newPackNum, float64(newChunkNum)/float64(newPackNum))
-	}
+	fancyprint.Noticef("%0.2f new, %0.2f duplicate, %0.2f total MB raw data stored\n", newMb, dupMb, totalMb)
+	fancyprint.Noticef("%d new, %d duplicate, %d total chunks\n", newChunkNum, dupChunkNum, totalChunkNum)
+	fancyprint.Noticef("%d packs stored, %0.2f chunks/pack\n", newPackNum, float64(newChunkNum)/float64(newPackNum))
 
 	treeFolder := path.Join(destRepoPath, "trees")
 	treeBasename := snapshotId[0:40]
@@ -188,10 +178,10 @@ func CopySnapshot(snapshotId string, sourceRepoPath string, destRepoPath string,
 	treePath := path.Join(treeFolder, treeBasename+".json")
 	WriteTree(treePath, destChunkPacks)
 
-	if opts.Verbosity >= 1 {
-		fmt.Printf("%s", colorGreen)
+	if fancyprint.Verbosity >= fancyprint.NoticeLevel {
+		fancyprint.SetColor(fancyprint.ColorGreen)
 		fmt.Printf("Copied snapshot %s (%s)\n", snapshotId[0:16], snapshotId)
-		fmt.Printf("%s", colorReset)
+		fancyprint.ResetColor()
 	} else {
 		fmt.Println(snapshotId)
 	}
@@ -210,7 +200,7 @@ func CommitFile(filePath string, parentIds []string, msg string, opts Options) C
 	snap.ID = RandHexString(SNAPSHOT_ID_LEN)
 	snap.Time = t.Format("2006/01/02 15:04:05")
 	snap = UpdateMessage(snap, msg, filePath)
-	snap.Files, myWorkDirConfig = ReadTarFileIndex(filePath, opts.Verbosity)
+	snap.Files, myWorkDirConfig = ReadTarFileIndex(filePath)
 
 	if len(opts.RepoName) == 0 {
 		opts.RepoName = myWorkDirConfig.DefaultRepo
@@ -235,13 +225,10 @@ func CommitFile(filePath string, parentIds []string, msg string, opts Options) C
 	branchPath := path.Join(branchFolder, myWorkDirConfig.Branch+".toml")
 	myBranch := ReadBranch(branchPath)
 
-	if opts.Verbosity >= 2 {
-		fmt.Printf("Branch: %s\nParent commit: %s\n", opts.Branch, myBranch.CommitID)
-	}
-
+	fancyprint.Infof("Branch: %s\nParent commit: %s\n", opts.Branch, myBranch.CommitID)
 	snap.ParentIDs = append([]string{myBranch.CommitID}, parentIds...)
 
-	chunkIDs, chunkPacks := PackFile(filePath, opts.RepoPath, myRepoConfig.ChunkerPolynomial, opts.Verbosity)
+	chunkIDs, chunkPacks := PackFile(filePath, opts.RepoPath, myRepoConfig.ChunkerPolynomial)
 	snap.ChunkIDs = chunkIDs
 
 	snapshotFolder := path.Join(opts.RepoPath, "snapshots", opts.WorkDirName)
@@ -253,7 +240,7 @@ func CommitFile(filePath string, parentIds []string, msg string, opts Options) C
 	// Do I really need to track commit id in head??
 	myBranch.CommitID = snap.ID
 
-	WriteBranch(branchPath, myBranch, opts.Verbosity)
+	WriteBranch(branchPath, myBranch)
 
 	treeFolder := path.Join(opts.RepoPath, "trees")
 	treeBasename := snap.ID[0:40]
@@ -261,16 +248,10 @@ func CommitFile(filePath string, parentIds []string, msg string, opts Options) C
 	treePath := path.Join(treeFolder, treeBasename+".json")
 	WriteTree(treePath, chunkPacks)
 
-	if opts.Verbosity >= 1 {
-		if opts.Color {
-			fmt.Printf("%s", colorGreen)
-		}
-
+	if fancyprint.Verbosity >= fancyprint.NoticeLevel {
+		fancyprint.SetColor(fancyprint.ColorGreen)
 		fmt.Printf("Created snapshot %s (%s)\n", snap.ID[0:16], snap.ID)
-
-		if opts.Color {
-			fmt.Printf("%s", colorReset)
-		}
+		fancyprint.ResetColor()
 	} else {
 		fmt.Println(snap.ID)
 	}
@@ -309,11 +290,8 @@ func CreateTag(tagName string, snapshotId string, opts Options) {
 	tagPath := path.Join(tagFolder, tagName+".toml")
 	myTag := Branch{CommitID: snapshotId}
 
-	if opts.Verbosity >= 1 {
-		fmt.Printf("Tag commit: %s\n", snapshotId)
-	}
-
-	WriteBranch(tagPath, myTag, opts.Verbosity)
+	fancyprint.Noticef("Tag commit: %s\n", snapshotId)
+	WriteBranch(tagPath, myTag)
 }
 
 
@@ -321,9 +299,9 @@ func CreateTag(tagName string, snapshotId string, opts Options) {
 // TODO: Update this to use opts structure
 // TODO: Change this to WriteBranchFile?
 // TODO: Change this to take in a file stream? - Probably not, why would I need to?
-func WriteBranch(branchPath string, myBranch Branch, verbosity int) {
+func WriteBranch(branchPath string, myBranch Branch) {
 	dir := filepath.Dir(branchPath)
-	CreateFolder(dir, verbosity)
+	CreateFolder(dir)
 	f, err := os.Create(branchPath)
 
 	if err != nil {
@@ -343,7 +321,7 @@ func ReadBranch(branchPath string) Branch {
 
 	if err != nil {
 		//panic(fmt.Sprintf("Error: Could not read head file %s", headPath))
-		fmt.Printf("Branch file %s does not exist, returning default head struct\n", branchPath)
+		fancyprint.Warnf("Branch file %s does not exist, returning default head struct\n", branchPath)
 		return Branch{}
 	}
 
@@ -477,8 +455,8 @@ func PrintSnapshots(snapshotId string, maxSnapshots int, opts Options) {
 	repoPath := opts.RepoPath
 	projectName := opts.WorkDirName
 
-	if maxSnapshots != 0 && opts.Verbosity >= 1 {
-		fmt.Println("Snapshot History")
+	if maxSnapshots > 0 {
+		fancyprint.Notice("Snapshot History")
 	}
 
 	snapshotGlob := path.Join(repoPath, "snapshots", projectName, "*.json")
@@ -546,7 +524,7 @@ func PrintSnapshot(mySnapshot Commit, maxFiles int, opts Options) {
 		return
 	}
 
-	fancyprint.SetColor(colorGreen)
+	fancyprint.SetColor(fancyprint.ColorGreen)
 	fmt.Printf("ID: %s (%s)", mySnapshot.ID[0:8], mySnapshot.ID)
 	fancyprint.ResetColor()
 

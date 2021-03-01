@@ -3,11 +3,12 @@ package cmd
 import (
 	// "fmt"
 	"os"
-
 	// "log"
-	"github.com/akbarnes/dupver/src/fancyprint"
-	"github.com/akbarnes/dupver/src/dupver"
+
 	"github.com/spf13/cobra"
+
+	"github.com/akbarnes/dupver/src/dupver"	
+	"github.com/akbarnes/dupver/src/fancyprint"
 )
 
 // statusCmd represents the status command
@@ -25,7 +26,7 @@ chunks rather than diffs). For usage as part of a comm
 with the --monochrome flag.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg, err := dupver.ReadWorkDirConfig(WorkDirPath)
-		opts := dupver.SetVerbosity(dupver.Options{Color: true}, Debug, Verbose, Quiet)
+		opts := dupver.Options{}
 		fancyprint.Setup(Debug, Verbose, Quiet, Monochrome)
 
 		if err != nil {
@@ -78,11 +79,6 @@ with the --monochrome flag.`,
 		}
 
 		fancyprint.Debugf("Snapshot commit ID: %s\n", mySnapshot.ID)
-
-		if Monochrome || Quiet {
-			opts.Color = false
-		}
-
 		dupver.WorkDirStatus("", mySnapshot, opts)
 	},
 }
