@@ -5,6 +5,7 @@ import (
 	// "log"
 	"os"
 	"path"
+	"archive/zip"
 
 	// "path/filepath"
 
@@ -17,6 +18,7 @@ import (
 type repoConfig struct {
 	Version           int
 	ChunkerPolynomial chunker.Pol
+	CompressionLevel uint16
 }
 
 // Initialize a repository
@@ -67,6 +69,8 @@ func InitRepo(repoPath string, repoName string, chunkerPolynomial string, opts O
 	var myConfig repoConfig
 	myConfig.Version = 2
 	myConfig.ChunkerPolynomial = poly
+	// TODO: allow compression level to be specified when creating the repo
+	myConfig.CompressionLevel = zip.Deflate
 	SaveRepoConfig(repoPath, myConfig)
 }
 
@@ -98,6 +102,7 @@ func SaveRepoConfig(repoPath string, myConfig repoConfig) {
 // TODO: Should I add ReadRepoConfig?
 func ReadRepoConfigFile(filePath string) repoConfig {
 	var myConfig repoConfig
+	myConfig.CompressionLevel = zip.Deflate
 
 	f, err := os.Open(filePath)
 

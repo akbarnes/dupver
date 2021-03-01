@@ -228,7 +228,7 @@ func CommitFile(filePath string, parentIds []string, msg string, opts Options) C
 	fancyprint.Infof("Branch: %s\nParent commit: %s\n", opts.Branch, myBranch.CommitID)
 	snap.ParentIDs = append([]string{myBranch.CommitID}, parentIds...)
 
-	chunkIDs, chunkPacks := PackFile(filePath, opts.RepoPath, myRepoConfig.ChunkerPolynomial)
+	chunkIDs, chunkPacks := PackFile(filePath, opts.RepoPath, myRepoConfig.ChunkerPolynomial, myRepoConfig.CompressionLevel)
 	snap.ChunkIDs = chunkIDs
 
 	snapshotFolder := path.Join(opts.RepoPath, "snapshots", opts.WorkDirName)

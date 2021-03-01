@@ -28,20 +28,20 @@ type packIndex struct {
 }
 
 // Pack a file to the repository given a file path
-func PackFile(filePath string, repoPath string, mypoly chunker.Pol) ([]string, map[string]string) {
+func PackFile(filePath string, repoPath string, mypoly chunker.Pol, compressionLevel uint16) ([]string, map[string]string) {
 	f, err := os.Open(filePath)
 
 	if err != nil {
 		log.Fatal(fmt.Sprintf("Could not open file when packing %s", filePath))
 	}
-	chunkIDs, chunkPacks := WritePacks(f, repoPath, mypoly)
+	chunkIDs, chunkPacks := WritePacks(f, repoPath, mypoly, compressionLevel)
 	f.Close()
 	return chunkIDs, chunkPacks
 }
 
 // Pack a file stream to the repository
 // func WritePacks(f *os.File, repoPath string, poly int) map[string]string {
-func WritePacks(f *os.File, repoPath string, poly chunker.Pol) ([]string, map[string]string) {
+func WritePacks(f *os.File, repoPath string, poly chunker.Pol, compressionLevel uint16) ([]string, map[string]string) {
 	const maxPackSize uint = 104857600 // 100 MB
 	mychunker := chunker.New(f, chunker.Pol(poly))
 	buf := make([]byte, 8*1024*1024) // reuse this buffer
@@ -110,9 +110,11 @@ func WritePacks(f *os.File, repoPath string, poly chunker.Pol) ([]string, map[st
 				chunkPacks[chunkId] = packId
 				newChunkPacks[chunkId] = packId
 
+				fancyprint.Debugf("Compression level: %d\n", compressionLevel)
+
 				var header zip.FileHeader
 				header.Name = chunkId
-				header.Method = zip.Deflate
+				header.Method = compressionLevel
 			
 				writer, err := zipWriter.CreateHeader(&header)
 				
