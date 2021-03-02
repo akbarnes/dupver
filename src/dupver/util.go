@@ -3,6 +3,7 @@ package dupver
 import (
 	"archive/tar"
 	// "bufio"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -10,7 +11,7 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
-	"errors"
+
 	"github.com/BurntSushi/toml"
 
 	"github.com/akbarnes/dupver/src/fancyprint"
@@ -23,7 +24,7 @@ import (
 //   main = "C:\\Users\\Art\\.dupver_repo"
 
 type Preferences struct {
-	DiffTool string
+	DiffTool    string
 	DefaultRepo string
 }
 
@@ -34,6 +35,25 @@ type Options struct {
 	Branch       string
 	DestRepoName string
 	DestRepoPath string
+}
+
+// Print the current global preferences
+func PrintCurrentPreferences(opts Options) {
+	prefs, err := ReadPrefs(opts)
+
+	if err != nil {
+		// Todo: handle invalid configuration file
+		fancyprint.Warn("Could not read preferences file.")
+		os.Exit(1)
+	}
+
+	PrintPreferences(prefs, opts)
+}
+
+// Print the global preferences structure
+func PrintPreferences(prefs Preferences, opts Options) {
+	fmt.Printf("Diff tool: %s\n", prefs.DiffTool)
+	fmt.Printf("Default repository path: %s\n", prefs.DefaultRepo)
 }
 
 // Halt if error parameter is not nil
@@ -92,7 +112,7 @@ func TimeToPath(timeStr string) string {
 	return strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(timeStr, ":", "-"), "/", "-"), " ", "T")
 }
 
-// Copy the source file to a destination file. Any existing file 
+// Copy the source file to a destination file. Any existing file
 // will be overwritten and will not copy file attributes.
 func CopyFile(src, dst string) error {
 	in, err := os.Open(src)
@@ -114,8 +134,8 @@ func CopyFile(src, dst string) error {
 	return out.Close()
 }
 
-// Given a working directory and repository, create a randomly named 
-// tar file with a dupver workdir configuration and a set of 10 50 MB 
+// Given a working directory and repository, create a randomly named
+// tar file with a dupver workdir configuration and a set of 10 50 MB
 // random binary files
 func CreateRandomTarFile(workDirFolder string, repoPath string) string {
 	var fileName string
@@ -124,7 +144,7 @@ func CreateRandomTarFile(workDirFolder string, repoPath string) string {
 	return fileName
 }
 
-// Given a filename, create a tar file with a dupver  workdir configuration 
+// Given a filename, create a tar file with a dupver  workdir configuration
 // and and a set of 10 50 MB random binary files
 func WriteRandomTarFile(fileName string, workDirFolder string, repoPath string) {
 	f, err := os.Create(fileName)

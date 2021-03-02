@@ -24,7 +24,7 @@ type workDirConfig struct {
 	WorkDirName string
 	Branch      string
 	DefaultRepo string
-	Repos map[string]string
+	Repos       map[string]string
 }
 
 // Create a valid project name given a folder name
@@ -99,7 +99,45 @@ func InitWorkDir(workDirFolder string, workDirName string, opts Options) {
 }
 
 // Add a new repository to the working directory configuration
-func AddRepoToWorkDir(workDirPath string, repoName string, repoPath string, opts Options) {
+func PrintCurrentWorkDirConfig(workDirPath string, opts Options) {
+	cfg, err := ReadWorkDirConfig(workDirPath)
+
+	if err != nil {
+		// Todo: handle invalid configuration file
+		fancyprint.Warn("Could not read configuration file. Has the project working directory been initialized?")
+		os.Exit(0)
+	}
+
+	PrintWorkDirConfig(cfg, opts)
+}
+
+// Print the project working directory configuration
+func PrintWorkDirConfig(cfg workDirConfig, opts Options) {
+	// WorkDirName = "admin"
+	// Branch = "test"
+	// DefaultRepo = "store"
+
+	// [Repos]
+	//   main = "C:\\Users\\305232/.dupver_repo"
+
+	fmt.Printf("Working directory name: %s\n", cfg.WorkDirName)
+	fmt.Printf("Current branch: %s\n\n", cfg.Branch)
+
+	for name, path := range cfg.Repos {
+		fmt.Printf("%s: %s", name, path)
+
+		if name == cfg.DefaultRepo {
+			fancyprint.SetColor(fancyprint.ColorGreen)
+			fmt.Print(" (default)")
+			fancyprint.ResetColor()
+		}
+
+		fmt.Println("")
+	}
+}
+
+// Add a new repository to the working directory configuration
+func AddRepoToWorkDir(workDirPath string, repoName string, repoPath string, makeDefaultRepo bool, opts Options) {
 	cfg, err := ReadWorkDirConfig(workDirPath)
 
 	if err != nil {
@@ -109,6 +147,11 @@ func AddRepoToWorkDir(workDirPath string, repoName string, repoPath string, opts
 	}
 
 	cfg.Repos[repoName] = repoPath
+
+	if makeDefaultRepo {
+		cfg.DefaultRepo = repoName
+	}
+
 	SaveWorkDirConfig(workDirPath, cfg, true, opts)
 }
 

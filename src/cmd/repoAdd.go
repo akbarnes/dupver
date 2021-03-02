@@ -3,9 +3,11 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/akbarnes/dupver/src/dupver"	
+	"github.com/akbarnes/dupver/src/dupver"
 	"github.com/akbarnes/dupver/src/fancyprint"
 )
+
+var SetDefaultRepo bool
 
 // repoAddCmd represents the repoAdd command
 var repoAddCmd = &cobra.Command{
@@ -36,7 +38,7 @@ command-line flags.`,
 		// TODO: Read repoPath from environment variable if empty
 		opts := dupver.Options{}
 		fancyprint.Setup(Debug, Verbose, Quiet, Monochrome)
-		dupver.AddRepoToWorkDir(WorkDirPath, repoName, repoPath, opts)
+		dupver.AddRepoToWorkDir(WorkDirPath, repoName, repoPath, SetDefaultRepo, opts)
 	},
 }
 
@@ -48,6 +50,7 @@ func init() {
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
 	// repoAddCmd.PersistentFlags().String("foo", "", "A help for foo")
+	repoCmd.PersistentFlags().BoolVarP(&SetDefaultRepo, "default", "D", false, "set as default repo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:

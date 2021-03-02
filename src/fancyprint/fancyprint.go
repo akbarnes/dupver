@@ -1,6 +1,7 @@
 package fancyprint
 
 import (
+	"fmt"
 	"log"
 	"os"
 )
@@ -64,13 +65,13 @@ func SetColoredOutput(monochrome bool) {
 
 func SetColor(color string) {
 	if ColorOutput {
-		logger.Printf("%s", color)
+		fmt.Print(color)
 	}
 }
 
 func ResetColor() {
 	if ColorOutput {
-		logger.Printf("%s", ColorReset)
+		fmt.Print(ColorReset)
 	}
 }
 
