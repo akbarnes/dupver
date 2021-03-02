@@ -1,9 +1,9 @@
 package fancyprint
 
 import (
-	// "fmt"
-	"os"
+	"fmt"
 	"log"
+	"os"
 )
 
 const ColorReset string = "\033[0m"
@@ -53,7 +53,7 @@ func SetVerbosityLevel(debug bool, verbose bool, quiet bool) {
 		Verbosity = InfoLevel
 	} else {
 		Verbosity = NoticeLevel
-	}	
+	}
 }
 
 // Disable colored output if monochrome flag is true
@@ -63,15 +63,15 @@ func SetColoredOutput(monochrome bool) {
 	}
 }
 
-func SetColor(color string)	{
+func SetColor(color string) {
 	if ColorOutput {
-		logger.Print(color)
+		fmt.Print(color)
 	}
 }
 
 func ResetColor() {
 	if ColorOutput {
-		logger.Print(ColorReset)
+		fmt.Print(ColorReset)
 	}
 }
 
@@ -109,7 +109,7 @@ func Notice(a ...interface{}) {
 }
 
 func Noticef(msg string, a ...interface{}) {
-	if Verbosity >= InfoLevel {
+	if Verbosity >= NoticeLevel {
 		logger.Printf(msg, a...)
 	}
 }
