@@ -3,7 +3,7 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/akbarnes/dupver/src/dupver"	
+	"github.com/akbarnes/dupver/src/dupver"
 	"github.com/akbarnes/dupver/src/fancyprint"
 )
 
@@ -35,7 +35,7 @@ name of "main."`,
 			repoName = args[1]
 		}
 
-		dupver.InitRepo(repoPath, repoName, ChunkerPolynomial, opts)
+		dupver.InitRepo(repoPath, repoName, ChunkerPolynomial, CompressionLevel, opts)
 	},
 }
 

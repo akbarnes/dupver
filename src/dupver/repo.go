@@ -3,9 +3,9 @@ package dupver
 import (
 	"fmt"
 	// "log"
+	"archive/zip"
 	"os"
 	"path"
-	"archive/zip"
 
 	// "path/filepath"
 
@@ -18,11 +18,11 @@ import (
 type repoConfig struct {
 	Version           int
 	ChunkerPolynomial chunker.Pol
-	CompressionLevel uint16
+	CompressionLevel  uint16
 }
 
 // Initialize a repository
-func InitRepo(repoPath string, repoName string, chunkerPolynomial string, opts Options) {
+func InitRepo(repoPath string, repoName string, chunkerPolynomial string, compressionLevel uint16, opts Options) {
 	if len(repoPath) == 0 {
 		repoPath = path.Join(GetHome(), ".dupver_repo")
 		fmt.Printf("Repo path not specified, setting to %s\n", repoPath)

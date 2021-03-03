@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"archive/zip"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -22,6 +23,7 @@ var Verbose bool
 var Quiet bool
 var Monochrome bool
 var Color bool
+var CompressionLevel uint16
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -64,6 +66,7 @@ func init() {
 	rootCmd.PersistentFlags().BoolVarP(&Verbose, "verbose", "v", false, "verbose output")
 	rootCmd.PersistentFlags().BoolVarP(&Quiet, "quiet", "q", false, "quiet output")
 	rootCmd.PersistentFlags().BoolVarP(&Monochrome, "monochrome", "M", false, "monochrome output")
+	rootCmd.PersistentFlags().Uint16VarP(&CompressionLevel, "compression-level", "C", zip.Deflate, "compression level")
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
