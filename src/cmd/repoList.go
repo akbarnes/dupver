@@ -3,7 +3,7 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/akbarnes/dupver/src/dupver"	
+	"github.com/akbarnes/dupver/src/dupver"
 	"github.com/akbarnes/dupver/src/fancyprint"
 )
 
@@ -21,7 +21,12 @@ and repo path separated by a space.`,
 		// TODO: Read repoPath from environment variable if empty
 		opts := dupver.Options{}
 		fancyprint.Setup(Debug, Verbose, Quiet, Monochrome)
-		dupver.ListWorkDirRepos(WorkDirPath, opts)
+
+		if JsonOutput {
+			dupver.ListWorkDirReposAsJson(WorkDirPath, opts)
+		} else {
+			dupver.ListWorkDirRepos(WorkDirPath, opts)
+		}
 	},
 }
 

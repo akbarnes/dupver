@@ -183,6 +183,43 @@ func ListWorkDirRepos(workDirPath string, opts Options) {
 	}
 }
 
+// List the repositories in the working directory configuration as JSON
+func ListWorkDirReposAsJson(workDirPath string, opts Options) {
+	cfg, err := ReadWorkDirConfig(workDirPath)
+	maxLen := 0
+
+	if err != nil {
+		// Todo: handle invalid configuration file
+		fancyprint.Warn("Could not read configuration file. Has the project working directory been initialized?")
+		os.Exit(0)
+	}
+
+	for name, _ := range cfg.Repos {
+		if len(name) > maxLen {
+			maxLen = len(name)
+		}
+	}
+
+	fmt.Println("[")
+	i := 0
+	n := len(cfg.Repos)
+
+	for name, path := range cfg.Repos {
+
+		fmt.Printf("    \"%s\": \"%s\"", name, strings.Replace(path, "\\", "\\\\", -1))
+		i += 1
+
+		if i < n {
+			fmt.Println(",")
+		} else {
+			fmt.Println("")
+		}
+
+	}
+
+	fmt.Println("]")
+}
+
 // Change the project name in the working directory configuration
 func UpdateWorkDirName(myWorkDirConfig workDirConfig, workDirName string) workDirConfig {
 	if len(workDirName) > 0 {

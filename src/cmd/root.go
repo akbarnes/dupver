@@ -22,6 +22,7 @@ var Debug bool
 var Verbose bool
 var Quiet bool
 var Monochrome bool
+var JsonOutput bool
 var Color bool
 var CompressionLevel uint16
 
@@ -66,6 +67,7 @@ func init() {
 	rootCmd.PersistentFlags().BoolVarP(&Verbose, "verbose", "v", false, "verbose output")
 	rootCmd.PersistentFlags().BoolVarP(&Quiet, "quiet", "q", false, "quiet output")
 	rootCmd.PersistentFlags().BoolVarP(&Monochrome, "monochrome", "M", false, "monochrome output")
+	rootCmd.PersistentFlags().BoolVarP(&JsonOutput, "json", "j", false, "JSON output")
 	rootCmd.PersistentFlags().Uint16VarP(&CompressionLevel, "compression-level", "C", zip.Deflate, "compression level")
 
 	// Cobra also supports local flags, which will only run
