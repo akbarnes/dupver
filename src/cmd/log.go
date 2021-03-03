@@ -7,7 +7,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/akbarnes/dupver/src/dupver"	
+	"github.com/akbarnes/dupver/src/dupver"
 	"github.com/akbarnes/dupver/src/fancyprint"
 )
 
@@ -29,7 +29,6 @@ a commit ID to print in additional detail.`,
 			fancyprint.Warn("Could not read configuration file. Has the project working directory been initialized?")
 			os.Exit(1)
 		}
-
 
 		if len(WorkDirPath) > 0 {
 			os.Chdir(WorkDirPath)
@@ -72,7 +71,12 @@ a commit ID to print in additional detail.`,
 		}
 
 		fancyprint.Debugf("Full snapshot ID: %s\n\n", snapshotId)
-		dupver.PrintAllSnapshots(snapshotId, opts)
+
+		if JsonOutput {
+			dupver.PrintSnapshotsAsJson(snapshotId, -1, opts)
+		} else {
+			dupver.PrintSnapshots(snapshotId, -1, opts)
+		}
 	},
 }
 

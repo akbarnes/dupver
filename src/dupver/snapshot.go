@@ -294,7 +294,6 @@ func CreateTag(tagName string, snapshotId string, opts Options) {
 	WriteBranch(tagPath, myTag)
 }
 
-
 // Save the current branch head to a file
 // TODO: Update this to use opts structure
 // TODO: Change this to WriteBranchFile?
@@ -335,7 +334,7 @@ func ReadBranch(branchPath string) Branch {
 
 // Given a partial snapshot ID, return the full snapshot ID
 // by looking through the snapshots for a project
- // TODO: return an error if no match
+// TODO: return an error if no match
 func GetFullSnapshotId(snapshotId string, opts Options) string {
 	snapshotPaths := ListSnapshots(opts)
 
@@ -481,6 +480,63 @@ func PrintSnapshots(snapshotId string, maxSnapshots int, opts Options) {
 
 		if len(b) == 0 || len(b) > 0 && b == snap.Branch {
 			PrintSnapshot(snap, 0, opts)
+		}
+
+		if maxSnapshots > 0 {
+			if i >= maxSnapshots {
+				break
+			}
+		}
+	}
+}
+
+// Print snapshots as JSON in sorted in ascending order by date
+// TODO: change the name to PrintSnapshotsByDate?
+func PrintSnapshotsAsJson(snapshotId string, maxSnapshots int, opts Options) {
+	type CommitPrint struct {
+		ID      string
+		Branch  string
+		Message string
+		Time    string
+		Files   []fileInfo
+	}
+
+	repoPath := opts.RepoPath
+	projectName := opts.WorkDirName
+
+	if maxSnapshots > 0 {
+		fancyprint.Notice("Snapshot History")
+	}
+
+	snapshotGlob := path.Join(repoPath, "snapshots", projectName, "*.json")
+	snapshotPaths, _ := filepath.Glob(snapshotGlob)
+
+	snapshotsByDate := make(map[string]Commit)
+	snapshotDates := []string{}
+
+	// TODO: sort the snapshots by date
+	for _, snapshotPath := range snapshotPaths {
+		fancyprint.Debugf("Snapshot path: %s\n\n", snapshotPath)
+		mySnapshot := ReadSnapshotFile(snapshotPath)
+		snapshotsByDate[mySnapshot.Time] = mySnapshot
+		snapshotDates = append(snapshotDates, mySnapshot.Time)
+	}
+
+	sort.Strings(snapshotDates)
+
+	for i, sdate := range snapshotDates {
+		snap := snapshotsByDate[sdate]
+		snapPrint := CommitPrint{}
+		snapPrint.ID = snap.ID
+		snapPrint.Branch = snap.Branch
+		snapPrint.Message = snap.Message
+		snapPrint.Time = snap.Time
+		snapPrint.Files = snap.Files
+
+		b := opts.Branch
+
+		if len(b) == 0 || len(b) > 0 && b == snap.Branch {
+			PrintJson(snapPrint)
 		}
 
 		if maxSnapshots > 0 {

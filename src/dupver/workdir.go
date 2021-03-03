@@ -186,7 +186,6 @@ func ListWorkDirRepos(workDirPath string, opts Options) {
 // List the repositories in the working directory configuration as JSON
 func ListWorkDirReposAsJson(workDirPath string, opts Options) {
 	cfg, err := ReadWorkDirConfig(workDirPath)
-	maxLen := 0
 
 	if err != nil {
 		// Todo: handle invalid configuration file
@@ -194,30 +193,7 @@ func ListWorkDirReposAsJson(workDirPath string, opts Options) {
 		os.Exit(0)
 	}
 
-	for name, _ := range cfg.Repos {
-		if len(name) > maxLen {
-			maxLen = len(name)
-		}
-	}
-
-	fmt.Println("[")
-	i := 0
-	n := len(cfg.Repos)
-
-	for name, path := range cfg.Repos {
-
-		fmt.Printf("    \"%s\": \"%s\"", name, strings.Replace(path, "\\", "\\\\", -1))
-		i += 1
-
-		if i < n {
-			fmt.Println(",")
-		} else {
-			fmt.Println("")
-		}
-
-	}
-
-	fmt.Println("]")
+	PrintJson(cfg.Repos)
 }
 
 // Change the project name in the working directory configuration

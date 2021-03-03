@@ -2,6 +2,8 @@ package dupver
 
 import (
 	"archive/tar"
+	"encoding/json"
+
 	// "bufio"
 	"errors"
 	"fmt"
@@ -262,6 +264,13 @@ func WriteRandomTar(buf *os.File, workDirFolder string, repoPath string) {
 	if err := tw.Close(); err != nil {
 		log.Fatal(err)
 	}
+}
+
+// Print an object as JSON to stdout
+func PrintJson(a interface{}) {
+	myEncoder := json.NewEncoder(os.Stdout)
+	myEncoder.SetIndent("", "  ")
+	myEncoder.Encode(a)
 }
 
 // Load global preferences
