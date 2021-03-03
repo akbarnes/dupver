@@ -272,7 +272,7 @@ func SaveWorkDirConfigFile(configPath string, myConfig workDirConfig, forceWrite
 
 // Compare the status of files in a working directory
 // against a snapshot
-func WorkDirStatus(workDir string, snapshot Commit, opts Options) {
+func PrintWorkDirStatus(workDir string, snapshot Commit, opts Options) {
 	workDirPrefix := ""
 
 	if len(workDir) == 0 {
@@ -355,6 +355,92 @@ func WorkDirStatus(workDir string, snapshot Commit, opts Options) {
 			changes = true
 		}
 	}
+
+	if !changes {
+		fancyprint.Infof("No changes detected\n")
+	}
+}
+
+// Compare the status of files in a working directory
+// against a snapshot
+func PrintWorkDirStatusAsJson(workDir string, snapshot Commit, opts Options) {
+	type FileStatusPrint struct {
+		Status string
+		Path   string
+	}
+
+	fileStatus := []FileStatusPrint{}
+
+	workDirPrefix := ""
+
+	if len(workDir) == 0 {
+		workDir = "."
+		cwd, err := os.Getwd()
+
+		if err != nil {
+			panic(err)
+		}
+
+		workDirPrefix = filepath.Base(cwd)
+	}
+
+	fancyprint.Infof("Comparing changes for wd \"%s\" (prefix: \"%s\")\n", workDir, workDirPrefix)
+
+	myFileInfo := make(map[string]fileInfo)
+	deletedFiles := make(map[string]bool)
+	changes := false
+
+	for _, fi := range snapshot.Files {
+		myFileInfo[fi.Path] = fi
+		deletedFiles[fi.Path] = true
+	}
+
+	var CompareAgainstSnapshot = func(curPath string, info os.FileInfo, err error) error {
+		// fmt.Printf("Comparing path %s\n", path)
+		if len(workDirPrefix) > 0 {
+			curPath = filepath.Join(workDirPrefix, curPath)
+		}
+
+		curPath = strings.ReplaceAll(curPath, "\\", "/")
+
+		if info.IsDir() {
+			curPath += "/"
+		}
+
+		if snapshotInfo, ok := myFileInfo[curPath]; ok {
+			deletedFiles[curPath] = false
+
+			if snapshotInfo.ModTime != info.ModTime().Format("2006/01/02 15:04:05") {
+				if !info.IsDir() && !strings.HasPrefix(curPath, path.Join(workDirPrefix, ".dupver")) {
+					changes = true
+					fileStatus = append(fileStatus, FileStatusPrint{Status: "Modified", Path: curPath})
+				}
+			} else if fancyprint.Verbosity >= fancyprint.InfoLevel {
+				fileStatus = append(fileStatus, FileStatusPrint{Status: "Unchanged", Path: curPath})
+
+			}
+		} else if !strings.HasPrefix(curPath, path.Join(workDirPrefix, ".dupver")) {
+			fileStatus = append(fileStatus, FileStatusPrint{Status: "Added", Path: curPath})
+			changes = true
+		}
+
+		return nil
+	}
+
+	filepath.Walk(workDir, CompareAgainstSnapshot)
+
+	for file, deleted := range deletedFiles {
+		if strings.HasPrefix(filepath.Base(file), "._") {
+			continue
+		}
+
+		if deleted {
+			fileStatus = append(fileStatus, FileStatusPrint{Status: "Deleted", Path: file})
+			changes = true
+		}
+	}
+
+	PrintJson(fileStatus)
 
 	if !changes {
 		fancyprint.Infof("No changes detected\n")

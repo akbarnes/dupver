@@ -7,7 +7,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/akbarnes/dupver/src/dupver"	
+	"github.com/akbarnes/dupver/src/dupver"
 	"github.com/akbarnes/dupver/src/fancyprint"
 )
 
@@ -79,7 +79,12 @@ with the --monochrome flag.`,
 		}
 
 		fancyprint.Debugf("Snapshot commit ID: %s\n", mySnapshot.ID)
-		dupver.WorkDirStatus("", mySnapshot, opts)
+
+		if JsonOutput {
+			dupver.PrintWorkDirStatusAsJson("", mySnapshot, opts)
+		} else {
+			dupver.PrintWorkDirStatus("", mySnapshot, opts)
+		}
 	},
 }
 
