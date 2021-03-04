@@ -11,6 +11,8 @@ import (
 	"github.com/akbarnes/dupver/src/fancyprint"
 )
 
+var SnapshotFiles bool
+
 // logCmd represents the log command
 var logCmd = &cobra.Command{
 	Use:   "log [commit_id]",
@@ -73,7 +75,7 @@ a commit ID to print in additional detail.`,
 		fancyprint.Debugf("Full snapshot ID: %s\n\n", snapshotId)
 
 		if JsonOutput {
-			dupver.PrintSnapshotsAsJson(snapshotId, -1, opts)
+			dupver.PrintSnapshotsAsJson(snapshotId, -1, SnapshotFiles, opts)
 		} else {
 			dupver.PrintSnapshots(snapshotId, -1, opts)
 		}
@@ -88,6 +90,7 @@ func init() {
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
 	// logCmd.PersistentFlags().String("foo", "", "A help for foo")
+	rootCmd.PersistentFlags().BoolVarP(&SnapshotFiles, "files", "f", false, "Include files in JSON output")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:

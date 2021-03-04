@@ -493,7 +493,7 @@ func PrintSnapshots(snapshotId string, maxSnapshots int, opts Options) {
 // Print snapshots as JSON in sorted in ascending order by date
 // TODO: change the name to PrintSnapshotsByDate?
 // TODO: add a sort option to ListSnapshots?
-func PrintSnapshotsAsJson(snapshotId string, maxSnapshots int, opts Options) {
+func PrintSnapshotsAsJson(snapshotId string, maxSnapshots int, snapshotFiles bool, opts Options) {
 	type CommitPrint struct {
 		ID      string
 		Branch  string
@@ -534,7 +534,10 @@ func PrintSnapshotsAsJson(snapshotId string, maxSnapshots int, opts Options) {
 		ps.Branch = snap.Branch
 		ps.Message = snap.Message
 		ps.Time = snap.Time
-		ps.Files = snap.Files
+
+		if snapshotFiles {
+			ps.Files = snap.Files
+		}
 
 		printSnaps = append(printSnaps, ps)
 	}
