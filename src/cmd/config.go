@@ -20,10 +20,14 @@ which repository is the default.`,
 		fancyprint.Setup(Debug, Verbose, Quiet, Monochrome)
 		// TODO: print the preferences
 		// fmt.Println("Global preferences:")
-		dupver.PrintCurrentPreferences(opts)
 
 		// fmt.Println("\nCurrent project working directory configuration:")
-		dupver.PrintCurrentWorkDirConfig(WorkDirPath, opts)
+		if JsonOutput {
+			dupver.PrintCurrentWorkDirConfigAsJson(WorkDirPath, opts)
+		} else {
+			dupver.PrintCurrentPreferences(opts)
+			dupver.PrintCurrentWorkDirConfig(WorkDirPath, opts)
+		}
 	},
 }
 

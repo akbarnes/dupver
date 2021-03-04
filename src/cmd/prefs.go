@@ -20,7 +20,12 @@ tool and the default repository`,
 		fancyprint.Setup(Debug, Verbose, Quiet, Monochrome)
 		// TODO: print the preferences
 		// fmt.Println("Global preferences:")
-		dupver.PrintCurrentPreferences(opts)
+
+		if JsonOutput {
+			dupver.PrintCurrentPreferencesAsJson(opts)
+		} else {
+			dupver.PrintCurrentPreferences(opts)
+		}
 	},
 }
 

@@ -103,7 +103,7 @@ var commitCmd = &cobra.Command{
 				}
 			}
 
-			dupver.CommitFile(tarFile, []string{}, Message, opts)
+			dupver.CommitFile(tarFile, []string{}, Message, JsonOutput, opts)
 		} else {
 			dir, err := os.Getwd()
 			if err != nil {
@@ -120,7 +120,7 @@ var commitCmd = &cobra.Command{
 			}
 
 			tarFile := CreateTar(containingFolder, workdirFolder, opts)
-			dupver.CommitFile(tarFile, []string{}, Message, opts)
+			dupver.CommitFile(tarFile, []string{}, Message, JsonOutput, opts)
 			os.Remove(tarFile) // Delete the temporary file 
 		}
 	},

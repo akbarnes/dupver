@@ -58,6 +58,19 @@ func PrintPreferences(prefs Preferences, opts Options) {
 	fmt.Printf("Default repository path: %s\n", prefs.DefaultRepo)
 }
 
+// Print the current global preferences as JSON
+func PrintCurrentPreferencesAsJson(opts Options) {
+	prefs, err := ReadPrefs(opts)
+
+	if err != nil {
+		// Todo: handle invalid configuration file
+		fancyprint.Warn("Could not read preferences file.")
+		os.Exit(1)
+	}
+
+	PrintJson(prefs)
+}
+
 // Halt if error parameter is not nil
 func Check(e error) {
 	if e != nil {

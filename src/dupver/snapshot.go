@@ -190,7 +190,7 @@ func CopySnapshot(snapshotId string, sourceRepoPath string, destRepoPath string,
 // Commit a tar file into the repository. Project working directory name,
 // branch and repository path are specified in the .dupver/config.toml
 // file within the tar file
-func CommitFile(filePath string, parentIds []string, msg string, opts Options) Commit {
+func CommitFile(filePath string, parentIds []string, msg string, JsonOutput bool, opts Options) Commit {
 	var myWorkDirConfig workDirConfig
 
 	t := time.Now()
@@ -248,7 +248,9 @@ func CommitFile(filePath string, parentIds []string, msg string, opts Options) C
 	treePath := path.Join(treeFolder, treeBasename+".json")
 	WriteTree(treePath, chunkPacks)
 
-	if fancyprint.Verbosity >= fancyprint.NoticeLevel {
+	if JsonOutput {
+		PrintJson(Branch{CommitID: snap.ID})
+	} else if fancyprint.Verbosity >= fancyprint.NoticeLevel {
 		fancyprint.SetColor(fancyprint.ColorGreen)
 		fmt.Printf("Created snapshot %s (%s)\n", snap.ID[0:16], snap.ID)
 		fancyprint.ResetColor()

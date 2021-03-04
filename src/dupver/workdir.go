@@ -137,6 +137,21 @@ func PrintWorkDirConfig(cfg workDirConfig, opts Options) {
 }
 
 // Add a new repository to the working directory configuration
+// Todo: break up repos into  list of name, path key/value pairs
+func PrintCurrentWorkDirConfigAsJson(workDirPath string, opts Options) {
+	cfg, err := ReadWorkDirConfig(workDirPath)
+
+	if err != nil {
+		// Todo: handle invalid configuration file
+		fancyprint.Warn("Could not read configuration file. Has the project working directory been initialized?")
+		os.Exit(0)
+	}
+
+	PrintJson(cfg)
+}
+
+
+// Add a new repository to the working directory configuration
 func AddRepoToWorkDir(workDirPath string, repoName string, repoPath string, makeDefaultRepo bool, opts Options) {
 	cfg, err := ReadWorkDirConfig(workDirPath)
 

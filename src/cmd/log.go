@@ -74,6 +74,7 @@ a commit ID to print in additional detail.`,
 
 		fancyprint.Debugf("Full snapshot ID: %s\n\n", snapshotId)
 
+		// Todo: fix specifying snapshot ID
 		if JsonOutput {
 			dupver.PrintSnapshotsAsJson(snapshotId, -1, SnapshotFiles, opts)
 		} else {
