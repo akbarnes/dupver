@@ -37,7 +37,7 @@ type Options struct {
 	Branch       string
 	DestRepoName string
 	DestRepoPath string
-	JsonOutput bool
+	JsonOutput   bool
 }
 
 // Print the current global preferences
@@ -285,6 +285,17 @@ func PrintJson(a interface{}) {
 	myEncoder := json.NewEncoder(os.Stdout)
 	myEncoder.SetIndent("", "  ")
 	myEncoder.Encode(a)
+}
+
+// Print an object as JSON to stdout
+func MultiPrint(a interface{}, opts Options) {
+	if opts.JsonOutput {
+		myEncoder := json.NewEncoder(os.Stdout)
+		myEncoder.SetIndent("", "  ")
+		myEncoder.Encode(a)
+	} else {
+		fmt.Println(a)
+	}
 }
 
 // Load global preferences

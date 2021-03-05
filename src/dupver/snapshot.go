@@ -249,7 +249,7 @@ func CommitFile(filePath string, parentIds []string, msg string, JsonOutput bool
 	WriteTree(treePath, chunkPacks)
 
 	if JsonOutput {
-		PrintJson(Branch{CommitID: snap.ID})
+		PrintJson(snap.ID)
 	} else if fancyprint.Verbosity >= fancyprint.NoticeLevel {
 		fancyprint.SetColor(fancyprint.ColorGreen)
 		fmt.Printf("Created snapshot %s (%s)\n", snap.ID[0:16], snap.ID)
@@ -459,8 +459,8 @@ func PrintSnapshots(snapshotId string, maxSnapshots int, opts Options) {
 	if len(snapshotId) > 0 {
 		snap := ReadSnapshot(snapshotId, opts)
 		PrintSnapshotFiles(snap, 0, opts)
-		return 
-	}	
+		return
+	}
 
 	if maxSnapshots > 0 {
 		fancyprint.Notice("Snapshot History")
@@ -516,7 +516,7 @@ func PrintSnapshotsAsJson(snapshotId string, maxSnapshots int, snapshotFiles boo
 	if len(snapshotId) > 0 {
 		snap := ReadSnapshot(snapshotId, opts)
 		PrintJson(snap.Files)
-		return 
+		return
 	}
 
 	snapshotGlob := path.Join(repoPath, "snapshots", projectName, "*.json")
@@ -636,4 +636,3 @@ func PrintSnapshotFiles(mySnapshot Commit, maxFiles int, opts Options) {
 		}
 	}
 }
-

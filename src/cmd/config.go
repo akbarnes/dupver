@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"os"
+
 	"github.com/spf13/cobra"
 
 	"github.com/akbarnes/dupver/src/dupver"
@@ -16,13 +18,37 @@ var configCmd = &cobra.Command{
 Configuration includes the project name, current branch, associated repositories and
 which repository is the default.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		opts := dupver.Options{}
+		cfg, err := dupver.ReadWorkDirConfig(WorkDirPath)
+
+		if err != nil {
+			// Todo: handle invalid configuration file
+			fancyprint.Warn("Could not read configuration file. Has the project working directory been initialized?")
+			os.Exit(1)
+		}
+
+		opts := dupver.Options{JsonOutput: JsonOutput}
 		fancyprint.Setup(Debug, Verbose, Quiet, Monochrome)
 		// TODO: print the preferences
 		// fmt.Println("Global preferences:")
 
-		// fmt.Println("\nCurrent project working directory configuration:")
-		if JsonOutput {
+		if len(args) >= 1 {
+			key := args[0]
+
+			switch key {
+			case "WorkDirName":
+				dupver.MultiPrint(cfg.WorkDirName, opts)
+			case "Branch":
+				dupver.MultiPrint(cfg.Branch, opts)
+			case "DefaultRepo":
+				dupver.MultiPrint(cfg.DefaultRepo, opts)
+			default:
+				fancyprint.Warnf("Key %s doesn't exit in the working directory configuration.", key)
+
+				if JsonOutput {
+					dupver.PrintJson(nil)
+				}
+			}
+		} else if JsonOutput {
 			dupver.PrintCurrentWorkDirConfigAsJson(WorkDirPath, opts)
 		} else {
 			dupver.PrintCurrentPreferences(opts)
