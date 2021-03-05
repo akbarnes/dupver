@@ -99,6 +99,9 @@ will limit only a single specified snapshot id to be copied.`,
 			destPath = cfg.Repos[args[0]]
 		}
 
+		fancyprint.Infof("Source path: %s\n", sourcePath)
+		fancyprint.Infof("Dest path: %s\n", destPath)		
+
 		snapshotId := ""
 		// TODO: look up the snapshot id based on 1st n characters
 

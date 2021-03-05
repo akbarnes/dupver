@@ -37,6 +37,7 @@ type Options struct {
 	Branch       string
 	DestRepoName string
 	DestRepoPath string
+	JsonOutput bool
 }
 
 // Print the current global preferences

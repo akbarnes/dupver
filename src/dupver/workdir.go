@@ -16,6 +16,7 @@ import (
 	// "encoding/json"
 
 	"github.com/BurntSushi/toml"
+	"github.com/restic/chunker"
 
 	"github.com/akbarnes/dupver/src/fancyprint"
 )
@@ -167,6 +168,10 @@ func AddRepoToWorkDir(workDirPath string, repoName string, repoPath string, make
 		cfg.DefaultRepo = repoName
 	}
 
+	if opts.JsonOutput {
+		PrintJson(cfg)
+	}
+
 	SaveWorkDirConfig(workDirPath, cfg, true, opts)
 }
 
@@ -200,6 +205,15 @@ func ListWorkDirRepos(workDirPath string, opts Options) {
 
 // List the repositories in the working directory configuration as JSON
 func ListWorkDirReposAsJson(workDirPath string, opts Options) {
+	type RepoListing struct {
+		Name string
+		Path string
+		Default bool
+		ChunkerPolynomial chunker.Pol
+		CompressionLevel uint16
+	}
+
+	repoListings := []RepoListing{}
 	cfg, err := ReadWorkDirConfig(workDirPath)
 
 	if err != nil {
@@ -208,7 +222,20 @@ func ListWorkDirReposAsJson(workDirPath string, opts Options) {
 		os.Exit(0)
 	}
 
-	PrintJson(cfg.Repos)
+	for name, path := range cfg.Repos {
+		rl := RepoListing{Name: name, Path: path, Default: false}
+
+		if name == cfg.DefaultRepo {
+			rl.Default = true
+		}
+
+		repoCfg := ReadRepoConfig(path)
+		rl.ChunkerPolynomial = repoCfg.ChunkerPolynomial
+		rl.CompressionLevel = repoCfg.CompressionLevel
+		repoListings = append(repoListings, rl)
+	}
+
+	PrintJson(repoListings)
 }
 
 // Change the project name in the working directory configuration

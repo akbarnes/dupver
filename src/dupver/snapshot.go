@@ -456,6 +456,12 @@ func PrintSnapshots(snapshotId string, maxSnapshots int, opts Options) {
 	repoPath := opts.RepoPath
 	projectName := opts.WorkDirName
 
+	if len(snapshotId) > 0 {
+		snap := ReadSnapshot(snapshotId, opts)
+		PrintSnapshotFiles(snap, 0, opts)
+		return 
+	}	
+
 	if maxSnapshots > 0 {
 		fancyprint.Notice("Snapshot History")
 	}
@@ -507,8 +513,10 @@ func PrintSnapshotsAsJson(snapshotId string, maxSnapshots int, snapshotFiles boo
 	repoPath := opts.RepoPath
 	projectName := opts.WorkDirName
 
-	if maxSnapshots > 0 {
-		fancyprint.Notice("Snapshot History")
+	if len(snapshotId) > 0 {
+		snap := ReadSnapshot(snapshotId, opts)
+		PrintJson(snap.Files)
+		return 
 	}
 
 	snapshotGlob := path.Join(repoPath, "snapshots", projectName, "*.json")
@@ -628,3 +636,4 @@ func PrintSnapshotFiles(mySnapshot Commit, maxFiles int, opts Options) {
 		}
 	}
 }
+

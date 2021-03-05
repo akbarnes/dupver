@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"testing"
+	"archive/zip"
 
 	"github.com/akbarnes/dupver/src/fancyprint"
 	"github.com/akbarnes/dupver/src/dupver"
@@ -31,7 +32,7 @@ func TestWorkRepoInit(t *testing.T) {
 	repoName := "test"
 
 	repoPath := filepath.Join(homeDir, "temp", repoFolder)
-	dupver.InitRepo(repoPath, repoName, "", opts)
+	dupver.InitRepo(repoPath, repoName, "", zip.Deflate, opts)
 
 	snapshotsPath := filepath.Join(repoPath, "snapshots")
 	if _, err := os.Stat(snapshotsPath); err != nil {
@@ -110,7 +111,7 @@ func TestCommit(t *testing.T) {
 	repoFolder := ".dupver_repo_" + repoId
 	repoPath := filepath.Join(homeDir, "temp", repoFolder)
 	repoName := "test"
-	dupver.InitRepo(repoPath, repoName, "", opts)
+	dupver.InitRepo(repoPath, repoName, "", zip.Deflate, opts)
 
 	// ----------- Create a workdir ----------- //
 	workDirId := dupver.RandString(16, dupver.HexChars)
@@ -136,7 +137,7 @@ func TestCommit(t *testing.T) {
 	fmt.Printf("Created tar file %s\n", fileName)
 
 	// ----------- Commit the tar file  ----------- //
-	snapshot := dupver.CommitFile(fileName, []string{}, msg, opts)
+	snapshot := dupver.CommitFile(fileName, []string{}, msg, false, opts)
 
 	// ----------- Commit the tar file  ----------- //
 	myWorkDirConfig, _ := dupver.ReadWorkDirConfig(workDirFolder)

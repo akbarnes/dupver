@@ -4,6 +4,8 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+
+	"github.com/akbarnes/dupver/src/dupver"
 )
 
 const version string = "0.8.0-alpha"
@@ -19,7 +21,11 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println(version)
+		if JsonOutput {
+			dupver.PrintJson(version)
+		} else {
+			fmt.Println(version)
+		}
 	},
 }
 

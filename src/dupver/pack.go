@@ -206,14 +206,12 @@ func ReadPacks(tarFile *os.File, repoPath string, chunkIds []string, chunkPacks 
 func LoadChunk(repoPath string, chunkId string, chunkPacks map[string]string, opts Options) []byte {
 	packId := chunkPacks[chunkId]
 
-	// if opts.Verbosity >= 2 {
-	// 	fmt.Printf("Reading chunk %s \n from pack %s\n", chunkId, packId)
-	// }
+	fancyprint.Debugf("Reading chunk [%s] \n from pack [%s]\n", chunkId, packId)
 
 	packPath := path.Join(repoPath, "packs", packId[0:2], packId + ".zip")
 	data := []byte{}
 
-	fancyprint.Infof("Reading chunk %s \n from pack file %s\n", chunkId, packPath)
+	fancyprint.Debugf("Reading chunk %s \n from pack file %s\n", chunkId, packPath)
 
 	// From https://golangcode.com/unzip-files-in-go/
 	packReader, err := zip.OpenReader(packPath)

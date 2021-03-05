@@ -36,7 +36,7 @@ command-line flags.`,
 		}
 
 		// TODO: Read repoPath from environment variable if empty
-		opts := dupver.Options{}
+		opts := dupver.Options{JsonOutput: JsonOutput}
 		fancyprint.Setup(Debug, Verbose, Quiet, Monochrome)
 		dupver.AddRepoToWorkDir(WorkDirPath, repoName, repoPath, SetDefaultRepo, opts)
 	},

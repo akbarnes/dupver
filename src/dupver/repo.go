@@ -6,8 +6,7 @@ import (
 	"archive/zip"
 	"os"
 	"path"
-
-	// "path/filepath"
+	"path/filepath"
 
 	"github.com/BurntSushi/toml"
 	"github.com/restic/chunker"
@@ -58,19 +57,22 @@ func InitRepo(repoPath string, repoName string, chunkerPolynomial string, compre
 		poly.UnmarshalJSON([]byte(chunkerPolynomial))
 	}
 
-	// TODO: Should this print to stderr?
-
-	if fancyprint.Verbosity >= fancyprint.NoticeLevel {
-		fmt.Println("Chunker polynomial: %d\n", poly)
-	} else {
-		fmt.Println(poly)
-	}
-
 	var myConfig repoConfig
 	myConfig.Version = 2
 	myConfig.ChunkerPolynomial = poly
 	// TODO: allow compression level to be specified when creating the repo
 	myConfig.CompressionLevel = zip.Deflate
+
+	// TODO: Should this print to stderr?
+	if opts.JsonOutput {
+		PrintJson(myConfig)
+	} else if fancyprint.Verbosity >= fancyprint.NoticeLevel {
+		fmt.Println("Chunker polynomial: %+v\n", poly)
+	} else {
+		fmt.Println(poly)
+	}
+
+		
 	SaveRepoConfig(repoPath, myConfig)
 }
 
@@ -96,6 +98,11 @@ func SaveRepoConfig(repoPath string, myConfig repoConfig) {
 	myEncoder := toml.NewEncoder(f)
 	myEncoder.Encode(myConfig)
 	f.Close()
+}
+
+func ReadRepoConfig(repoPath string) repoConfig {
+	configPath := filepath.Join(repoPath, "config.toml")
+	return ReadRepoConfigFile(configPath)
 }
 
 // Read a repository configuration given a file path

@@ -22,7 +22,7 @@ positional argument allows for the repository name to be specified.
 if no repository name is specified, the repository takes on the default
 name of "main."`,
 	Run: func(cmd *cobra.Command, args []string) {
-		opts := dupver.Options{}
+		opts := dupver.Options{JsonOutput: JsonOutput}
 		fancyprint.Setup(Debug, Verbose, Quiet, Monochrome)
 		repoName := RepoName
 		repoPath := RepoPath
