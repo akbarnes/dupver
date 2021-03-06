@@ -112,6 +112,29 @@ func PrintCurrentWorkDirConfig(workDirPath string, opts Options) {
 	PrintWorkDirConfig(cfg, opts)
 }
 
+func PrintWorkDirReposConfig(cfg workDirConfig, opts Options) {
+	for name, path := range cfg.Repos {
+		repoCfg := ReadRepoConfig(path)
+		fmt.Printf("%s: %s", name, path)
+
+		if repoCfg.CompressionLevel == 0 {
+			fmt.Print(" Store (0)")
+		} else {
+			fmt.Printf(" Deflate (%d)", repoCfg.CompressionLevel)
+		}
+
+		fmt.Printf(" %d", repoCfg.ChunkerPolynomial)
+
+		if name == cfg.DefaultRepo {
+			fancyprint.SetColor(fancyprint.ColorGreen)
+			fmt.Print(" default")
+			fancyprint.ResetColor()
+		}
+
+		fmt.Println("")
+	}
+}
+
 // Print the project working directory configuration
 func PrintWorkDirConfig(cfg workDirConfig, opts Options) {
 	// WorkDirName = "admin"
@@ -123,18 +146,7 @@ func PrintWorkDirConfig(cfg workDirConfig, opts Options) {
 
 	fmt.Printf("Working directory name: %s\n", cfg.WorkDirName)
 	fmt.Printf("Current branch: %s\n\n", cfg.Branch)
-
-	for name, path := range cfg.Repos {
-		fmt.Printf("%s: %s", name, path)
-
-		if name == cfg.DefaultRepo {
-			fancyprint.SetColor(fancyprint.ColorGreen)
-			fmt.Print(" (default)")
-			fancyprint.ResetColor()
-		}
-
-		fmt.Println("")
-	}
+	PrintWorkDirReposConfig(cfg, opts)
 }
 
 // Add a new repository to the working directory configuration
@@ -150,7 +162,6 @@ func PrintCurrentWorkDirConfigAsJson(workDirPath string, opts Options) {
 
 	PrintJson(cfg)
 }
-
 
 // Add a new repository to the working directory configuration
 func AddRepoToWorkDir(workDirPath string, repoName string, repoPath string, makeDefaultRepo bool, opts Options) {
@@ -206,11 +217,11 @@ func ListWorkDirRepos(workDirPath string, opts Options) {
 // List the repositories in the working directory configuration as JSON
 func ListWorkDirReposAsJson(workDirPath string, opts Options) {
 	type RepoListing struct {
-		Name string
-		Path string
-		Default bool
+		Name              string
+		Path              string
+		Default           bool
 		ChunkerPolynomial chunker.Pol
-		CompressionLevel uint16
+		CompressionLevel  uint16
 	}
 
 	repoListings := []RepoListing{}

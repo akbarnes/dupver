@@ -8,6 +8,7 @@ import (
 )
 
 var ChunkerPolynomial string
+var CopyRepoConfig string
 
 // initCmd represents the init command
 var repoInitCmd = &cobra.Command{
@@ -36,6 +37,12 @@ name of "main."`,
 		}
 
 		dupver.InitRepo(repoPath, repoName, ChunkerPolynomial, CompressionLevel, opts)
+
+		if len(CopyRepoConfig) > 0 {
+			fancyprint.Infof("Copying repo configuration from %s", CopyRepoConfig)
+			cfg := dupver.ReadRepoConfig(CopyRepoConfig)
+			dupver.SaveRepoConfig(repoPath, cfg, true)
+		}
 	},
 }
 
@@ -48,6 +55,7 @@ func init() {
 	// and all subcommands, e.g.:
 	// initCmd.PersistentFlags().String("foo", "", "A help for foo")
 	repoInitCmd.PersistentFlags().StringVarP(&ChunkerPolynomial, "poly", "P", "", "specify chunker polynomial")
+	repoInitCmd.PersistentFlags().StringVarP(&CopyRepoConfig, "copy", "c", "", "specify repo path to copy configuration from")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:

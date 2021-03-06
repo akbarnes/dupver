@@ -2,12 +2,17 @@ package cmd
 
 import (
 	"os"
+	"os/exec"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
 
 	"github.com/akbarnes/dupver/src/dupver"
 	"github.com/akbarnes/dupver/src/fancyprint"
 )
+
+var ConfigRepo bool
+var EditCfg bool
 
 // diffCmd represents the diff command
 var configCmd = &cobra.Command{
@@ -18,6 +23,12 @@ var configCmd = &cobra.Command{
 Configuration includes the project name, current branch, associated repositories and
 which repository is the default.`,
 	Run: func(cmd *cobra.Command, args []string) {
+
+		opts := dupver.Options{JsonOutput: JsonOutput}
+		prefs, _ := dupver.ReadPrefs(opts)
+		fancyprint.Setup(Debug, Verbose, Quiet, Monochrome)
+		// TODO: print the preferences
+		// fmt.Println("Global preferences:")
 		cfg, err := dupver.ReadWorkDirConfig(WorkDirPath)
 
 		if err != nil {
@@ -26,10 +37,17 @@ which repository is the default.`,
 			os.Exit(1)
 		}
 
-		opts := dupver.Options{JsonOutput: JsonOutput}
-		fancyprint.Setup(Debug, Verbose, Quiet, Monochrome)
-		// TODO: print the preferences
-		// fmt.Println("Global preferences:")
+		if EditCfg {
+			cfgPath := filepath.Join(WorkDirPath, ".dupver", "config.toml")
+			editCmd := exec.Command(prefs.Editor, cfgPath)
+			editCmd.Start()
+			return
+		}
+
+		if ConfigRepo {
+			dupver.PrintWorkDirReposConfig(cfg, opts)
+			return
+		}
 
 		if len(args) == 1 {
 			key := args[0]
@@ -93,6 +111,8 @@ func init() {
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
 	// diffCmd.PersistentFlags().String("foo", "", "A help for foo")
+	configCmd.Flags().BoolVarP(&ConfigRepo, "repos", "R", false, "configure repos associated with this working directory")
+	configCmd.Flags().BoolVarP(&EditCfg, "edit", "e", false, "edit the working directory configuration in the specified editor")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
