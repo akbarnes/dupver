@@ -7,12 +7,12 @@ import (
 	"fmt"
     "path"
 	"crypto/sha256"
-	"github.com/restic/chunker"
 	// "compress/gzip"
 	"archive/zip"
-	// "github.com/vmihailenco/msgpack/v5"
 	"log"
 
+	"github.com/restic/chunker"
+	
 	"github.com/akbarnes/dupver/src/fancyprint"
 )
 

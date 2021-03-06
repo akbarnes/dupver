@@ -27,6 +27,7 @@ import (
 
 type Preferences struct {
 	DiffTool    string
+	Editor      string
 	DefaultRepo string
 }
 
@@ -55,6 +56,7 @@ func PrintCurrentPreferences(opts Options) {
 
 // Print the global preferences structure
 func PrintPreferences(prefs Preferences, opts Options) {
+	fmt.Printf("Editor: %s\n", prefs.Editor)
 	fmt.Printf("Diff tool: %s\n", prefs.DiffTool)
 	fmt.Printf("Default repository path: %s\n", prefs.DefaultRepo)
 }

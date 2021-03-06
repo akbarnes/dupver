@@ -31,7 +31,7 @@ which repository is the default.`,
 		// TODO: print the preferences
 		// fmt.Println("Global preferences:")
 
-		if len(args) >= 1 {
+		if len(args) == 1 {
 			key := args[0]
 
 			switch key {
@@ -48,7 +48,35 @@ which repository is the default.`,
 					dupver.PrintJson(nil)
 				}
 			}
-		} else if JsonOutput {
+
+			return
+		}
+
+		if len(args) >= 2 {
+			key := args[0]
+			val := args[1]
+
+			switch key {
+			case "WorkDirName":
+				cfg.WorkDirName = val
+			case "Branch":
+				cfg.Branch = val
+			case "DefaultRepo":
+				cfg.DefaultRepo = val
+			default:
+				fancyprint.Warnf("Key %s doesn't exit in the working directory configuration.", key)
+
+				if JsonOutput {
+					dupver.PrintJson(nil)
+				}
+
+				return
+			}
+
+			dupver.SaveWorkDirConfig(WorkDirPath, cfg, true, opts)
+		}
+
+		if JsonOutput {
 			dupver.PrintCurrentWorkDirConfigAsJson(WorkDirPath, opts)
 		} else {
 			dupver.PrintCurrentPreferences(opts)

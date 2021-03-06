@@ -72,18 +72,17 @@ func InitRepo(repoPath string, repoName string, chunkerPolynomial string, compre
 		fmt.Println(poly)
 	}
 
-		
-	SaveRepoConfig(repoPath, myConfig)
+	SaveRepoConfig(repoPath, myConfig, false)
 }
 
 // Save a repository configuration to file
 // TODO: Should I add SaveRepoCondfigFile?
-func SaveRepoConfig(repoPath string, myConfig repoConfig) {
+func SaveRepoConfig(repoPath string, myConfig repoConfig, forceOverWrite bool) {
 	// TODO: add a check to make sure I don't over`write` existing
 	configPath := path.Join(repoPath, "config.toml")
 
 	// TODO: Return an error here instead of exiting
-	if _, err := os.Stat(configPath); err == nil {
+	if _, err := os.Stat(configPath); err == nil && !forceOverWrite {
 		fancyprint.Warnf("Refusing to write existing repo config " + configPath)
 		os.Exit(0)
 	}
