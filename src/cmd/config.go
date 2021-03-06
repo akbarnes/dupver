@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"os"
-	"os/exec"
 	"path/filepath"
 
 	"github.com/spf13/cobra"
@@ -39,13 +38,16 @@ which repository is the default.`,
 
 		if EditCfg {
 			cfgPath := filepath.Join(WorkDirPath, ".dupver", "config.toml")
-			editCmd := exec.Command(prefs.Editor, cfgPath)
-			editCmd.Start()
+			dupver.EditFile(cfgPath, prefs)
 			return
 		}
 
 		if ConfigRepo {
-			dupver.PrintWorkDirReposConfig(cfg, opts)
+			if JsonOutput {
+				dupver.PrintWorkDirReposConfigAsJson(cfg, opts)
+			} else {
+				dupver.PrintWorkDirReposConfig(cfg, opts)
+			}
 			return
 		}
 

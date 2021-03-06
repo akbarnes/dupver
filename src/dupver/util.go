@@ -3,6 +3,7 @@ package dupver
 import (
 	"archive/tar"
 	"encoding/json"
+	"os/exec"
 
 	// "bufio"
 	"errors"
@@ -300,10 +301,13 @@ func MultiPrint(a interface{}, opts Options) {
 	}
 }
 
+func GetPrefsPath() string {
+	return filepath.Join(GetHome(), ".dupver", "prefs.toml")
+}
+
 // Load global preferences
 func ReadPrefs(opts Options) (Preferences, error) {
-	prefsPath := filepath.Join(GetHome(), ".dupver", "prefs.toml")
-	return ReadPrefsFile(prefsPath, opts)
+	return ReadPrefsFile(GetPrefsPath(), opts)
 }
 
 // Load global preferences given a preferences file path
@@ -352,4 +356,9 @@ func SavePrefsFile(prefsPath string, prefs Preferences, forceWrite bool, opts Op
 	myEncoder := toml.NewEncoder(f)
 	myEncoder.Encode(prefs)
 	f.Close()
+}
+
+func EditFile(filePath string, prefs Preferences) {
+	editCmd := exec.Command(prefs.Editor, filePath)
+	editCmd.Start()
 }

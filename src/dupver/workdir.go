@@ -135,6 +135,37 @@ func PrintWorkDirReposConfig(cfg workDirConfig, opts Options) {
 	}
 }
 
+func PrintWorkDirReposConfigAsJson(cfg workDirConfig, opts Options) {
+	type repoConfigPrint struct {
+		Name              string
+		Path              string
+		Default           bool
+		Version           int
+		ChunkerPolynomial chunker.Pol
+		CompressionLevel  uint16
+	}
+
+	repoConfigs := []repoConfigPrint{}
+
+	for name, path := range cfg.Repos {
+		repoCfg := ReadRepoConfig(path)
+
+		rc := repoConfigPrint{Name: name, Path: path, Default: false}
+
+		if name == cfg.DefaultRepo {
+			rc.Default = true
+		}
+
+		rc.Version = repoCfg.Version
+		rc.ChunkerPolynomial = repoCfg.ChunkerPolynomial
+		rc.CompressionLevel = repoCfg.CompressionLevel
+
+		repoConfigs = append(repoConfigs, rc)
+	}
+
+	PrintJson(repoConfigs)
+}
+
 // Print the project working directory configuration
 func PrintWorkDirConfig(cfg workDirConfig, opts Options) {
 	// WorkDirName = "admin"

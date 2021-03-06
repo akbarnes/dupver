@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"path/filepath"
 	"strconv"
 
 	"github.com/restic/chunker"
@@ -12,6 +13,7 @@ import (
 )
 
 var UseDefaultRepo bool
+var EditRepoCfg bool
 
 // initCmd represents the init command
 var repoConfigCmd = &cobra.Command{
@@ -47,6 +49,12 @@ name of "main."`,
 			prefs, _ := dupver.ReadPrefs(opts)
 			repoPath = prefs.DefaultRepo
 			fancyprint.Noticef("Using default repo: %s\n", repoPath)
+		}
+
+		if EditRepoCfg {
+			cfgPath := filepath.Join(repoPath, "config.toml")
+			dupver.EditFile(cfgPath, prefs)
+			return
 		}
 
 		// dupver.InitRepo(repoPath, repoName, ChunkerPolynomial, CompressionLevel, opts)
@@ -138,6 +146,7 @@ func init() {
 	// and all subcommands, e.g.:
 	// initCmd.PersistentFlags().String("foo", "", "A help for foo")
 	repoConfigCmd.Flags().BoolVarP(&UseDefaultRepo, "default", "D", false, "use default repo")
+	repoConfigCmd.Flags().BoolVarP(&EditRepoCfg, "edit", "e", false, "edit the repo config with the specified editor")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:

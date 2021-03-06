@@ -7,6 +7,8 @@ import (
 	"github.com/akbarnes/dupver/src/fancyprint"
 )
 
+var EditPrefs bool
+
 // diffCmd represents the diff command
 var prefsCmd = &cobra.Command{
 	Use:   "prefs",
@@ -21,6 +23,11 @@ tool and the default repository`,
 		prefs, _ := dupver.ReadPrefs(opts)
 		// TODO: print the preferences
 		// fmt.Println("Global preferences:")
+
+		if EditPrefs {
+			dupver.EditFile(dupver.GetPrefsPath(), prefs)
+			return
+		}
 
 		if len(args) == 1 {
 			key := args[0]
@@ -83,6 +90,7 @@ func init() {
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
 	// diffCmd.PersistentFlags().String("foo", "", "A help for foo")
+	prefsCmd.Flags().BoolVarP(&EditPrefs, "edit", "e", false, "edit the global preferences in the specified editor")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
