@@ -26,7 +26,7 @@ in terms of technical implementation and use case.
 
 
 ## Setup
-[Binary releases](https://github.com/akbarnes/dupver/releases) are provided for MacOS/Linux/Windows. Copy them somewhere in your path. To build from source run `go build` or `go install`.
+To build from source run `go build` or `go install`.
 
 ## Update repos to v0.4 format
 1. Add prev pointers to snapshot files
