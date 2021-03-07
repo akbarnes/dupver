@@ -206,7 +206,7 @@ func ReadPacks(tarFile *os.File, repoPath string, chunkIds []string, chunkPacks 
 func LoadChunk(repoPath string, chunkId string, chunkPacks map[string]string, opts Options) []byte {
 	packId := chunkPacks[chunkId]
 
-	fancyprint.Debugf("Reading chunk [%s] \n from pack [%s]\n", chunkId, packId)
+	// fancyprint.Debugf("Reading chunk [%s] \n from pack [%s]\n", chunkId, packId)
 
 	packPath := path.Join(repoPath, "packs", packId[0:2], packId + ".zip")
 	data := []byte{}

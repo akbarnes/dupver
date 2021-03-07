@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"os"
+	"fmt"
 	"path/filepath"
 
 	"github.com/spf13/cobra"
@@ -100,6 +101,7 @@ which repository is the default.`,
 			dupver.PrintCurrentWorkDirConfigAsJson(WorkDirPath, opts)
 		} else {
 			dupver.PrintCurrentPreferences(opts)
+			fmt.Println("")
 			dupver.PrintCurrentWorkDirConfig(WorkDirPath, opts)
 		}
 	},
