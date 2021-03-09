@@ -52,6 +52,10 @@ a commit ID to print in additional detail.`,
 			Branch = cfg.Branch
 		}
 
+		// Don't use LoadWorkDir so we don't load repo configs twice
+		// if the repo name or path was changed via command line
+		workDir := dupver.InstantiateWorkDir(cfg)
+
 		opts.WorkDirName = cfg.WorkDirName
 		opts.RepoName = RepoName
 		opts.RepoPath = RepoPath
@@ -59,6 +63,7 @@ a commit ID to print in additional detail.`,
 
 		if AllBranches {
 			opts.Branch = ""
+			workDir.Branch = ""
 		}
 
 		fancyprint.Debugf("Options: %+v\n", opts)
@@ -69,7 +74,7 @@ a commit ID to print in additional detail.`,
 
 		// TODO: Yeesh...move this mess into a function
 		if len(args) >= 1 {
-			snapshotId = dupver.GetFullSnapshotId(args[0], opts)
+			snapshotId = workDir.GetFullSnapshotId(args[0])
 		}
 
 		fancyprint.Debugf("Full snapshot ID: %s\n\n", snapshotId)

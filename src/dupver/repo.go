@@ -20,6 +20,12 @@ type repoConfig struct {
 	CompressionLevel  uint16
 }
 
+type Repo struct {
+	ChunkerPolynomial chunker.Pol
+	CompressionLevel uint16
+	Path string
+}
+
 // Initialize a repository
 func InitRepo(repoPath string, repoName string, chunkerPolynomial string, compressionLevel uint16, opts Options) {
 	if len(repoPath) == 0 {
@@ -104,6 +110,14 @@ func ReadRepoConfig(repoPath string) repoConfig {
 	return ReadRepoConfigFile(configPath)
 }
 
+func LoadRepo(repoPath string) Repo {
+	cfg := ReadRepoConfig(repoPath)
+	repo := Repo{Path: repoPath}
+	repo.ChunkerPolynomial = cfg.ChunkerPolynomial
+	repo.CompressionLevel = cfg.CompressionLevel
+	return repo
+}
+
 // Read a repository configuration given a file path
 // TODO: Should I add ReadRepoConfig?
 func ReadRepoConfigFile(filePath string) repoConfig {
@@ -122,4 +136,21 @@ func ReadRepoConfigFile(filePath string) repoConfig {
 
 	f.Close()
 	return myConfig
+}
+
+func (cfg repoConfig) Print() {
+	fmt.Printf("Version: %d\n", cfg.Version)
+	fmt.Printf("Chunker polynomial: %d\n", cfg.ChunkerPolynomial)
+
+	compressionDescription := "Deflate"
+
+	if cfg.CompressionLevel == 0 {
+		compressionDescription = "Store"
+	}
+
+	fmt.Printf("Compression level: %d (%s)\n", cfg.CompressionLevel, compressionDescription)	
+}
+
+func (cfg repoConfig) PrintJson() {
+	PrintJson(cfg)
 }

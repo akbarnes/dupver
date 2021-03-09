@@ -162,7 +162,7 @@ func CopySnapshot(snapshotId string, sourceRepoPath string, destRepoPath string,
 		zipFile.Close()
 
 		if curPackSize == 0 {
-			fancyprint.Infof("No new chunks stored so deleting %s\n", destPackPath)
+			fancyprint.Infof("No new chunks stored so deleting %s\n", destPackPath )
 			os.Remove(destPackPath)
 		}
 	}
@@ -365,6 +365,31 @@ func GetFullSnapshotId(snapshotId string, opts Options) string {
 	return snapshotId
 }
 
+// Given a partial snapshot ID, return the full snapshot ID
+// by looking through the snapshots for a project
+// TODO: return an error if no match
+func (wd WorkDir) GetFullSnapshotId(snapshotId string) string {
+	snapshotPaths := wd.ListSnapshots()
+
+	for _, snapshotPath := range snapshotPaths {
+		n := len(snapshotId) - 1
+		sid := filepath.Base(snapshotPath)
+		sid = sid[0 : len(sid)-5]
+		// fmt.Printf("path: %s\nsid: %s\n", snapshotPath, sid)
+
+		if len(sid) < len(snapshotId) {
+			n = len(sid) - 1
+		}
+
+		if snapshotId[0:n] == sid[0:n] {
+			snapshotId = sid
+			break
+		}
+	}
+
+	return snapshotId
+}
+
 // Read a snapshot given a full snapshot ID
 func ReadSnapshot(snapshot string, opts Options) Commit {
 	snapshotsFolder := filepath.Join(opts.RepoPath, "snapshots", opts.WorkDirName)
@@ -412,6 +437,19 @@ func ReadSnapshotId(snapshotId string, opts Options) (Commit, error) {
 // Return a list of the snapshot files for a given repository and project
 func ListSnapshots(opts Options) []string {
 	snapshotsFolder := filepath.Join(opts.RepoPath, "snapshots", opts.WorkDirName)
+	snapshotGlob := filepath.Join(snapshotsFolder, "*.json")
+	// fmt.Println(snapshotGlob)
+	snapshotPaths, err := filepath.Glob(snapshotGlob)
+
+	if err != nil {
+		panic(fmt.Sprintf("Error listing snapshots glob %s", snapshotGlob))
+	}
+	return snapshotPaths
+}
+
+// Return a list of the snapshot files for a given repository and project
+func (wd WorkDir) ListSnapshots() []string {
+	snapshotsFolder := filepath.Join(wd.Repo.Path, "snapshots", wd.ProjectName)
 	snapshotGlob := filepath.Join(snapshotsFolder, "*.json")
 	// fmt.Println(snapshotGlob)
 	snapshotPaths, err := filepath.Glob(snapshotGlob)
@@ -503,6 +541,52 @@ func PrintSnapshots(snapshotId string, maxSnapshots int, opts Options) {
 		}
 	}
 }
+
+// Print snapshots sorted in ascending order by date
+// TODO: change the name to PrintSnapshotsByDate?
+func (workDir WorkDir) PrintSnapshots(snapshotId string) {
+	repoPath := opts.RepoPath
+	projectName := opts.WorkDirName
+
+	if len(snapshotId) > 0 {
+		snap := ReadSnapshot(snapshotId, opts)
+		PrintSnapshotFiles(snap, 0, opts)
+		return
+	}
+
+
+	snapshotGlob := filepath.Join(repoPath, "snapshots", projectName, "*.json")
+	snapshotPaths, _ := filepath.Glob(snapshotGlob)
+
+	snapshotsByDate := make(map[string]Commit)
+	snapshotDates := []string{}
+
+	// TODO: sort the snapshots by date
+	for _, snapshotPath := range snapshotPaths {
+		fancyprint.Debugf("Snapshot path: %s\n\n", snapshotPath)
+		mySnapshot := ReadSnapshotFile(snapshotPath)
+		snapshotsByDate[mySnapshot.Time] = mySnapshot
+		snapshotDates = append(snapshotDates, mySnapshot.Time)
+	}
+
+	sort.Strings(snapshotDates)
+
+	for i, sdate := range snapshotDates {
+		snap := snapshotsByDate[sdate]
+		b := opts.Branch
+
+		if len(b) == 0 || len(b) > 0 && b == snap.Branch {
+			PrintSnapshot(snap, 0, opts)
+		}
+
+		if maxSnapshots > 0 {
+			if i >= maxSnapshots {
+				break
+			}
+		}
+	}
+}
+
 
 // Print snapshots as JSON in sorted in ascending order by date
 // TODO: change the name to PrintSnapshotsByDate?

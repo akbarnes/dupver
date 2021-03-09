@@ -75,9 +75,9 @@ tool and the default repository`,
 		}
 
 		if JsonOutput {
-			dupver.PrintCurrentPreferencesAsJson(opts)
+			prefs.Printjson()
 		} else {
-			dupver.PrintCurrentPreferences(opts)
+			prefs.Print()
 		}
 	},
 }

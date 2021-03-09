@@ -98,11 +98,11 @@ which repository is the default.`,
 		}
 
 		if JsonOutput {
-			dupver.PrintCurrentWorkDirConfigAsJson(WorkDirPath, opts)
+			cfg.PrintJson()
 		} else {
-			dupver.PrintCurrentPreferences(opts)
-			fmt.Println("")
-			dupver.PrintCurrentWorkDirConfig(WorkDirPath, opts)
+			prefs.Print()
+			fmt.Println("")	
+			cfg.Print()
 		}
 	},
 }

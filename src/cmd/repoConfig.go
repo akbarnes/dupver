@@ -123,16 +123,7 @@ name of "main."`,
 		if JsonOutput {
 			dupver.PrintJson(cfg)
 		} else {
-			fmt.Printf("Version: %d\n", cfg.Version)
-			fmt.Printf("Chunker polynomial: %d\n", cfg.ChunkerPolynomial)
-
-			compressionDescription := "Deflate"
-
-			if cfg.CompressionLevel == 0 {
-				compressionDescription = "Store"
-			}
-
-			fmt.Printf("Compression level: %d (%s)\n", cfg.CompressionLevel, compressionDescription)
+			cfg.Print()
 		}
 	},
 }
