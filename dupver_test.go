@@ -1,16 +1,16 @@
 package main
 
 import (
+	"archive/zip"
 	"fmt"
 	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"testing"
-	"archive/zip"
 
-	"github.com/akbarnes/dupver/src/fancyprint"
 	"github.com/akbarnes/dupver/src/dupver"
+	"github.com/akbarnes/dupver/src/fancyprint"
 )
 
 func TestWorkRepoInit(t *testing.T) {
@@ -20,7 +20,7 @@ func TestWorkRepoInit(t *testing.T) {
 	quiet := false
 	monochrome := false
 	fancyprint.Setup(debug, verbose, quiet, monochrome)
-	
+
 	homeDir := dupver.GetHome()
 
 	if len(homeDir) == 0 {
@@ -141,6 +141,7 @@ func TestCommit(t *testing.T) {
 
 	// ----------- Commit the tar file  ----------- //
 	myWorkDirConfig, _ := dupver.ReadWorkDirConfig(workDirFolder)
+	// TODO: Replace with PrintSnapshots
 	dupver.PrintAllSnapshots("", opts)
 
 	fmt.Printf("snapshot: %+v\n\n", snapshot)
@@ -153,6 +154,93 @@ func TestCommit(t *testing.T) {
 
 	// dupver.UnpackFile(outputFileName, myWorkDirConfig.RepoPath, mySnapshot.ChunkIDs, verbosity)
 	dupver.UnpackFile(outputFileName, opts.RepoPath, mySnapshot.ChunkIDs, opts)
+	fmt.Printf("Wrote to %s\n", outputFileName)
+
+	cmd := exec.Command("diff", fileName, outputFileName)
+	log.Printf("Running command and waiting for it to finish...")
+	output, err := cmd.Output()
+
+	if err != nil {
+		fmt.Printf("diff %s %s\nreturned error\nDiff output:\n%s", fileName, outputFileName, output)
+		t.Error("Error comparing tar files")
+	}
+
+	if len(output) > 0 {
+		t.Error("Checked out tar file dose not match input")
+	}
+
+	os.RemoveAll(workDirFolder)
+	os.RemoveAll(repoPath)
+}
+
+func TestCopy(t *testing.T) {
+	opts := dupver.Options{}
+	msg := "Commit random data"
+
+	// ----------- Create a repo ----------- //
+	homeDir := dupver.GetHome()
+	repoId := dupver.RandString(16, dupver.HexChars)
+	repoFolder := ".dupver_repo_" + repoId
+	repoPath := filepath.Join(homeDir, "temp", repoFolder)
+	repoName := "test"
+	dupver.InitRepo(repoPath, repoName, "", zip.Deflate, opts)
+
+	repoId2 := dupver.RandString(16, dupver.HexChars)
+	repoFolder2 := ".dupver_repo_" + repoId2
+	repoPath2 := filepath.Join(homeDir, "temp", repoFolder2)
+	repoName2 := "test2"
+	dupver.InitRepo(repoPath2, repoName2, "", zip.Deflate, opts)
+
+	// ----------- Create a workdir ----------- //
+	workDirId := dupver.RandString(16, dupver.HexChars)
+	workDirFolder := "Test_" + workDirId
+	err := os.MkdirAll(workDirFolder, 0777)
+
+	if err != nil {
+		t.Error("Could not cerate workdir folder " + workDirFolder)
+	}
+
+	projectName := ""
+
+	opts.WorkDirName = "test"
+	opts.RepoName = "test"
+	opts.RepoPath = repoPath
+	opts.Branch = "main"
+
+	dupver.InitWorkDir(workDirFolder, projectName, opts)
+
+	// ----------- Create tar file with random data ----------- //
+	// TODO: add random permutes to data
+	fileName := dupver.CreateRandomTarFile(workDirFolder, repoPath)
+	fmt.Printf("Created tar file %s\n", fileName)
+
+	// ----------- Commit the tar file  ----------- //
+	snapshot := dupver.CommitFile(fileName, []string{}, msg, false, opts)
+
+	// ----------- Copy to the second repo  ----------- //
+	snapshotId := snapshot.ID
+	dupver.CopySnapshot(snapshotId, repoPath, repoPath2, opts)
+
+	opts2 := dupver.Options{}
+	opts2.WorkDirName = opts.WorkDirName
+	opts2.RepoName = opts.RepoName
+	opts2.RepoPath = repoPath2
+	opts2.Branch = opts.Branch
+
+	// ----------- Commit the tar file  ----------- //
+	myWorkDirConfig, _ := dupver.ReadWorkDirConfig(workDirFolder)
+	dupver.PrintAllSnapshots("", opts2)
+
+	fmt.Printf("snapshot: %+v\n\n", snapshot)
+	fmt.Printf("workdir config: %+v\n\n", myWorkDirConfig)
+
+	// // ----------- Checkout the tar file  ----------- //
+	mySnapshot := dupver.ReadSnapshot(snapshot.ID, opts2)
+	timeStr := dupver.TimeToPath(mySnapshot.Time)
+	outputFileName := fmt.Sprintf("%s-%s-%s.tar", myWorkDirConfig.WorkDirName, timeStr, snapshot.ID[0:16])
+
+	// dupver.UnpackFile(outputFileName, myWorkDirConfig.RepoPath, mySnapshot.ChunkIDs, verbosity)
+	dupver.UnpackFile(outputFileName, opts2.RepoPath, mySnapshot.ChunkIDs, opts2)
 	fmt.Printf("Wrote to %s\n", outputFileName)
 
 	cmd := exec.Command("diff", fileName, outputFileName)

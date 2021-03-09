@@ -6,13 +6,13 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"path"
+	// "path"
 	"path/filepath"
 	"sort"
 	"strings"
 	"time"
-
 	// "log"
+
 	"github.com/BurntSushi/toml"
 	"github.com/akbarnes/dupver/src/fancyprint"
 )
@@ -51,7 +51,7 @@ const TREE_ID_LEN int = 40
 
 // Copy a snapshot given a snapshot ID, source repo path and dest repo path
 func CopySnapshot(snapshotId string, sourceRepoPath string, destRepoPath string, opts Options) {
-	fancyprint.Noticef("Copying snapshot %s: %s -> %s\n", snapshotId, sourceRepoPath, destRepoPath)
+	// fancyprint.Noticef("Copying snapshot %s: %s -> %s\n", snapshotId, sourceRepoPath, destRepoPath)
 	sourceSnapshotsFolder := filepath.Join(sourceRepoPath, "snapshots", opts.WorkDirName)
 	destSnapshotsFolder := filepath.Join(destRepoPath, "snapshots", opts.WorkDirName)
 	os.Mkdir(destSnapshotsFolder, 0777)
@@ -59,12 +59,13 @@ func CopySnapshot(snapshotId string, sourceRepoPath string, destRepoPath string,
 	sourceSnapshotPath := filepath.Join(sourceSnapshotsFolder, snapshotId+".json")
 	destSnapshotPath := filepath.Join(destSnapshotsFolder, snapshotId+".json")
 
-	fancyprint.Noticef("Copying %s -> %s\n", sourceSnapshotPath, destSnapshotPath)
+	fancyprint.Noticef("Copying %s\n  to %s\n", sourceSnapshotPath, destSnapshotPath)
 	CopyFile(sourceSnapshotPath, destSnapshotPath) // TODO: check error status
 	snapshot := ReadSnapshotFile(sourceSnapshotPath)
 	chunkIndex := 0
 
 	// TODO: Move this into CopyChunks in pack.go
+	// TODO: Move this into repo configuration
 	const maxPackSize int = 104857600 // 100 MB
 	chunkIDs := []string{}
 	sourceChunkPacks := ReadTrees(sourceRepoPath)
@@ -84,9 +85,9 @@ func CopySnapshot(snapshotId string, sourceRepoPath string, destRepoPath string,
 
 	for stillReadingInput {
 		packId := RandHexString(PACK_ID_LEN)
-		destPackFolderPath := path.Join(destRepoPath, "packs", packId[0:2])
+		destPackFolderPath := filepath.Join(destRepoPath, "packs", packId[0:2])
 		os.MkdirAll(destPackFolderPath, 0777)
-		destPackPath := path.Join(destPackFolderPath, packId+".zip")
+		destPackPath := filepath.Join(destPackFolderPath, packId+".zip")
 
 		newPackNum++
 
@@ -109,15 +110,6 @@ func CopySnapshot(snapshotId string, sourceRepoPath string, destRepoPath string,
 			// chunk, err := mychunker.Next(buf)
 			chunkId := snapshot.ChunkIDs[chunkIndex]
 			chunk := LoadChunk(sourceRepoPath, chunkId, sourceChunkPacks, opts)
-			chunkIndex++
-
-			if chunkIndex >= len(snapshot.ChunkIDs) {
-				// fmt.Printf("Reached end of input file, stop chunking\n")
-				stillReadingInput = false
-				break
-			} else if err != nil {
-				panic("Error chunking input file")
-			}
 
 			i++
 			// chunkId := fmt.Sprintf("%064x", sha256.Sum256(chunk.Data))
@@ -149,6 +141,14 @@ func CopySnapshot(snapshotId string, sourceRepoPath string, destRepoPath string,
 				writer.Write(chunk)
 				curPackSize += len(chunk)
 			}
+
+			chunkIndex++
+
+			if chunkIndex >= len(snapshot.ChunkIDs) {
+				fancyprint.Infof("Reached end of input file, stop chunking\n")
+				stillReadingInput = false
+				break
+			} 
 		}
 
 		if stillReadingInput {
@@ -157,8 +157,14 @@ func CopySnapshot(snapshotId string, sourceRepoPath string, destRepoPath string,
 
 		fancyprint.Info("Reached end of input, closing zip file")
 
+		// TODO: delete or don't create zip file if there weren't any files stored
 		zipWriter.Close()
 		zipFile.Close()
+
+		if curPackSize == 0 {
+			fancyprint.Infof("No new chunks stored so deleting %s\n", destPackPath)
+			os.Remove(destPackPath)
+		}
 	}
 
 	newChunkNum := totalChunkNum - dupChunkNum
@@ -172,10 +178,10 @@ func CopySnapshot(snapshotId string, sourceRepoPath string, destRepoPath string,
 	fancyprint.Noticef("%d new, %d duplicate, %d total chunks\n", newChunkNum, dupChunkNum, totalChunkNum)
 	fancyprint.Noticef("%d packs stored, %0.2f chunks/pack\n", newPackNum, float64(newChunkNum)/float64(newPackNum))
 
-	treeFolder := path.Join(destRepoPath, "trees")
+	treeFolder := filepath.Join(destRepoPath, "trees")
 	treeBasename := snapshotId[0:40]
 	os.Mkdir(treeFolder, 0777)
-	treePath := path.Join(treeFolder, treeBasename+".json")
+	treePath := filepath.Join(treeFolder, treeBasename+".json")
 	WriteTree(treePath, destChunkPacks)
 
 	if fancyprint.Verbosity >= fancyprint.NoticeLevel {
@@ -220,9 +226,9 @@ func CommitFile(filePath string, parentIds []string, msg string, JsonOutput bool
 
 	snap.Branch = opts.Branch
 
-	myRepoConfig := ReadRepoConfigFile(path.Join(opts.RepoPath, "config.toml"))
-	branchFolder := path.Join(opts.RepoPath, "branches", opts.WorkDirName)
-	branchPath := path.Join(branchFolder, myWorkDirConfig.Branch+".toml")
+	myRepoConfig := ReadRepoConfigFile(filepath.Join(opts.RepoPath, "config.toml"))
+	branchFolder := filepath.Join(opts.RepoPath, "branches", opts.WorkDirName)
+	branchPath := filepath.Join(branchFolder, myWorkDirConfig.Branch+".toml")
 	myBranch := ReadBranch(branchPath)
 
 	fancyprint.Infof("Branch: %s\nParent commit: %s\n", opts.Branch, myBranch.CommitID)
@@ -231,10 +237,10 @@ func CommitFile(filePath string, parentIds []string, msg string, JsonOutput bool
 	chunkIDs, chunkPacks := PackFile(filePath, opts.RepoPath, myRepoConfig.ChunkerPolynomial, myRepoConfig.CompressionLevel)
 	snap.ChunkIDs = chunkIDs
 
-	snapshotFolder := path.Join(opts.RepoPath, "snapshots", opts.WorkDirName)
+	snapshotFolder := filepath.Join(opts.RepoPath, "snapshots", opts.WorkDirName)
 	snapshotBasename := fmt.Sprintf("%s", snap.ID[0:40])
 	os.Mkdir(snapshotFolder, 0777)
-	snapshotPath := path.Join(snapshotFolder, snapshotBasename+".json")
+	snapshotPath := filepath.Join(snapshotFolder, snapshotBasename+".json")
 	WriteSnapshot(snapshotPath, snap)
 
 	// Do I really need to track commit id in head??
@@ -242,10 +248,10 @@ func CommitFile(filePath string, parentIds []string, msg string, JsonOutput bool
 
 	WriteBranch(branchPath, myBranch)
 
-	treeFolder := path.Join(opts.RepoPath, "trees")
+	treeFolder := filepath.Join(opts.RepoPath, "trees")
 	treeBasename := snap.ID[0:40]
 	os.Mkdir(treeFolder, 0777)
-	treePath := path.Join(treeFolder, treeBasename+".json")
+	treePath := filepath.Join(treeFolder, treeBasename+".json")
 	WriteTree(treePath, chunkPacks)
 
 	if JsonOutput {
@@ -288,8 +294,8 @@ func WriteSnapshot(snapshotPath string, mySnapshot Commit) {
 // Create a pointer-style tag given tag name and snapshot ID
 // Repo path is specified in options structure
 func CreateTag(tagName string, snapshotId string, opts Options) {
-	tagFolder := path.Join(opts.RepoPath, "tags", opts.WorkDirName)
-	tagPath := path.Join(tagFolder, tagName+".toml")
+	tagFolder := filepath.Join(opts.RepoPath, "tags", opts.WorkDirName)
+	tagPath := filepath.Join(tagFolder, tagName+".toml")
 	myTag := Branch{CommitID: snapshotId}
 
 	fancyprint.Noticef("Tag commit: %s\n", snapshotId)
@@ -405,8 +411,8 @@ func ReadSnapshotId(snapshotId string, opts Options) (Commit, error) {
 
 // Return a list of the snapshot files for a given repository and project
 func ListSnapshots(opts Options) []string {
-	snapshotsFolder := path.Join(opts.RepoPath, "snapshots", opts.WorkDirName)
-	snapshotGlob := path.Join(snapshotsFolder, "*.json")
+	snapshotsFolder := filepath.Join(opts.RepoPath, "snapshots", opts.WorkDirName)
+	snapshotGlob := filepath.Join(snapshotsFolder, "*.json")
 	// fmt.Println(snapshotGlob)
 	snapshotPaths, err := filepath.Glob(snapshotGlob)
 
@@ -421,7 +427,7 @@ func LastSnapshot(opts Options) (Commit, error) {
 	repoPath := opts.RepoPath
 	projectName := opts.WorkDirName
 
-	snapshotGlob := path.Join(repoPath, "snapshots", projectName, "*.json")
+	snapshotGlob := filepath.Join(repoPath, "snapshots", projectName, "*.json")
 	snapshotPaths, _ := filepath.Glob(snapshotGlob)
 
 	snapshotsByDate := make(map[string]Commit)
@@ -466,7 +472,7 @@ func PrintSnapshots(snapshotId string, maxSnapshots int, opts Options) {
 		fancyprint.Notice("Snapshot History")
 	}
 
-	snapshotGlob := path.Join(repoPath, "snapshots", projectName, "*.json")
+	snapshotGlob := filepath.Join(repoPath, "snapshots", projectName, "*.json")
 	snapshotPaths, _ := filepath.Glob(snapshotGlob)
 
 	snapshotsByDate := make(map[string]Commit)
@@ -519,7 +525,7 @@ func PrintSnapshotsAsJson(snapshotId string, maxSnapshots int, snapshotFiles boo
 		return
 	}
 
-	snapshotGlob := path.Join(repoPath, "snapshots", projectName, "*.json")
+	snapshotGlob := filepath.Join(repoPath, "snapshots", projectName, "*.json")
 	snapshotPaths, _ := filepath.Glob(snapshotGlob)
 
 	snapshotsByDate := make(map[string]Commit)
