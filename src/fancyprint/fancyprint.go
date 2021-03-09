@@ -1,3 +1,5 @@
+// Package implements printing with color
+// and verbosity levels
 package fancyprint
 
 import (
@@ -63,77 +65,84 @@ func SetColoredOutput(monochrome bool) {
 	}
 }
 
+// Set printing color
 func SetColor(color string) {
 	if ColorOutput {
 		fmt.Print(color)
 	}
 }
 
+// Reset printing color to terminal default
 func ResetColor() {
 	if ColorOutput {
 		fmt.Print(ColorReset)
 	}
 }
 
-// Low verbosity
+// Print object if verbosity level is ErrorLevel or greater
 func Err(a ...interface{}) {
 	if Verbosity >= ErrorLevel {
 		logger.Println(a...)
 	}
 }
 
+// Print formatted object if verbosity level is ErrorLevel or greater
 func Errf(msg string, a ...interface{}) {
 	if Verbosity >= ErrorLevel {
 		logger.Printf(msg, a...)
 	}
 }
 
-// Low verbosity
+// Print object if verbosity level is WarningLevel or greater
 func Warn(a ...interface{}) {
 	if Verbosity >= WarningLevel {
 		logger.Println(a...)
 	}
 }
 
+// Print formatted object if verbosity level is WarningLevel or greater
 func Warnf(msg string, a ...interface{}) {
 	if Verbosity >= WarningLevel {
 		logger.Printf(msg, a...)
 	}
 }
 
-// Default verbosity
+// Print object if verbosity level is NoticeLevel or greater
 func Notice(a ...interface{}) {
 	if Verbosity >= NoticeLevel {
 		logger.Println(a...)
 	}
 }
 
+// Print formatted object if verbosity level is NoticeLevel or greater
 func Noticef(msg string, a ...interface{}) {
 	if Verbosity >= NoticeLevel {
 		logger.Printf(msg, a...)
 	}
 }
 
-// Higher verbosity
+// Print object if verbosity level is InfoLevel or greater
 func Info(a ...interface{}) {
 	if Verbosity >= InfoLevel {
 		logger.Println(a...)
 	}
 }
 
+// Print formatted object if verbosity level is InfoLevel or greater
 func Infof(msg string, a ...interface{}) {
 	if Verbosity >= InfoLevel {
 		logger.Printf(msg, a...)
 	}
 }
 
-// Highest verbosity
+// Print object if verbosity level is DebugLevel or greater
 func Debug(a ...interface{}) {
 	if Verbosity >= DebugLevel {
 		logger.Println(a...)
 	}
 }
 
+// Print formatted object if verbosity level is DebugLevel or greater
 func Debugf(msg string, a ...interface{}) {
 	if Verbosity >= DebugLevel {
 		logger.Printf(msg, a...)

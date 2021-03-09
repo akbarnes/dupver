@@ -105,6 +105,20 @@ func InitWorkDir(workDirFolder string, workDirName string, opts Options) {
 	SaveWorkDirConfigFile(configPath, myConfig, false, opts)
 }
 
+// Print the project working directory configuration
+func PrintWorkDirConfig(cfg workDirConfig, opts Options) {
+	// WorkDirName = "admin"
+	// Branch = "test"
+	// DefaultRepo = "store"
+
+	// [Repos]
+	//   main = "C:\\Users\\305232/.dupver_repo"
+
+	fmt.Printf("Working directory name: %s\n", cfg.WorkDirName)
+	fmt.Printf("Current branch: %s\n\n", cfg.Branch)
+	PrintWorkDirReposConfig(cfg, opts)
+}
+
 func PrintWorkDirReposConfigAsJson(cfg workDirConfig, opts Options) {
 	type repoConfigPrint struct {
 		Name              string
@@ -136,11 +150,9 @@ func PrintWorkDirReposConfigAsJson(cfg workDirConfig, opts Options) {
 	PrintJson(repoConfigs)
 }
 
-func (cfg workDirConfig) PrintConfig() {
-	fmt.Printf("Project name: %s\n", cfg.WorkDirName)
-	fmt.Printf("Current branch: %s\n\n", cfg.Branch)
-	cfg.PrintReposConfig()
-}
+func PrintWorkDirConfig(cfg workDirConfig, opts Options) {
+	fmt.Printf("Working directory name: %s\n", cfg.WorkDirName)
+	PrintWorkDirReposConfig(cfg, opts)
 
 func (cfg workDirConfig) PrintReposConfig() {
 	for name, path := range cfg.Repos {
@@ -165,7 +177,6 @@ func (cfg workDirConfig) PrintReposConfig() {
 	}
 }
 
-
 // Add a new repository to the working directory configuration
 // Todo: break up repos into  list of name, path key/value pairs
 func PrintCurrentWorkDirConfigAsJson(workDirPath string, opts Options) {
@@ -177,7 +188,17 @@ func PrintCurrentWorkDirConfigAsJson(workDirPath string, opts Options) {
 		os.Exit(0)
 	}
 
-	PrintJson(cfg)
+	type workDirConfigPrint struct {
+		WorkDirName string
+		Branch      string
+		DefaultRepo string
+	}
+
+	wc := workDirConfigPrint{}
+	wc.WorkDirName = cfg.WorkDirName
+	wc.Branch = cfg.Branch
+	wc.DefaultRepo = cfg.DefaultRepo
+	PrintJson(wc)
 }
 
 // Add a new repository to the working directory configuration
@@ -530,4 +551,28 @@ func PrintWorkDirStatusAsJson(workDir string, snapshot Commit, opts Options) {
 	if !changes {
 		fancyprint.Infof("No changes detected\n")
 	}
+}
+
+// Add a new repository to the working directory configuration
+// Todo: break up repos into  list of name, path key/value pairs
+func PrintCurrentWorkDirConfigAsJson(workDirPath string, opts Options) {
+	cfg, err := ReadWorkDirConfig(workDirPath)
+
+	if err != nil {
+		// Todo: handle invalid configuration file
+		fancyprint.Warn("Could not read configuration file. Has the project working directory been initialized?")
+		os.Exit(0)
+	}
+
+	type workDirConfigPrint struct {
+		WorkDirName string
+		Branch      string
+		DefaultRepo string
+	}
+
+	wc := workDirConfigPrint{}
+	wc.WorkDirName = cfg.WorkDirName
+	wc.Branch = cfg.Branch
+	wc.DefaultRepo = cfg.DefaultRepo
+	PrintJson(wc)
 }
