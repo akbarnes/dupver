@@ -112,6 +112,20 @@ func PrintCurrentWorkDirConfig(workDirPath string, opts Options) {
 	PrintWorkDirConfig(cfg, opts)
 }
 
+// Print the project working directory configuration
+func PrintWorkDirConfig(cfg workDirConfig, opts Options) {
+	// WorkDirName = "admin"
+	// Branch = "test"
+	// DefaultRepo = "store"
+
+	// [Repos]
+	//   main = "C:\\Users\\305232/.dupver_repo"
+
+	fmt.Printf("Working directory name: %s\n", cfg.WorkDirName)
+	fmt.Printf("Current branch: %s\n\n", cfg.Branch)
+	PrintWorkDirReposConfig(cfg, opts)
+}
+
 func PrintWorkDirReposConfig(cfg workDirConfig, opts Options) {
 	for name, path := range cfg.Repos {
 		repoCfg := ReadRepoConfig(path)
@@ -166,20 +180,6 @@ func PrintWorkDirReposConfigAsJson(cfg workDirConfig, opts Options) {
 	PrintJson(repoConfigs)
 }
 
-// Print the project working directory configuration
-func PrintWorkDirConfig(cfg workDirConfig, opts Options) {
-	// WorkDirName = "admin"
-	// Branch = "test"
-	// DefaultRepo = "store"
-
-	// [Repos]
-	//   main = "C:\\Users\\305232/.dupver_repo"
-
-	fmt.Printf("Working directory name: %s\n", cfg.WorkDirName)
-	fmt.Printf("Current branch: %s\n\n", cfg.Branch)
-	PrintWorkDirReposConfig(cfg, opts)
-}
-
 // Add a new repository to the working directory configuration
 // Todo: break up repos into  list of name, path key/value pairs
 func PrintCurrentWorkDirConfigAsJson(workDirPath string, opts Options) {
@@ -191,7 +191,17 @@ func PrintCurrentWorkDirConfigAsJson(workDirPath string, opts Options) {
 		os.Exit(0)
 	}
 
-	PrintJson(cfg)
+	type workDirConfigPrint struct {
+		WorkDirName string
+		Branch      string
+		DefaultRepo string
+	}
+
+	wc := workDirConfigPrint{}
+	wc.WorkDirName = cfg.WorkDirName
+	wc.Branch = cfg.Branch
+	wc.DefaultRepo = cfg.DefaultRepo
+	PrintJson(wc)
 }
 
 // Add a new repository to the working directory configuration
