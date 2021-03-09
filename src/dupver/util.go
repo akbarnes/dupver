@@ -6,7 +6,7 @@ import (
 	"os/exec"
 
 	// "bufio"
-	"errors"
+	// "errors"
 	"fmt"
 	"io"
 	"log"
@@ -15,7 +15,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/BurntSushi/toml"
+	// "github.com/BurntSushi/toml"
 
 	"github.com/akbarnes/dupver/src/fancyprint"
 )
