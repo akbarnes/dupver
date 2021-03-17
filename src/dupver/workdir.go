@@ -106,20 +106,6 @@ func InitWorkDir(workDirFolder string, workDirName string, opts Options) {
 }
 
 // Print the project working directory configuration
-func PrintWorkDirConfig(cfg workDirConfig, opts Options) {
-	// WorkDirName = "admin"
-	// Branch = "test"
-	// DefaultRepo = "store"
-
-	// [Repos]
-	//   main = "C:\\Users\\305232/.dupver_repo"
-
-	fmt.Printf("Working directory name: %s\n", cfg.WorkDirName)
-	fmt.Printf("Current branch: %s\n\n", cfg.Branch)
-	PrintWorkDirReposConfig(cfg, opts)
-}
-
-// Print the project working directory configuration
 func (cfg workDirConfig) Print() {
 	// WorkDirName = "admin"
 	// Branch = "test"

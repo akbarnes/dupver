@@ -85,44 +85,11 @@ func SavePrefsFile(prefsPath string, prefs Preferences, forceWrite bool, opts Op
 	f.Close()
 }
 
-// Print the current global preferences
-func PrintCurrentPreferences(opts Options) {
-	prefs, err := ReadPrefs(opts)
-
-	if err != nil {
-		// Todo: handle invalid configuration file
-		fancyprint.Warn("Could not read preferences file.")
-		os.Exit(1)
-	}
-
-	PrintPreferences(prefs)
-}
-
-// Print the global preferences structure
-func PrintPreferences(prefs Preferences) {
-	fmt.Printf("Editor: %s\n", prefs.Editor)
-	fmt.Printf("Diff tool: %s\n", prefs.DiffTool)
-	fmt.Printf("Default repository path: %s\n", prefs.DefaultRepo)
-}
-
 // Print the global preferences structure
 func (prefs Preferences) Print() {
 	fmt.Printf("Editor: %s\n", prefs.Editor)
 	fmt.Printf("Diff tool: %s\n", prefs.DiffTool)
 	fmt.Printf("Default repository path: %s\n", prefs.DefaultRepo)
-}
-
-// Print the current global preferences as JSON
-func PrintCurrentPreferencesAsJson(opts Options) {
-	prefs, err := ReadPrefs(opts)
-
-	if err != nil {
-		// Todo: handle invalid configuration file
-		fancyprint.Warn("Could not read preferences file.")
-		os.Exit(1)
-	}
-
-	PrintJson(prefs)
 }
 
 // Print the current global preferences as JSON
