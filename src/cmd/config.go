@@ -45,9 +45,9 @@ which repository is the default.`,
 
 		if ConfigRepo {
 			if JsonOutput {
-				dupver.PrintWorkDirReposConfigAsJson(cfg, opts)
+				cfg.PrintReposAsJson()
 			} else {
-				dupver.PrintWorkDirReposConfig(cfg, opts)
+				cfg.PrintRepos()
 			}
 			return
 		}

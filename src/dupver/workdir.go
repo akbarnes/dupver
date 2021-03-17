@@ -116,10 +116,10 @@ func (cfg workDirConfig) Print() {
 
 	fmt.Printf("Working directory name: %s\n", cfg.WorkDirName)
 	fmt.Printf("Current branch: %s\n\n", cfg.Branch)
-	cfg.PrintWorkDirReposConfig()
+	cfg.PrintRepos()
 }
 
-func PrintWorkDirReposConfig(cfg workDirConfig, opts Options) {
+func (cfg workDirConfig) PrintRepos() {
 	for name, path := range cfg.Repos {
 		repoCfg := ReadRepoConfig(path)
 		fmt.Printf("%s: %s", name, path)
@@ -142,30 +142,7 @@ func PrintWorkDirReposConfig(cfg workDirConfig, opts Options) {
 	}
 }
 
-func (cfg workDirConfig) PrintWorkDirReposConfig() {
-	for name, path := range cfg.Repos {
-		repoCfg := ReadRepoConfig(path)
-		fmt.Printf("%s: %s", name, path)
-
-		if repoCfg.CompressionLevel == 0 {
-			fmt.Print(" Store (0)")
-		} else {
-			fmt.Printf(" Deflate (%d)", repoCfg.CompressionLevel)
-		}
-
-		fmt.Printf(" %d", repoCfg.ChunkerPolynomial)
-
-		if name == cfg.DefaultRepo {
-			fancyprint.SetColor(fancyprint.ColorGreen)
-			fmt.Print(" default")
-			fancyprint.ResetColor()
-		}
-
-		fmt.Println("")
-	}
-}
-
-func PrintWorkDirReposConfigAsJson(cfg workDirConfig, opts Options) {
+func (cfg workDirConfig) PrintReposAsJson() {
 	type repoConfigPrint struct {
 		Name              string
 		Path              string
@@ -217,30 +194,6 @@ func (cfg workDirConfig) PrintReposConfig() {
 
 		fmt.Println("")
 	}
-}
-
-// Add a new repository to the working directory configuration
-// Todo: break up repos into  list of name, path key/value pairs
-func PrintCurrentWorkDirConfigAsJson(workDirPath string, opts Options) {
-	cfg, err := ReadWorkDirConfig(workDirPath)
-
-	if err != nil {
-		// Todo: handle invalid configuration file
-		fancyprint.Warn("Could not read configuration file. Has the project working directory been initialized?")
-		os.Exit(0)
-	}
-
-	type workDirConfigPrint struct {
-		WorkDirName string
-		Branch      string
-		DefaultRepo string
-	}
-
-	wc := workDirConfigPrint{}
-	wc.WorkDirName = cfg.WorkDirName
-	wc.Branch = cfg.Branch
-	wc.DefaultRepo = cfg.DefaultRepo
-	PrintJson(wc)
 }
 
 func (cfg workDirConfig) PrintJson() {
