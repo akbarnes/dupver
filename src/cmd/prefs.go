@@ -75,7 +75,7 @@ tool and the default repository`,
 		}
 
 		if JsonOutput {
-			prefs.Printjson()
+			prefs.PrintJson()
 		} else {
 			prefs.Print()
 		}

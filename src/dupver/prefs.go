@@ -95,7 +95,14 @@ func PrintCurrentPreferences(opts Options) {
 		os.Exit(1)
 	}
 
-	PrintPreferences(prefs, opts)
+	PrintPreferences(prefs)
+}
+
+// Print the global preferences structure
+func PrintPreferences(prefs Preferences) {
+	fmt.Printf("Editor: %s\n", prefs.Editor)
+	fmt.Printf("Diff tool: %s\n", prefs.DiffTool)
+	fmt.Printf("Default repository path: %s\n", prefs.DefaultRepo)
 }
 
 // Print the global preferences structure
@@ -116,13 +123,6 @@ func PrintCurrentPreferencesAsJson(opts Options) {
 	}
 
 	PrintJson(prefs)
-}
-
-// Print the global preferences structure
-func (prefs Preferences) Print() {
-	fmt.Printf("Editor: %s\n", prefs.Editor)
-	fmt.Printf("Diff tool: %s\n", prefs.DiffTool)
-	fmt.Printf("Default repository path: %s\n", prefs.DefaultRepo)
 }
 
 // Print the current global preferences as JSON
