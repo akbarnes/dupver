@@ -369,6 +369,16 @@ func SaveWorkDirConfig(workDir string, myConfig workDirConfig, forceWrite bool, 
 	SaveWorkDirConfigFile(configPath, myConfig, forceWrite, opts)
 }
 
+func (cfg workDirConfig) Save(forceWrite bool) {
+	configPath := filepath.Join(".dupver", "config.toml")
+	cfg.SaveAs(configPath, forceWrite)
+}
+
+func (cfg workDirConfig) SaveToWorkDir(workDir string, forceWrite bool) {
+	configPath := filepath.Join(workDir, ".dupver", "config.toml")
+	cfg.SaveAs(configPath, forceWrite)
+}
+
 // Save a project working directory configuration given
 // the project working directory configuration file path
 func SaveWorkDirConfigFile(configPath string, myConfig workDirConfig, forceWrite bool, opts Options) {
@@ -383,6 +393,23 @@ func SaveWorkDirConfigFile(configPath string, myConfig workDirConfig, forceWrite
 	f, _ := os.Create(configPath)
 	myEncoder := toml.NewEncoder(f)
 	myEncoder.Encode(myConfig)
+	f.Close()
+}
+
+// Save a project working directory configuration given
+// the project working directory configuration file path
+func (cfg workDirConfig) SaveWorkDirConfigFile(configPath string, forceWrite bool) {
+	if _, err := os.Stat(configPath); err == nil && !forceWrite {
+		// panic("Refusing to write existing project workdir config " + configPath)
+		panic(fmt.Sprintf("Refusing to write existing project workdir config: %s\n", configPath))
+	}
+
+	fancyprint.Infof("Writing config:\n%+v\n", myConfig)
+	fancyprint.Infof("to: %s\n", configPath)
+
+	f, _ := os.Create(configPath)
+	myEncoder := toml.NewEncoder(f)
+	myEncoder.Encode(cfg)
 	f.Close()
 }
 

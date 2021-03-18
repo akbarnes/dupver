@@ -94,7 +94,13 @@ which repository is the default.`,
 				return
 			}
 
-			dupver.SaveWorkDirConfig(WorkDirPath, cfg, true, opts)
+
+			if len(WorkDirPath) {
+				cfg.SaveToWorkDir(WorkDirPath, true)
+			} else {
+				cfg.Save(true)
+			}
+			
 		}
 
 		if JsonOutput {
