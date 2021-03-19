@@ -94,13 +94,7 @@ which repository is the default.`,
 				return
 			}
 
-
-			if len(WorkDirPath) {
-				cfg.SaveToWorkDir(WorkDirPath, true)
-			} else {
-				cfg.Save(true)
-			}
-			
+			cfg.Save(WorkDirPath, true)
 		}
 
 		if JsonOutput {
