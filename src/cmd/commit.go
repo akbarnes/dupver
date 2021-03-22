@@ -80,9 +80,41 @@ var commitCmd = &cobra.Command{
             os.Chdir(WorkDirPath)
         }
 
+		fancyprint.Setup(Debug, Verbose, Quiet, Monochrome)
+		cfg, err := dupver.ReadWorkDirConfig(WorkDirPath)
+
+		if err != nil {
+			// Todo: handle invalid configuration file
+			fancyprint.Warn("Could not read configuration file. Has the project working directory been initialized?")
+			os.Exit(1)
+		}
+
+		if len(WorkDirPath) > 0 {
+			os.Chdir(WorkDirPath)
+		}
+
+		fancyprint.Debugf("Workdir Configuration: %+v\n", cfg)
+		fancyprint.Debugf("Repo name: %s\nRepo path: %s\n", RepoName, RepoPath)
+
+		if len(RepoName) == 0 {
+			RepoName = cfg.DefaultRepo
+		}
+
+		if len(RepoPath) == 0 {
+			RepoPath = cfg.Repos[RepoName]
+			fancyprint.Debugf("Updating repo path to: %s\n", RepoPath)
+		}
+
+		if len(Branch) == 0 {
+			Branch = cfg.Branch
+		}		
+
+
 		opts.RepoName = RepoName
 		opts.RepoPath = RepoPath
 		opts.Branch = Branch
+
+		workDir := dupver.InstantiateWorkDir(cfg)
 
 		if AllBranches {
 			opts.Branch = ""
@@ -103,7 +135,7 @@ var commitCmd = &cobra.Command{
 				}
 			}
 
-			dupver.CommitFile(tarFile, []string{}, Message, JsonOutput, opts)
+			workDir.CommitFile(tarFile, []string{}, Message, JsonOutput)
 		} else {
 			dir, err := os.Getwd()
 			if err != nil {
@@ -120,7 +152,7 @@ var commitCmd = &cobra.Command{
 			}
 
 			tarFile := CreateTar(containingFolder, workdirFolder, opts)
-			dupver.CommitFile(tarFile, []string{}, Message, JsonOutput, opts)
+			workDir.CommitFile(tarFile, []string{}, Message, JsonOutput)
 			os.Remove(tarFile) // Delete the temporary file 
 		}
 	},
