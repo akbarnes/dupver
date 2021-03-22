@@ -84,7 +84,15 @@ a commit ID to print in additional detail.`,
 				dupver.PrintSnapshots(snapshotId, -1, opts)
 			}	 
 		} else {
-			workDir.PrintSnapshots()
+			if JsonOutput {
+				if SnapshotFiles {
+					workDir.PrintSnapshotsAndFilesAsJson()
+				} else {
+					workDir.PrintSnapshotsAsJson()
+				}
+			} else {
+				workDir.PrintSnapshots()
+			}
 		}
 	},
 }

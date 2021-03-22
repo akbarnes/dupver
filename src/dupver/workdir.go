@@ -655,3 +655,83 @@ func (wd WorkDir) PrintSnapshots() {
 		}
 	}
 }
+
+// Print snapshots as JSON in sorted in ascending order by date
+// TODO: change the name to PrintSnapshotsByDate?
+// TODO: add a sort option to ListSnapshots?
+// TODO: replace ListSnapshots + ReadSnapshot with ReadSnapshots
+func (wd WorkDir) PrintSnapshotsAsJson() {
+	type CommitPrint struct {
+		ID      string
+		Branch  string
+		Message string
+		Time    string
+	}
+
+	snapshotsByDate := make(map[string]Commit)
+	snapshotDates := []string{}
+
+	// TODO: sort the snapshots by date
+	for _, snapshotPath := range wd.ListSnapshotFiles() {
+		fancyprint.Debugf("Snapshot path: %s\n\n", snapshotPath)
+		snap := ReadSnapshotFile(snapshotPath)
+		snapshotsByDate[snap.Time] = snap
+		snapshotDates = append(snapshotDates, snap.Time)
+	}
+
+	sort.Strings(snapshotDates)
+	printSnaps := []CommitPrint{}
+
+	for _, sdate := range snapshotDates {
+		snap := snapshotsByDate[sdate]
+		ps := CommitPrint{}
+		ps.ID = snap.ID
+		ps.Branch = snap.Branch
+		ps.Message = snap.Message
+		ps.Time = snap.Time
+		printSnaps = append(printSnaps, ps)
+	}
+
+	PrintJson(printSnaps)
+}
+
+
+// Print snapshots as JSON in sorted in ascending order by date
+// TODO: change the name to PrintSnapshotsByDate?
+// TODO: add a sort option to ListSnapshots?
+func (wd WorkDir) PrintSnapshotsAndFilesAsJson() {
+	type CommitPrint struct {
+		ID      string
+		Branch  string
+		Message string
+		Time    string
+		Files   []fileInfo
+	}
+
+	snapshotsByDate := make(map[string]Commit)
+	snapshotDates := []string{}
+
+	// TODO: sort the snapshots by date
+	for _, snapshotPath := range wd.ListSnapshotFiles() {
+		fancyprint.Debugf("Snapshot path: %s\n\n", snapshotPath)
+		snap := ReadSnapshotFile(snapshotPath)
+		snapshotsByDate[snap.Time] = snap
+		snapshotDates = append(snapshotDates, snap.Time)
+	}
+
+	sort.Strings(snapshotDates)
+	printSnaps := []CommitPrint{}
+
+	for _, sdate := range snapshotDates {
+		snap := snapshotsByDate[sdate]
+		ps := CommitPrint{}
+		ps.ID = snap.ID
+		ps.Branch = snap.Branch
+		ps.Message = snap.Message
+		ps.Time = snap.Time
+		ps.Files = snap.Files
+		printSnaps = append(printSnaps, ps)
+	}
+
+	PrintJson(printSnaps)
+}
