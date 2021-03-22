@@ -9,34 +9,33 @@ import (
 	"os"
 	// "path"
 	// "path/filepath"
-	"strings"
+	// "strings"
 	"archive/tar"
 	// "encoding/json"
 
-	"github.com/BurntSushi/toml"
+	// "github.com/BurntSushi/toml"
 	"github.com/akbarnes/dupver/src/fancyprint"
 )
 
 // Read the files, workdir configuration and head from a tar file
 // given a filename
-func ReadTarFileIndex(filePath string) ([]fileInfo, workDirConfig) {
+func ReadTarFileIndex(filePath string) []fileInfo {
 	tarFile, err := os.Open(filePath)
 
 	if err != nil {
 		panic(fmt.Sprintf("Error: Could not open input tar file %s when reading index", filePath))
 	}
 
-	files, myConfig := ReadTarIndex(tarFile)
+	files := ReadTarIndex(tarFile)
 	tarFile.Close()
 
-	return files, myConfig
+	return files
 }
 
 // Read the files, workdir configuration and head from a tar file
 // given a file object
-func ReadTarIndex(tarFile *os.File) ([]fileInfo, workDirConfig) {
+func ReadTarIndex(tarFile *os.File) []fileInfo {
 	files := []fileInfo{}
-	var myConfig workDirConfig
 	// var baseFolder string
 	// var configPath string
 	maxFiles := 10
@@ -55,23 +54,6 @@ func ReadTarIndex(tarFile *os.File) ([]fileInfo, workDirConfig) {
 		}
 		if err != nil {
 			panic(fmt.Sprintf("Error processing section while reading tar file index"))
-		}
-
-		// if i == 0 {
-		// 	baseFolder = hdr.Name
-		// 	myConfig.WorkDirName = baseFolder
-		// 	configPath = path.Join(baseFolder,".dupver","config.toml")
-		// 	// fmt.Printf("Base folder: %s\nConfig path: %s\n", baseFolder, configPath)
-		// }
-
-		if strings.HasSuffix(hdr.Name, ".dupver/config.toml") {
-			fancyprint.Infof("Reading config file %s\n", hdr.Name)
-
-			if _, err := toml.DecodeReader(tr, &myConfig); err != nil {
-				panic(fmt.Sprintf("Error decoding repo configuration file %s while reading tar file index", hdr.Name))
-			}
-
-			// fmt.Printf("Read config\nworkdir name: %s\nrepo path: %s\n", myConfig.WorkDirName, myConfig.RepoPath)
 		}
 
 		var myFileInfo fileInfo
@@ -110,5 +92,5 @@ func ReadTarIndex(tarFile *os.File) ([]fileInfo, workDirConfig) {
 		fmt.Printf("...\nSkipping %d more files\n", i-maxFiles)
 	}
 
-	return files, myConfig
+	return files
 }

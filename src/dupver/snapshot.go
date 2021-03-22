@@ -196,80 +196,6 @@ func CopySnapshot(snapshotId string, sourceRepoPath string, destRepoPath string,
 // Commit a tar file into the repository. Project working directory name,
 // branch and repository path are specified in the .dupver/config.toml
 // file within the tar file
-func CommitFile(filePath string, parentIds []string, msg string, JsonOutput bool, opts Options) Commit {
-	var myWorkDirConfig workDirConfig
-
-	t := time.Now()
-
-	var snap Commit
-	// var myHead Head
-	snap.ID = RandHexString(SNAPSHOT_ID_LEN)
-	snap.Time = t.Format("2006/01/02 15:04:05")
-	snap = UpdateMessage(snap, msg, filePath)
-	snap.Files, myWorkDirConfig = ReadTarFileIndex(filePath)
-
-	if len(opts.RepoName) == 0 {
-		opts.RepoName = myWorkDirConfig.DefaultRepo
-	}
-
-	if len(opts.RepoPath) == 0 {
-		opts.RepoPath = myWorkDirConfig.Repos[opts.RepoName]
-	}
-
-	if len(opts.WorkDirName) == 0 {
-		opts.WorkDirName = myWorkDirConfig.WorkDirName
-	}
-
-	if len(opts.Branch) == 0 {
-		opts.Branch = myWorkDirConfig.Branch
-	}
-
-	snap.Branch = opts.Branch
-
-	myRepoConfig := ReadRepoConfigFile(filepath.Join(opts.RepoPath, "config.toml"))
-	branchFolder := filepath.Join(opts.RepoPath, "branches", opts.WorkDirName)
-	branchPath := filepath.Join(branchFolder, myWorkDirConfig.Branch+".toml")
-	myBranch := ReadBranch(branchPath)
-
-	fancyprint.Infof("Branch: %s\nParent commit: %s\n", opts.Branch, myBranch.CommitID)
-	snap.ParentIDs = append([]string{myBranch.CommitID}, parentIds...)
-
-	chunkIDs, chunkPacks := PackFile(filePath, opts.RepoPath, myRepoConfig.ChunkerPolynomial, myRepoConfig.CompressionLevel)
-	snap.ChunkIDs = chunkIDs
-
-	snapshotFolder := filepath.Join(opts.RepoPath, "snapshots", opts.WorkDirName)
-	snapshotBasename := fmt.Sprintf("%s", snap.ID[0:40])
-	os.Mkdir(snapshotFolder, 0777)
-	snapshotPath := filepath.Join(snapshotFolder, snapshotBasename+".json")
-	WriteSnapshot(snapshotPath, snap)
-
-	// Do I really need to track commit id in head??
-	myBranch.CommitID = snap.ID
-
-	WriteBranch(branchPath, myBranch)
-
-	treeFolder := filepath.Join(opts.RepoPath, "trees")
-	treeBasename := snap.ID[0:40]
-	os.Mkdir(treeFolder, 0777)
-	treePath := filepath.Join(treeFolder, treeBasename+".json")
-	WriteTree(treePath, chunkPacks)
-
-	if JsonOutput {
-		PrintJson(snap.ID)
-	} else if fancyprint.Verbosity >= fancyprint.NoticeLevel {
-		fancyprint.SetColor(fancyprint.ColorGreen)
-		fmt.Printf("Created snapshot %s (%s)\n", snap.ID[0:16], snap.ID)
-		fancyprint.ResetColor()
-	} else {
-		fmt.Println(snap.ID)
-	}
-
-	return snap
-}
-
-// Commit a tar file into the repository. Project working directory name,
-// branch and repository path are specified in the .dupver/config.toml
-// file within the tar file
 func (wd WorkDir) CommitFile(filePath string, parentIds []string, msg string, JsonOutput bool) Commit {
 	t := time.Now()
 
@@ -279,7 +205,7 @@ func (wd WorkDir) CommitFile(filePath string, parentIds []string, msg string, Js
 	snap.Time = t.Format("2006/01/02 15:04:05")
 	snap = UpdateMessage(snap, msg, filePath)
 	// TODO: write a version of ReadTarFileIndex that won't look for workdir config
-	snap.Files, _ = ReadTarFileIndex(filePath)
+	snap.Files = ReadTarFileIndex(filePath)
 	snap.Branch = wd.Branch
 
 	branchFolder := filepath.Join(wd.Repo.Path, "branches", wd.ProjectName)
