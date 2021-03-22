@@ -629,6 +629,25 @@ func (wd WorkDir) ListSnapshotFiles() []string {
 	return snapshotPaths
 }
 
+// Read a snapshot given a full snapshot ID
+func (wd WorkDir) ReadSnapshot(snapshot string) Commit {
+	snapshotsFolder := filepath.Join(wd.Repo.Path, "snapshots", wd.ProjectName)
+	snapshotPath := filepath.Join(snapshotsFolder, snapshot+".json")
+	fancyprint.Debugf("Snapshot path: %s\n", snapshotPath)
+	return ReadSnapshotFile(snapshotPath)
+}
+
+func (wd WorkDir) PrintSnapshot(snapshotId string) {
+		snap := wd.ReadSnapshot(snapshotId)
+		snap.Print()
+		snap.PrintFiles()
+}
+
+func (wd WorkDir) PrintSnapshotFilesAsJson(snapshotId string) {
+	snap := wd.ReadSnapshot(snapshotId)
+	snap.PrintFilesAsJson()
+}
+
 // Print snapshots sorted in ascending order by date
 // TODO: change the name to PrintSnapshotsByDate?
 func (wd WorkDir) PrintSnapshots() {

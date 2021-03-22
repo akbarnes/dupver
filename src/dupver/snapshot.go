@@ -456,151 +456,11 @@ func LastSnapshot(opts Options) (Commit, error) {
 	return snapshotsByDate[snapshotDates[len(snapshotDates)-1]], nil
 }
 
-// Print snapshots sorted in ascending order by date
-// TODO: change the name to PrintSnapshotsByDate?
-func PrintSnapshots(snapshotId string, maxSnapshots int, opts Options) {
-	repoPath := opts.RepoPath
-	projectName := opts.WorkDirName
-
-	if len(snapshotId) > 0 {
-		snap := ReadSnapshot(snapshotId, opts)
-		PrintSnapshotFiles(snap, 0, opts)
-		return
-	}
-
-	if maxSnapshots > 0 {
-		fancyprint.Notice("Snapshot History")
-	}
-
-	snapshotGlob := filepath.Join(repoPath, "snapshots", projectName, "*.json")
-	snapshotPaths, _ := filepath.Glob(snapshotGlob)
-
-	snapshotsByDate := make(map[string]Commit)
-	snapshotDates := []string{}
-
-	// TODO: sort the snapshots by date
-	for _, snapshotPath := range snapshotPaths {
-		fancyprint.Debugf("Snapshot path: %s\n\n", snapshotPath)
-		mySnapshot := ReadSnapshotFile(snapshotPath)
-		snapshotsByDate[mySnapshot.Time] = mySnapshot
-		snapshotDates = append(snapshotDates, mySnapshot.Time)
-	}
-
-	sort.Strings(snapshotDates)
-
-	for i, sdate := range snapshotDates {
-		snap := snapshotsByDate[sdate]
-		b := opts.Branch
-
-		if len(b) == 0 || len(b) > 0 && b == snap.Branch {
-			PrintSnapshot(snap, 0, opts)
-		}
-
-		if maxSnapshots > 0 {
-			if i >= maxSnapshots {
-				break
-			}
-		}
-	}
-}
-
 // Print snapshots as JSON in sorted in ascending order by date
 // TODO: change the name to PrintSnapshotsByDate?
 // TODO: add a sort option to ListSnapshots?
-func PrintSnapshotsAsJson(snapshotId string, maxSnapshots int, snapshotFiles bool, opts Options) {
-	type CommitPrint struct {
-		ID      string
-		Branch  string
-		Message string
-		Time    string
-		Files   []fileInfo
-	}
-
-	repoPath := opts.RepoPath
-	projectName := opts.WorkDirName
-
-	if len(snapshotId) > 0 {
-		snap := ReadSnapshot(snapshotId, opts)
-		PrintJson(snap.Files)
-		return
-	}
-
-	snapshotGlob := filepath.Join(repoPath, "snapshots", projectName, "*.json")
-	snapshotPaths, _ := filepath.Glob(snapshotGlob)
-
-	snapshotsByDate := make(map[string]Commit)
-	snapshotDates := []string{}
-
-	// TODO: sort the snapshots by date
-	for _, snapshotPath := range snapshotPaths {
-		fancyprint.Debugf("Snapshot path: %s\n\n", snapshotPath)
-		mySnapshot := ReadSnapshotFile(snapshotPath)
-		snapshotsByDate[mySnapshot.Time] = mySnapshot
-		snapshotDates = append(snapshotDates, mySnapshot.Time)
-	}
-
-	sort.Strings(snapshotDates)
-	printSnaps := []CommitPrint{}
-
-	for _, sdate := range snapshotDates {
-		snap := snapshotsByDate[sdate]
-
-		ps := CommitPrint{}
-		ps.ID = snap.ID
-		ps.Branch = snap.Branch
-		ps.Message = snap.Message
-		ps.Time = snap.Time
-
-		if snapshotFiles {
-			ps.Files = snap.Files
-		}
-
-		printSnaps = append(printSnaps, ps)
-	}
-
-	PrintJson(printSnaps)
-}
-
-// Print snapshots without sorting
-// TODO: Check if this is redundant
-func PrintAllSnapshots(snapshotId string, opts Options) {
-	fancyprint.Noticef("Branch: %s\n", opts.Branch)
-
-	if len(snapshotId) == 0 {
-		fancyprint.Notice("Snapshot History:")
-
-		for _, snapshotPath := range ListSnapshots(opts) {
-			PrintSnapshot(ReadSnapshotFile(snapshotPath), 10, opts)
-		}
-	} else {
-		if fancyprint.Verbosity >= fancyprint.NoticeLevel {
-			fmt.Println("Snapshot")
-		}
-
-		snap := ReadSnapshot(snapshotId, opts)
-		PrintSnapshotFiles(snap, 0, opts)
-	}
-}
-
-// Print a snapshot structure
-func PrintSnapshot(mySnapshot Commit, maxFiles int, opts Options) {
-	if fancyprint.Verbosity <= fancyprint.WarningLevel {
-		fmt.Printf("%s %s %s\n", mySnapshot.ID, mySnapshot.Time, mySnapshot.Message)
-		return
-	}
-
-	fancyprint.SetColor(fancyprint.ColorGreen)
-	fmt.Printf("ID: %s (%s)", mySnapshot.ID[0:8], mySnapshot.ID)
-	fancyprint.ResetColor()
-
-	fmt.Printf("\n")
-	fmt.Printf("Time: %s\n", mySnapshot.Time)
-
-	if len(mySnapshot.Message) > 0 {
-		fmt.Printf("Message: %s\n", mySnapshot.Message)
-	}
-
-	fmt.Printf("\n")
+func (snap Commit) PrintFilesAsJson() {
+	PrintJson(snap.Files)
 }
 
 // Print a snapshot structure
@@ -633,8 +493,8 @@ func (snap Commit) Print() {
 //     },
 
 // Print the list of files stored in a snapshot
-func PrintSnapshotFiles(mySnapshot Commit, maxFiles int, opts Options) {
-	for i, file := range mySnapshot.Files {
+func (snap Commit) PrintFiles() {
+	for _, file := range snap.Files {
 		if fancyprint.Verbosity <= fancyprint.WarningLevel {
 			fmt.Printf("%s\n%d\n%s\n\n", file.ModTime, file.Size, file.Path)
 		} else {
@@ -651,10 +511,6 @@ func PrintSnapshotFiles(mySnapshot Commit, maxFiles int, opts Options) {
 			}
 
 			fmt.Printf("%s\n", file.Path)
-		}
-
-		if maxFiles > 0 && i >= maxFiles {
-			break
 		}
 	}
 }

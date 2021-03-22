@@ -23,7 +23,6 @@ If an optional positional argument is provided, this will specify
 a commit ID to print in additional detail.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fancyprint.Setup(Debug, Verbose, Quiet, Monochrome)
-		opts := dupver.Options{}
 		cfg, err := dupver.ReadWorkDirConfig(WorkDirPath)
 
 		if err != nil {
@@ -56,13 +55,7 @@ a commit ID to print in additional detail.`,
 		// if the repo name or path was changed via command line
 		workDir := dupver.InstantiateWorkDir(cfg)
 
-		opts.WorkDirName = cfg.WorkDirName
-		opts.RepoName = RepoName
-		opts.RepoPath = RepoPath
-		opts.Branch = Branch
-
 		if AllBranches {
-			opts.Branch = ""
 			workDir.Branch = ""
 		}
 
@@ -79,9 +72,9 @@ a commit ID to print in additional detail.`,
 
 			// Todo: fix specifying snapshot ID
 			if JsonOutput {
-				dupver.PrintSnapshotsAsJson(snapshotId, -1, SnapshotFiles, opts)
+				workDir.PrintSnapshotFilesAsJson(snapshotId)
 			} else {
-				dupver.PrintSnapshots(snapshotId, -1, opts)
+				workDir.PrintSnapshot(snapshotId)
 			}	 
 		} else {
 			if JsonOutput {
