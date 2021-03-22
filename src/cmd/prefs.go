@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"os"
+	
 	"github.com/spf13/cobra"
 
 	"github.com/akbarnes/dupver/src/dupver"
@@ -18,11 +20,16 @@ var prefsCmd = &cobra.Command{
 Global preferences currently includes the specified diff
 tool and the default repository`,
 	Run: func(cmd *cobra.Command, args []string) {
-		opts := dupver.Options{}
 		fancyprint.Setup(Debug, Verbose, Quiet, Monochrome)
-		prefs, _ := dupver.ReadPrefs(opts)
+		opts := dupver.Options{}
+		prefs, err := dupver.ReadPrefs(opts)
 		// TODO: print the preferences
 		// fmt.Println("Global preferences:")
+
+		if err != nil {
+			fancyprint.Warn("Could not read preferences file.")
+			os.Exit(1)
+		}		
 
 		if EditPrefs {
 			dupver.EditFile(dupver.GetPrefsPath(), prefs)

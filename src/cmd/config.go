@@ -23,12 +23,9 @@ var configCmd = &cobra.Command{
 Configuration includes the project name, current branch, associated repositories and
 which repository is the default.`,
 	Run: func(cmd *cobra.Command, args []string) {
-
+		fancyprint.Setup(Debug, Verbose, Quiet, Monochrome)
 		opts := dupver.Options{JsonOutput: JsonOutput}
 		prefs, _ := dupver.ReadPrefs(opts)
-		fancyprint.Setup(Debug, Verbose, Quiet, Monochrome)
-		// TODO: print the preferences
-		// fmt.Println("Global preferences:")
 		cfg, err := dupver.ReadWorkDirConfig(WorkDirPath)
 
 		if err != nil {

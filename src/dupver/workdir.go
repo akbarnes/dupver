@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sort"
 
 	// "io"
 	// "bufio"
@@ -343,8 +344,7 @@ func ReadWorkDirConfigFile(filePath string) (workDirConfig, error) {
 // the project working directory configuration file path
 func InstantiateWorkDir(cfg workDirConfig) (WorkDir) {
 	wd := WorkDir{ProjectName: cfg.WorkDirName, Branch: cfg.Branch}
-	// repoPath := cfg.Repos[cfg.DefaultRepo]
-	// repo := LoadRepo(repoPath)
+	wd.Repo = LoadRepo(cfg.Repos[cfg.DefaultRepo])
 	return wd
 }
 
@@ -587,5 +587,71 @@ func PrintWorkDirStatusAsJson(workDir string, snapshot Commit, opts Options) {
 
 	if !changes {
 		fancyprint.Infof("No changes detected\n")
+	}
+}
+
+// Given a partial snapshot ID, return the full snapshot ID
+// by looking through the snapshots for a project
+// TODO: return an error if no match
+func (wd WorkDir) GetFullSnapshotId(snapshotId string) string {
+	snapshotPaths := wd.ListSnapshotFiles()
+
+	for _, snapshotPath := range snapshotPaths {
+		n := len(snapshotId) - 1
+		sid := filepath.Base(snapshotPath)
+		sid = sid[0 : len(sid)-5]
+		// fmt.Printf("path: %s\nsid: %s\n", snapshotPath, sid)
+
+		if len(sid) < len(snapshotId) {
+			n = len(sid) - 1
+		}
+
+		if snapshotId[0:n] == sid[0:n] {
+			snapshotId = sid
+			break
+		}
+	}
+
+	return snapshotId
+}
+
+// Return a list of the snapshot files for a given repository and project
+func (wd WorkDir) ListSnapshotFiles() []string {
+	snapshotsFolder := filepath.Join(wd.Repo.Path, "snapshots", wd.ProjectName)
+	snapshotGlob := filepath.Join(snapshotsFolder, "*.json")
+	// fmt.Println(snapshotGlob)
+	fancyprint.Debugf("Snapshot glob: %s\n", snapshotGlob)
+	snapshotPaths, err := filepath.Glob(snapshotGlob)
+
+	if err != nil {
+		panic(fmt.Sprintf("Error listing snapshots glob %s", snapshotGlob))
+	}
+	return snapshotPaths
+}
+
+// Print snapshots sorted in ascending order by date
+// TODO: change the name to PrintSnapshotsByDate?
+func (wd WorkDir) PrintSnapshots() {
+	fancyprint.Notice("[Snapshot History]")
+	snapshotsByDate := make(map[string]Commit)
+	snapshotDates := []string{}
+
+	// TODO: sort the snapshots by date
+	for _, snapshotPath := range wd.ListSnapshotFiles() {
+		fancyprint.Debugf("Snapshot path: %s\n\n", snapshotPath)
+		snap := ReadSnapshotFile(snapshotPath)
+		snapshotsByDate[snap.Time] = snap
+		snapshotDates = append(snapshotDates, snap.Time)
+	}
+
+	sort.Strings(snapshotDates)
+
+	for _, sdate := range snapshotDates {
+		snap := snapshotsByDate[sdate]
+		b := wd.Branch
+
+		if len(b) == 0 || len(b) > 0 && b == snap.Branch {
+			snap.Print()
+		}
 	}
 }

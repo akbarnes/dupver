@@ -3,7 +3,7 @@ package cmd
 import (
 	// "fmt"
 	"os"
-	"path/filepath"
+	// "path/filepath"
 
 	"github.com/spf13/cobra"
 
@@ -22,9 +22,9 @@ var logCmd = &cobra.Command{
 If an optional positional argument is provided, this will specify
 a commit ID to print in additional detail.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		cfg, err := dupver.ReadWorkDirConfig(WorkDirPath)
-		opts := dupver.Options{}
 		fancyprint.Setup(Debug, Verbose, Quiet, Monochrome)
+		opts := dupver.Options{}
+		cfg, err := dupver.ReadWorkDirConfig(WorkDirPath)
 
 		if err != nil {
 			// Todo: handle invalid configuration file
@@ -45,7 +45,7 @@ a commit ID to print in additional detail.`,
 
 		if len(RepoPath) == 0 {
 			RepoPath = cfg.Repos[RepoName]
-			fancyprint.Debugf("Updating repo path to %s\n", RepoPath)
+			fancyprint.Debugf("Updating repo path to: %s\n", RepoPath)
 		}
 
 		if len(Branch) == 0 {
@@ -66,24 +66,25 @@ a commit ID to print in additional detail.`,
 			workDir.Branch = ""
 		}
 
-		fancyprint.Debugf("Options: %+v\n", opts)
-		headPath := filepath.Join(opts.RepoPath, "branches", cfg.WorkDirName, "main.toml")
-		fancyprint.Debugf("Head path: %s\n", headPath)
+		// fancyprint.Debugf("Options: %+v\n", opts)
+		fancyprint.Debugf("Workdir:%+v\n", workDir)
 		snapshotId := ""
 		fancyprint.Debugf("Commit ID: %s\n", snapshotId)
 
 		// TODO: Yeesh...move this mess into a function
 		if len(args) >= 1 {
 			snapshotId = workDir.GetFullSnapshotId(args[0])
-		}
+		
+			fancyprint.Debugf("Full snapshot ID: %s\n\n", snapshotId)
 
-		fancyprint.Debugf("Full snapshot ID: %s\n\n", snapshotId)
-
-		// Todo: fix specifying snapshot ID
-		if JsonOutput {
-			dupver.PrintSnapshotsAsJson(snapshotId, -1, SnapshotFiles, opts)
+			// Todo: fix specifying snapshot ID
+			if JsonOutput {
+				dupver.PrintSnapshotsAsJson(snapshotId, -1, SnapshotFiles, opts)
+			} else {
+				dupver.PrintSnapshots(snapshotId, -1, opts)
+			}	 
 		} else {
-			dupver.PrintSnapshots(snapshotId, -1, opts)
+			workDir.PrintSnapshots()
 		}
 	},
 }
