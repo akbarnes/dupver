@@ -60,6 +60,11 @@ with the --monochrome flag.`,
 		opts.RepoPath = RepoPath
 		opts.Branch = Branch
 
+		// Don't use LoadWorkDir so we don't load repo configs twice
+		// if the repo name or path was changed via command line
+		workDir := dupver.InstantiateWorkDir(cfg)
+		workDir.Path = WorkDirPath
+
 		if AllBranches {
 			opts.Branch = ""
 		}
@@ -81,9 +86,9 @@ with the --monochrome flag.`,
 		fancyprint.Debugf("Snapshot commit ID: %s\n", mySnapshot.ID)
 
 		if JsonOutput {
-			dupver.PrintWorkDirStatusAsJson("", mySnapshot, opts)
+			workDir.PrintStatusAsJson(mySnapshot)
 		} else {
-			dupver.PrintWorkDirStatus("", mySnapshot, opts)
+			workDir.PrintStatus(mySnapshot)
 		}
 	},
 }

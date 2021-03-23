@@ -21,9 +21,9 @@ type repoConfig struct {
 }
 
 type Repo struct {
-	ChunkerPolynomial chunker.Pol
-	CompressionLevel uint16
-	Path string
+	ChunkerPolynomial 	chunker.Pol
+	CompressionLevel 	uint16
+	Path 				string
 }
 
 // Initialize a repository

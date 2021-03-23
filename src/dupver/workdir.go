@@ -31,6 +31,7 @@ type workDirConfig struct {
 
 type WorkDir struct {
 	ProjectName string
+	Path		string
 	Branch      string
 	Repo 		Repo
 }
@@ -348,9 +349,16 @@ func InstantiateWorkDir(cfg workDirConfig) (WorkDir) {
 	return wd
 }
 
-func LoadWorkDir(workDirPath string) (WorkDir) {
-	cfg, _ := ReadWorkDirConfig(workDirPath)
-	return InstantiateWorkDir(cfg)
+func LoadWorkDir(workDirPath string) (WorkDir, error) {
+	cfg, err := ReadWorkDirConfig(workDirPath)
+
+	if err != nil {
+		return WorkDir{}, err
+	}
+
+	wd := InstantiateWorkDir(cfg)
+	wd.Path = workDirPath
+	return wd, nil
 }
 
 // funct LoadWorkDir(workDir String)
@@ -415,11 +423,11 @@ func (cfg workDirConfig) SaveAs(configPath string, forceWrite bool) {
 
 // Compare the status of files in a working directory
 // against a snapshot
-func PrintWorkDirStatus(workDir string, snapshot Commit, opts Options) {
+func (wd WorkDir) PrintStatus(snapshot Commit) {
 	workDirPrefix := ""
 
-	if len(workDir) == 0 {
-		workDir = "."
+	if len(wd.Path) == 0 {
+		wd.Path = "."
 		cwd, err := os.Getwd()
 
 		if err != nil {
@@ -429,7 +437,7 @@ func PrintWorkDirStatus(workDir string, snapshot Commit, opts Options) {
 		workDirPrefix = filepath.Base(cwd)
 	}
 
-	fancyprint.Infof("Comparing changes for wd \"%s\" (prefix: \"%s\")\n", workDir, workDirPrefix)
+	fancyprint.Infof("Comparing changes for wd \"%s\" (prefix: \"%s\")\n", wd.Path, workDirPrefix)
 
 	myFileInfo := make(map[string]fileInfo)
 	deletedFiles := make(map[string]bool)
@@ -484,7 +492,7 @@ func PrintWorkDirStatus(workDir string, snapshot Commit, opts Options) {
 
 	// fmt.Printf("No changes detected in %s for commit %s\n", workDir, snapshot.ID)
 
-	filepath.Walk(workDir, CompareAgainstSnapshot)
+	filepath.Walk(wd.Path, CompareAgainstSnapshot)
 
 	for file, deleted := range deletedFiles {
 		if strings.HasPrefix(filepath.Base(file), "._") {
@@ -506,7 +514,8 @@ func PrintWorkDirStatus(workDir string, snapshot Commit, opts Options) {
 
 // Compare the status of files in a working directory
 // against a snapshot
-func PrintWorkDirStatusAsJson(workDir string, snapshot Commit, opts Options) {
+// TODO: Create GetJSon functions/methods which are passed to PrintJson?
+func (wd WorkDir) PrintStatusAsJson(snapshot Commit) {
 	type FileStatusPrint struct {
 		Status string
 		Path   string
@@ -516,8 +525,8 @@ func PrintWorkDirStatusAsJson(workDir string, snapshot Commit, opts Options) {
 
 	workDirPrefix := ""
 
-	if len(workDir) == 0 {
-		workDir = "."
+	if len(wd.Path) == 0 {
+		wd.Path = "."
 		cwd, err := os.Getwd()
 
 		if err != nil {
@@ -527,7 +536,7 @@ func PrintWorkDirStatusAsJson(workDir string, snapshot Commit, opts Options) {
 		workDirPrefix = filepath.Base(cwd)
 	}
 
-	fancyprint.Infof("Comparing changes for wd \"%s\" (prefix: \"%s\")\n", workDir, workDirPrefix)
+	fancyprint.Infof("Comparing changes for wd \"%s\" (prefix: \"%s\")\n", wd.Path, workDirPrefix)
 
 	myFileInfo := make(map[string]fileInfo)
 	deletedFiles := make(map[string]bool)
@@ -570,7 +579,7 @@ func PrintWorkDirStatusAsJson(workDir string, snapshot Commit, opts Options) {
 		return nil
 	}
 
-	filepath.Walk(workDir, CompareAgainstSnapshot)
+	filepath.Walk(wd.Path, CompareAgainstSnapshot)
 
 	for file, deleted := range deletedFiles {
 		if strings.HasPrefix(filepath.Base(file), "._") {
@@ -583,11 +592,11 @@ func PrintWorkDirStatusAsJson(workDir string, snapshot Commit, opts Options) {
 		}
 	}
 
-	PrintJson(fileStatus)
-
 	if !changes {
 		fancyprint.Infof("No changes detected\n")
 	}
+
+	PrintJson(fileStatus)
 }
 
 // Given a partial snapshot ID, return the full snapshot ID
