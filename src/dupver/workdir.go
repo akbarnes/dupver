@@ -763,3 +763,35 @@ func (wd WorkDir) PrintSnapshotsAndFilesAsJson() {
 
 	PrintJson(printSnaps)
 }
+
+// Return the most recent snapshot structure for the current project
+func (wd WorkDir) LastSnapshot() (Commit, error) {
+	snapshotGlob := filepath.Join(wd.Repo.Path, "snapshots", wd.ProjectName, "*.json")
+	snapshotPaths, _ := filepath.Glob(snapshotGlob)
+
+	snapshotsByDate := make(map[string]Commit)
+	snapshotDates := []string{}
+
+	br := wd.Branch
+
+	// TODO: sort the snapshots by date
+	for _, snapshotPath := range snapshotPaths {
+		fancyprint.Debugf("Snapshot path: %s\n\n", snapshotPath)
+		snap := ReadSnapshotFile(snapshotPath)
+
+		if len(br) == 0 || len(br) > 0 && br == snap.Branch {
+			snapshotsByDate[snap.Time] = snap
+			snapshotDates = append(snapshotDates, snap.Time)
+		}
+
+	}
+
+	sort.Strings(snapshotDates)
+
+	if len(snapshotDates) == 0 {
+		return Commit{}, errors.New("no snapshots")
+	}
+
+	return snapshotsByDate[snapshotDates[len(snapshotDates)-1]], nil
+}
+

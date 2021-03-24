@@ -26,7 +26,6 @@ chunks rather than diffs). For usage as part of a comm
 with the --monochrome flag.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg, err := dupver.ReadWorkDirConfig(WorkDirPath)
-		opts := dupver.Options{}
 		fancyprint.Setup(Debug, Verbose, Quiet, Monochrome)
 
 		if err != nil {
@@ -55,28 +54,22 @@ with the --monochrome flag.`,
 			Branch = cfg.Branch
 		}
 
-		opts.WorkDirName = cfg.WorkDirName
-		opts.RepoName = RepoName
-		opts.RepoPath = RepoPath
-		opts.Branch = Branch
-
 		// Don't use LoadWorkDir so we don't load repo configs twice
 		// if the repo name or path was changed via command line
 		workDir := dupver.InstantiateWorkDir(cfg)
 		workDir.Path = WorkDirPath
 
 		if AllBranches {
-			opts.Branch = ""
+			workDir.Branch = ""
 		}
 
-		fancyprint.Debugf("Options: %+v\n", opts)
 		var mySnapshot dupver.Commit
 
 		if len(args) >= 1 {
-			snapshotId := dupver.GetFullSnapshotId(args[0], opts)
-			mySnapshot = dupver.ReadSnapshot(snapshotId, opts)
+			snapshotId := workDir.GetFullSnapshotId(args[0])
+			mySnapshot = workDir.ReadSnapshot(snapshotId)
 		} else {
-			mySnapshot, err = dupver.LastSnapshot(opts)
+			mySnapshot, err = workDir.LastSnapshot()
 
 			if err != nil {
 				fancyprint.Notice("No snapshots")
