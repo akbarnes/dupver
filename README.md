@@ -21,9 +21,16 @@ repositories.
 Dupver has not been tested on repository sizes more than
 a few GB, but it is expected to scale up to the low 100's of GB. 
 
-There are a number of [similar software projects](similar-software.md) both
-in terms of technical implementation and use case.
+There are a number of similar software projects both
+in terms of technical implementation and use case:
 
+[Similar software projects](similar-software.md)
+
+Similar to Boar, Dupver uses a simple repository structure so data can
+be extracted with third-party tools. The design of the repository structure
+and other configuration files is documented:
+
+[Repository design](repo-format.md)
 
 ## Setup
 [Binary releases](https://github.com/akbarnes/dupver/releases) are provided for MacOS/Linux/Windows. Copy them somewhere in your path. To build from source run `go build` or `go install`.
