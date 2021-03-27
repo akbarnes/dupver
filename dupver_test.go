@@ -3,9 +3,9 @@ package main
 import (
 	"archive/zip"
 	"fmt"
-	// "log"
+	"log"
 	"os"
-	// "os/exec"
+	"os/exec"
 	"path/filepath"
 	"testing"
 
@@ -147,13 +147,11 @@ func TestCommit(t *testing.T) {
 	fmt.Printf("snapshot: %+v\n\n", snapshot)
 	fmt.Printf("workdir: %+v\n\n", workDir)
 
-	/*
-	// // ----------- Checkout the tar file  ----------- //
-	mySnapshot := dupver.ReadSnapshot(snapshot.ID, opts)
+	
+	// ----------- Checkout the tar file  ----------- //
+	mySnapshot := workDir.ReadSnapshot(snapshot.ID)
 	timeStr := dupver.TimeToPath(mySnapshot.Time)
-	outputFileName := fmt.Sprintf("%s-%s-%s.tar", myWorkDirConfig.WorkDirName, timeStr, snapshot.ID[0:16])
-
-	// dupver.UnpackFile(outputFileName, myWorkDirConfig.RepoPath, mySnapshot.ChunkIDs, verbosity)
+	outputFileName := fmt.Sprintf("%s-%s-%s.tar", workDir.ProjectName, timeStr, snapshot.ID[0:16])
 	dupver.UnpackFile(outputFileName, opts.RepoPath, mySnapshot.ChunkIDs, opts)
 	fmt.Printf("Wrote to %s\n", outputFileName)
 
@@ -170,12 +168,11 @@ func TestCommit(t *testing.T) {
 		t.Error("Checked out tar file dose not match input")
 	}
 
-	*/
 	os.RemoveAll(workDirFolder)
 	os.RemoveAll(repoPath)
 }
 
-/*
+
 func TestCopy(t *testing.T) {
 	opts := dupver.Options{}
 	msg := "Commit random data"
@@ -200,10 +197,10 @@ func TestCopy(t *testing.T) {
 	err := os.MkdirAll(workDirFolder, 0777)
 
 	if err != nil {
-		t.Error("Could not cerate workdir folder " + workDirFolder)
+		t.Error("Could not create workdir folder " + workDirFolder)
 	}
 
-	projectName := ""
+	projectName := "test"
 
 	opts.WorkDirName = "test"
 	opts.RepoName = "test"
@@ -218,7 +215,8 @@ func TestCopy(t *testing.T) {
 	fmt.Printf("Created tar file %s\n", fileName)
 
 	// ----------- Commit the tar file  ----------- //
-	snapshot := dupver.CommitFile(fileName, []string{}, msg, false, opts)
+	workDir, _ :=  dupver.LoadWorkDir(workDirFolder)
+	snapshot := workDir.CommitFile(fileName, nil, msg, true)	
 
 	// ----------- Copy to the second repo  ----------- //
 	snapshotId := snapshot.ID
@@ -231,16 +229,16 @@ func TestCopy(t *testing.T) {
 	opts2.Branch = opts.Branch
 
 	// ----------- Commit the tar file  ----------- //
-	myWorkDirConfig, _ := dupver.ReadWorkDirConfig(workDirFolder)
-	dupver.PrintAllSnapshots("", opts2)
+	workDir.Repo.Path = repoPath2
+	workDir.PrintSnapshots()
 
 	fmt.Printf("snapshot: %+v\n\n", snapshot)
-	fmt.Printf("workdir config: %+v\n\n", myWorkDirConfig)
+	fmt.Printf("workdir: %+v\n\n", workDir)
 
 	// // ----------- Checkout the tar file  ----------- //
 	mySnapshot := dupver.ReadSnapshot(snapshot.ID, opts2)
 	timeStr := dupver.TimeToPath(mySnapshot.Time)
-	outputFileName := fmt.Sprintf("%s-%s-%s.tar", myWorkDirConfig.WorkDirName, timeStr, snapshot.ID[0:16])
+	outputFileName := fmt.Sprintf("%s-%s-%s.tar", workDir.ProjectName, timeStr, snapshot.ID[0:16])
 
 	// dupver.UnpackFile(outputFileName, myWorkDirConfig.RepoPath, mySnapshot.ChunkIDs, verbosity)
 	dupver.UnpackFile(outputFileName, opts2.RepoPath, mySnapshot.ChunkIDs, opts2)
@@ -262,4 +260,3 @@ func TestCopy(t *testing.T) {
 	os.RemoveAll(workDirFolder)
 	os.RemoveAll(repoPath)
 }
-*/
