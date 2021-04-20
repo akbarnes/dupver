@@ -40,7 +40,8 @@ name of "main."`,
 
 		if len(CopyRepoConfig) > 0 {
 			fancyprint.Infof("Copying repo configuration from %s", CopyRepoConfig)
-			cfg := dupver.ReadRepoConfig(CopyRepoConfig)
+			cfg, err := dupver.ReadRepoConfig(CopyRepoConfig)
+			dupver.Check(err)
 			dupver.SaveRepoConfig(repoPath, cfg, true)
 		}
 	},

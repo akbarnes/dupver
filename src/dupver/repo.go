@@ -105,13 +105,14 @@ func SaveRepoConfig(repoPath string, myConfig repoConfig, forceOverWrite bool) {
 	f.Close()
 }
 
-func ReadRepoConfig(repoPath string) repoConfig {
+func ReadRepoConfig(repoPath string) (repoConfig, error) {
 	configPath := filepath.Join(repoPath, "config.toml")
 	return ReadRepoConfigFile(configPath)
 }
 
 func LoadRepo(repoPath string) Repo {
-	cfg := ReadRepoConfig(repoPath)
+	cfg, err := ReadRepoConfig(repoPath)
+	Check(err)
 	repo := Repo{Path: repoPath}
 	repo.ChunkerPolynomial = cfg.ChunkerPolynomial
 	repo.CompressionLevel = cfg.CompressionLevel
@@ -120,22 +121,22 @@ func LoadRepo(repoPath string) Repo {
 
 // Read a repository configuration given a file path
 // TODO: Should I add ReadRepoConfig?
-func ReadRepoConfigFile(filePath string) repoConfig {
+func ReadRepoConfigFile(filePath string) (repoConfig, error) {
 	var myConfig repoConfig
 	myConfig.CompressionLevel = zip.Deflate
 
 	f, err := os.Open(filePath)
 
 	if err != nil {
-		panic(fmt.Sprintf("Error opening repo config %s", filePath))
+		return repoConfig{}, err
 	}
 
 	if _, err := toml.DecodeReader(f, &myConfig); err != nil {
-		panic(fmt.Sprintf("Error decoding repo config %s", filePath))
+		return repoConfig{}, err
 	}
 
 	f.Close()
-	return myConfig
+	return myConfig, nil
 }
 
 func (cfg repoConfig) Print() {

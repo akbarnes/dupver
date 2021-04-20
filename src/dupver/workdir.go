@@ -123,8 +123,16 @@ func (cfg workDirConfig) Print() {
 
 func (cfg workDirConfig) PrintRepos() {
 	for name, path := range cfg.Repos {
-		repoCfg := ReadRepoConfig(path)
+		repoCfg, err := ReadRepoConfig(path)
+
 		fmt.Printf("%s: %s", name, path)
+		
+		if err != nil {
+			fancyprint.SetColor(fancyprint.ColorRed)
+			fmt.Println(" Unreadable")
+			fancyprint.ResetColor()
+			continue
+		}
 
 		if repoCfg.CompressionLevel == 0 {
 			fmt.Print(" Store (0)")
@@ -157,7 +165,8 @@ func (cfg workDirConfig) PrintReposAsJson() {
 	repoConfigs := []repoConfigPrint{}
 
 	for name, path := range cfg.Repos {
-		repoCfg := ReadRepoConfig(path)
+		repoCfg, err := ReadRepoConfig(path)
+		Check(err)
 
 		rc := repoConfigPrint{Name: name, Path: path, Default: false}
 
@@ -177,7 +186,8 @@ func (cfg workDirConfig) PrintReposAsJson() {
 
 func (cfg workDirConfig) PrintReposConfig() {
 	for name, path := range cfg.Repos {
-		repoCfg := ReadRepoConfig(path)
+		repoCfg, err := ReadRepoConfig(path)
+		Check(err)
 		fmt.Printf("%s: %s", name, path)
 
 		if repoCfg.CompressionLevel == 0 {
@@ -289,7 +299,8 @@ func ListWorkDirReposAsJson(workDirPath string, opts Options) {
 			rl.Default = true
 		}
 
-		repoCfg := ReadRepoConfig(path)
+		repoCfg, err := ReadRepoConfig(path)
+		Check(err)
 		rl.ChunkerPolynomial = repoCfg.ChunkerPolynomial
 		rl.CompressionLevel = repoCfg.CompressionLevel
 		repoListings = append(repoListings, rl)

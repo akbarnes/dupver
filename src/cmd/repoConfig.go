@@ -58,7 +58,8 @@ name of "main."`,
 		}
 
 		// dupver.InitRepo(repoPath, repoName, ChunkerPolynomial, CompressionLevel, opts)
-		cfg := dupver.ReadRepoConfig(repoPath)
+		cfg, err := dupver.ReadRepoConfig(repoPath)
+		dupver.Check(err)
 
 		if len(args) == 2 || (UseDefaultRepo && len(args) == 1) {
 			key := args[0]
