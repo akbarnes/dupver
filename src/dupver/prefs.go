@@ -85,6 +85,30 @@ func SavePrefsFile(prefsPath string, prefs Preferences, forceWrite bool, opts Op
 	f.Close()
 }
 
+// Save global preferences
+func (prefs Preferences) Save(forceWrite bool) {
+	prefsPath := filepath.Join(GetHome(), ".dupver", "prefs.toml")
+	prefs.SaveFile(prefsPath, forceWrite)
+}
+
+// Save global preferences given a preferences file
+func (prefs Preferences) SaveFile(prefsPath string, forceWrite bool) {
+	if _, err := os.Stat(prefsPath); err == nil && !forceWrite {
+		// panic("Refusing to write existing project workdir config " + configPath)
+		panic(fmt.Sprintf("Refusing to write existing preferences %s\n", prefsPath))
+	}
+
+	fancyprint.Infof("Writing prefs:\n%+v\n", prefs)
+	fancyprint.Infof("to: %s\n", prefsPath)
+
+	CreateSubFolder(GetHome(), ".dupver")
+
+	f, _ := os.Create(prefsPath)
+	myEncoder := toml.NewEncoder(f)
+	myEncoder.Encode(prefs)
+	f.Close()
+}
+
 // Print the global preferences structure
 func (prefs Preferences) Print() {
 	fmt.Printf("Editor: %s\n", prefs.Editor)

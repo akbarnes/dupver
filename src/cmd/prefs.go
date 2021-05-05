@@ -78,7 +78,7 @@ tool and the default repository`,
 				return
 			}
 
-			dupver.SavePrefs(prefs, true, opts)
+			prefs.Save(true)
 		}
 
 		if JsonOutput {

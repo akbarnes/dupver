@@ -38,19 +38,6 @@ a commit ID to print in additional detail.`,
 		fancyprint.Debugf("Workdir Configuration: %+v\n", cfg)
 		fancyprint.Debugf("Repo name: %s\nRepo path: %s\n", RepoName, RepoPath)
 
-		if len(RepoName) == 0 {
-			RepoName = cfg.DefaultRepo
-		}
-
-		if len(RepoPath) == 0 {
-			RepoPath = cfg.Repos[RepoName]
-			fancyprint.Debugf("Updating repo path to: %s\n", RepoPath)
-		}
-
-		if len(Branch) == 0 {
-			Branch = cfg.Branch
-		}
-
 		// Don't use LoadWorkDir so we don't load repo configs twice
 		// if the repo name or path was changed via command line
 		workDir := dupver.InstantiateWorkDir(cfg)
