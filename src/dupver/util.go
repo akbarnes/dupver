@@ -241,8 +241,8 @@ func PrintJson(a interface{}) {
 }
 
 // Print an object as JSON to stdout
-func MultiPrint(a interface{}, opts Options) {
-	if opts.JsonOutput {
+func MultiPrint(a interface{}, jsonOutput bool) {
+	if jsonOutput {
 		myEncoder := json.NewEncoder(os.Stdout)
 		myEncoder.SetIndent("", "  ")
 		myEncoder.Encode(a)

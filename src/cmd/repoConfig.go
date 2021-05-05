@@ -28,8 +28,7 @@ positional argument allows for the repository name to be specified.
 if no repository name is specified, the repository takes on the default
 name of "main."`,
 	Run: func(cmd *cobra.Command, args []string) {
-		opts := dupver.Options{JsonOutput: JsonOutput}
-		prefs, _ := dupver.ReadPrefs(opts)
+		prefs, _ := dupver.ReadPrefs()
 		fancyprint.Setup(Debug, Verbose, Quiet, Monochrome)
 		// repoName := RepoName
 		repoPath := RepoPath
@@ -46,7 +45,7 @@ name of "main."`,
 		// }
 
 		if len(repoPath) == 0 {
-			prefs, _ := dupver.ReadPrefs(opts)
+			prefs, _ := dupver.ReadPrefs()
 			repoPath = prefs.DefaultRepo
 			fancyprint.Noticef("Using default repo: %s\n", repoPath)
 		}
@@ -70,11 +69,11 @@ name of "main."`,
 
 			switch key {
 			case "Version":
-				dupver.MultiPrint(cfg.Version, opts)
+				dupver.MultiPrint(cfg.Version, JsonOutput)
 			case "ChunkerPolynomial":
-				dupver.MultiPrint(cfg.ChunkerPolynomial, opts)
+				dupver.MultiPrint(cfg.ChunkerPolynomial, JsonOutput)
 			case "CompressionLevel":
-				dupver.MultiPrint(cfg.CompressionLevel, opts)
+				dupver.MultiPrint(cfg.CompressionLevel, JsonOutput)
 			default:
 				fancyprint.Warnf("Key %s doesn't exit in the repository configuration.", key)
 

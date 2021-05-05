@@ -21,8 +21,7 @@ Global preferences currently includes the specified diff
 tool and the default repository`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fancyprint.Setup(Debug, Verbose, Quiet, Monochrome)
-		opts := dupver.Options{}
-		prefs, err := dupver.ReadPrefs(opts)
+		prefs, err := dupver.ReadPrefs()
 		// TODO: print the preferences
 		// fmt.Println("Global preferences:")
 
@@ -39,36 +38,32 @@ tool and the default repository`,
 		if len(args) == 1 {
 			key := args[0]
 
-			switch key {
-			case "Editor":
-				dupver.MultiPrint(prefs.Editor, opts)
-			case "DiffTool":
-				dupver.MultiPrint(prefs.DiffTool, opts)
-			case "DefaultRepo":
-				dupver.MultiPrint(prefs.DefaultRepo, opts)
-			default:
+			if key == "Editor" || key == "editor" {
+				dupver.MultiPrint(prefs.Editor, JsonOutput)
+			} else if key == "DiffTool" || key == "difftool" {
+				dupver.MultiPrint(prefs.DiffTool, JsonOutput)
+			} else if key == "DefaultRepo" || key == "defaultrepo" {
+				dupver.MultiPrint(prefs.DefaultRepo, JsonOutput)
+			} else {
 				fancyprint.Warnf("Key %s doesn't exit in the global preferences.", key)
 
 				if JsonOutput {
 					dupver.PrintJson(nil)
 				}
+
+				return
 			}
-
-			return
-		}
-
-		if len(args) >= 2 {
+		} else if len(args) >= 2 {
 			key := args[0]
 			val := args[1]
 
-			switch key {
-			case "Editor":
+			if key == "Editor" || key == "editor" {
 				prefs.Editor = val
-			case "DiffTool":
+			} else if key == "DiffTool" || key == "difftool" {
 				prefs.DiffTool = val
-			case "DefaultRepo":
+			} else if key == "DefaultRepo" || key == "defaultrepo" {
 				prefs.DefaultRepo = val
-			default:
+			} else {
 				fancyprint.Warnf("Key %s doesn't exit in the global preferences.", key)
 
 				if JsonOutput {

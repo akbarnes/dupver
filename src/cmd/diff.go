@@ -27,7 +27,7 @@ to quickly create a Cobra application.`,
 		cfg, err := dupver.ReadWorkDirConfig(WorkDirPath)
 		opts := dupver.Options{}
 		fancyprint.Setup(Debug, Verbose, Quiet, Monochrome)
-		prefs, err := dupver.ReadPrefs(opts)
+		prefs, err := dupver.ReadPrefs()
 
 		if err != nil {
 			// Todo: handle invalid configuration file

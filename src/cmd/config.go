@@ -24,8 +24,7 @@ Configuration includes the project name, current branch, associated repositories
 which repository is the default.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fancyprint.Setup(Debug, Verbose, Quiet, Monochrome)
-		opts := dupver.Options{JsonOutput: JsonOutput}
-		prefs, _ := dupver.ReadPrefs(opts)
+		prefs, _ := dupver.ReadPrefs()
 		cfg, err := dupver.ReadWorkDirConfig(WorkDirPath)
 
 		if err != nil {
@@ -54,11 +53,11 @@ which repository is the default.`,
 
 			switch key {
 			case "WorkDirName":
-				dupver.MultiPrint(cfg.WorkDirName, opts)
+				dupver.MultiPrint(cfg.WorkDirName, JsonOutput)
 			case "Branch":
-				dupver.MultiPrint(cfg.Branch, opts)
+				dupver.MultiPrint(cfg.Branch, JsonOutput)
 			case "DefaultRepo":
-				dupver.MultiPrint(cfg.DefaultRepo, opts)
+				dupver.MultiPrint(cfg.DefaultRepo, JsonOutput)
 			default:
 				fancyprint.Warnf("Key %s doesn't exit in the working directory configuration.", key)
 
