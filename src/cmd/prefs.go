@@ -59,9 +59,9 @@ tool and the default repository`,
 
 			if key == "Editor" || key == "editor" {
 				prefs.Editor = val
-			} else if key == "DiffTool" || key == "difftool" {
+			} else if key == "DiffTool" || key == "difftool" || key == "diff" {
 				prefs.DiffTool = val
-			} else if key == "DefaultRepo" || key == "defaultrepo" {
+			} else if key == "DefaultRepo" || key == "defaultrepo" || key == "repo" {
 				prefs.DefaultRepo = val
 			} else {
 				fancyprint.Warnf("Key %s doesn't exit in the global preferences.", key)

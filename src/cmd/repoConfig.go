@@ -67,25 +67,23 @@ name of "main."`,
 				key = args[1]
 			}
 
-			switch key {
-			case "Version":
+			if key == "Version" || key == "version" {
 				dupver.MultiPrint(cfg.Version, JsonOutput)
-			case "ChunkerPolynomial":
+			} else if key == "ChunkerPolynomial" || key == "chunkerpolynomial" || key == "chunker" || key == "polynomial" || key == "poly" {
 				dupver.MultiPrint(cfg.ChunkerPolynomial, JsonOutput)
-			case "CompressionLevel":
+			} else if key == "CompressionLevel" || key == "compression" || key == "compress" {
 				dupver.MultiPrint(cfg.CompressionLevel, JsonOutput)
-			default:
+			} else {
 				fancyprint.Warnf("Key %s doesn't exit in the repository configuration.", key)
 
 				if JsonOutput {
 					dupver.PrintJson(nil)
 				}
+
+				return
 			}
 
-			return
-		}
-
-		if len(args) == 3 || (UseDefaultRepo && len(args) == 2) {
+		} else if len(args) == 3 || (UseDefaultRepo && len(args) == 2) {
 			key := args[0]
 			val := args[1]
 
@@ -94,20 +92,19 @@ name of "main."`,
 				val = args[2]
 			}
 
-			switch key {
-			case "Version":
+			if key == "Version" || key == "version" {
 				v, err := strconv.ParseInt(val, 0, 32)
 				dupver.Check(err)
 				cfg.Version = int(v)
-			case "ChunkerPolynomial":
+			} else if key == "ChunkerPolynomial" || key == "chunkerpolynomial" || key == "chunker" || key == "polynomial" || key == "poly" {
 				p, err := strconv.ParseInt(val, 0, 64)
 				dupver.Check(err)
 				cfg.ChunkerPolynomial = chunker.Pol(p)
-			case "CompressionLevel":
+			} else if key == "CompressionLevel" || key == "compression" || key == "compress" {
 				c, err := strconv.ParseUint(val, 0, 16)
 				dupver.Check(err)
 				cfg.CompressionLevel = uint16(c)
-			default:
+			} else {
 				fancyprint.Warnf("Key %s doesn't exit in the repository configuration.", key)
 
 				if JsonOutput {

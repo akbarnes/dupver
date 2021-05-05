@@ -51,36 +51,32 @@ which repository is the default.`,
 		if len(args) == 1 {
 			key := args[0]
 
-			switch key {
-			case "WorkDirName":
+			if key == "WorkDirName" || key == "workdirname" || key == "workdir" || key == "name" {
 				dupver.MultiPrint(cfg.WorkDirName, JsonOutput)
-			case "Branch":
+			} else if key == "Branch" || key == "branch" {
 				dupver.MultiPrint(cfg.Branch, JsonOutput)
-			case "DefaultRepo":
+			} else if key == "DefaultRepo" || key == "defaultrepo" || key == "repo" {
 				dupver.MultiPrint(cfg.DefaultRepo, JsonOutput)
-			default:
+			} else {
 				fancyprint.Warnf("Key %s doesn't exit in the working directory configuration.", key)
 
 				if JsonOutput {
 					dupver.PrintJson(nil)
 				}
-			}
 
-			return
-		}
-
-		if len(args) >= 2 {
+				return
+			}			
+		} else if len(args) >= 2 {
 			key := args[0]
 			val := args[1]
 
-			switch key {
-			case "WorkDirName":
+			if key == "WorkDirName" || key == "workdirname" || key == "workdir" || key == "name" {
 				cfg.WorkDirName = val
-			case "Branch":
+			} else if key == "Branch" || key == "branch" {
 				cfg.Branch = val
-			case "DefaultRepo":
+			} else if key == "DefaultRepo" || key == "defaultrepo" || key == "repo" {
 				cfg.DefaultRepo = val
-			default:
+			} else {
 				fancyprint.Warnf("Key %s doesn't exit in the working directory configuration.", key)
 
 				if JsonOutput {
