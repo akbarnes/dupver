@@ -104,7 +104,7 @@ func InitWorkDir(workDirFolder string, workDirName string, opts Options) {
 	myConfig.Repos = myRepos
 	myConfig.Branch = branch
 	myConfig.WorkDirName = workDirName
-	SaveWorkDirConfigFile(configPath, myConfig, false, opts)
+	myConfig.SaveFile(configPath, false)
 }
 
 // Print the project working directory configuration
@@ -242,7 +242,7 @@ func AddRepoToWorkDir(workDirPath string, repoName string, repoPath string, make
 		PrintJson(cfg)
 	}
 
-	SaveWorkDirConfig(workDirPath, cfg, true, opts)
+	cfg.Save(workDirPath, true)
 }
 
 // List the repositories in the working directory configuration
@@ -376,18 +376,6 @@ func LoadWorkDir(workDirPath string) (WorkDir, error) {
 
 // Save a project working directory configuration given
 // the working directory path
-func SaveWorkDirConfig(workDir string, myConfig workDirConfig, forceWrite bool, opts Options) {
-	var configPath string
-
-	if len(workDir) == 0 {
-		configPath = filepath.Join(".dupver", "config.toml")
-	} else {
-		configPath = filepath.Join(workDir, ".dupver", "config.toml")
-	}
-
-	SaveWorkDirConfigFile(configPath, myConfig, forceWrite, opts)
-}
-
 func (cfg workDirConfig) Save(workDir string, forceWrite bool) {
 	configPath := filepath.Join(".dupver", "config.toml")
 
@@ -395,29 +383,12 @@ func (cfg workDirConfig) Save(workDir string, forceWrite bool) {
 		configPath = filepath.Join(workDir, ".dupver", "config.toml")
 	} 
 
-	cfg.SaveAs(configPath, forceWrite)
+	cfg.SaveFile(configPath, forceWrite)
 }
 
 // Save a project working directory configuration given
 // the project working directory configuration file path
-func SaveWorkDirConfigFile(configPath string, myConfig workDirConfig, forceWrite bool, opts Options) {
-	if _, err := os.Stat(configPath); err == nil && !forceWrite {
-		// panic("Refusing to write existing project workdir config " + configPath)
-		panic(fmt.Sprintf("Refusing to write existing project workdir config: %s\n", configPath))
-	}
-
-	fancyprint.Infof("Writing config:\n%+v\n", myConfig)
-	fancyprint.Infof("to: %s\n", configPath)
-
-	f, _ := os.Create(configPath)
-	myEncoder := toml.NewEncoder(f)
-	myEncoder.Encode(myConfig)
-	f.Close()
-}
-
-// Save a project working directory configuration given
-// the project working directory configuration file path
-func (cfg workDirConfig) SaveAs(configPath string, forceWrite bool) {
+func (cfg workDirConfig) SaveFile(configPath string, forceWrite bool) {
 	if _, err := os.Stat(configPath); err == nil && !forceWrite {
 		// panic("Refusing to write existing project workdir config " + configPath)
 		panic(fmt.Sprintf("Refusing to write existing project workdir config: %s\n", configPath))

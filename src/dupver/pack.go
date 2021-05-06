@@ -152,7 +152,7 @@ func WritePacks(f *os.File, repoPath string, poly chunker.Pol, compressionLevel 
 }
 
 // Unpack a file from the repository to a specified file path
-func UnpackFile(filePath string, repoPath string, chunkIds []string, opts Options) {
+func UnpackFile(filePath string, repoPath string, chunkIds []string) {
 	chunkPacks := ReadTrees(repoPath)
 
 	f, err := os.Create(filePath)
@@ -161,13 +161,13 @@ func UnpackFile(filePath string, repoPath string, chunkIds []string, opts Option
 		panic(fmt.Sprintf("Could not create output file %s while unpacking", filePath))
 	}
 
-	ReadPacks(f, repoPath, chunkIds, chunkPacks, opts)
+	ReadPacks(f, repoPath, chunkIds, chunkPacks)
 	f.Close()
 }
 
 // Unpack a file from the repository to an output stream
 // TODO: change name to something other than read (UnpackData?)
-func ReadPacks(tarFile *os.File, repoPath string, chunkIds []string, chunkPacks map[string]string, opts Options) {
+func ReadPacks(tarFile *os.File, repoPath string, chunkIds []string, chunkPacks map[string]string) {
 	for i, chunkId := range chunkIds {
 		packId := chunkPacks[chunkId]
 		packPath := path.Join(repoPath, "packs", packId[0:2], packId + ".zip")

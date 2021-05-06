@@ -19,7 +19,6 @@ var branchCmd = &cobra.Command{
 	Long:  `This will switch a project working directory to the specified branch. `,
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg, err := dupver.ReadWorkDirConfig(WorkDirPath)
-		opts := dupver.Options{JsonOutput: JsonOutput }
 		fancyprint.Setup(Debug, Verbose, Quiet, Monochrome)
 
 		if err != nil {
@@ -41,7 +40,7 @@ var branchCmd = &cobra.Command{
 
 			fancyprint.Debugf("\nNew name: %s\n", cfg.WorkDirName)
 
-			dupver.SaveWorkDirConfig(WorkDirPath, cfg, true, opts)
+			cfg.Save(WorkDirPath, true)
 		} else {
 			if fancyprint.Verbosity >= fancyprint.NoticeLevel {
 				fmt.Printf("Current branch: %s\n", cfg.Branch)

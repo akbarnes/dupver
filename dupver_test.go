@@ -46,7 +46,11 @@ func TestWorkRepoInit(t *testing.T) {
 		t.Error("Did not create trees folder", treesPath)
 	}
 
-	cfg := dupver.ReadRepoConfigFile(filepath.Join(repoPath, "config.toml"))
+	cfg, err := dupver.ReadRepoConfigFile(filepath.Join(repoPath, "config.toml"))
+
+	if err != nil {
+		t.Error("could not read repo config file for repo", repoPath)
+	}
 
 	if cfg.Version != 2 {
 		t.Error("Invalid repository version", cfg.Version)
@@ -152,7 +156,7 @@ func TestCommit(t *testing.T) {
 	mySnapshot := workDir.ReadSnapshot(snapshot.ID)
 	timeStr := dupver.TimeToPath(mySnapshot.Time)
 	outputFileName := fmt.Sprintf("%s-%s-%s.tar", workDir.ProjectName, timeStr, snapshot.ID[0:16])
-	dupver.UnpackFile(outputFileName, opts.RepoPath, mySnapshot.ChunkIDs, opts)
+	dupver.UnpackFile(outputFileName, opts.RepoPath, mySnapshot.ChunkIDs)
 	fmt.Printf("Wrote to %s\n", outputFileName)
 
 	cmd := exec.Command("diff", fileName, outputFileName)
@@ -241,7 +245,7 @@ func TestCopy(t *testing.T) {
 	outputFileName := fmt.Sprintf("%s-%s-%s.tar", workDir.ProjectName, timeStr, snapshot.ID[0:16])
 
 	// dupver.UnpackFile(outputFileName, myWorkDirConfig.RepoPath, mySnapshot.ChunkIDs, verbosity)
-	dupver.UnpackFile(outputFileName, opts2.RepoPath, mySnapshot.ChunkIDs, opts2)
+	dupver.UnpackFile(outputFileName, opts2.RepoPath, mySnapshot.ChunkIDs)
 	fmt.Printf("Wrote to %s\n", outputFileName)
 
 	cmd := exec.Command("diff", fileName, outputFileName)

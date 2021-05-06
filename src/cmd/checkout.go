@@ -26,7 +26,6 @@ workdir_name-YYYY-MM-DDThh-mm-ss-commit_id[0:15].tar.
 To specify a tar file name, use the --output flag.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg, err := dupver.ReadWorkDirConfig(WorkDirPath)
-		opts := dupver.Options{}
 		fancyprint.Setup(Debug, Verbose, Quiet, Monochrome)
 
 		if err != nil {
@@ -35,28 +34,28 @@ To specify a tar file name, use the --output flag.`,
 			os.Exit(1)
 		}
 
-		if len(RepoName) == 0 {
-			RepoName = cfg.DefaultRepo
+		if len(RepoName) > 0 {
+			cfg.DefaultRepo = RepoName
 		}
 
-		if len(RepoPath) == 0 {
-			RepoPath = cfg.Repos[RepoName]
+		// Don't use LoadWorkDir so we don't load repo configs twice
+		// if the repo name or path was changed via command line
+		workDir := dupver.InstantiateWorkDir(cfg)
+
+		if len(RepoPath) > 0 {
+			workDir.Repo.Path = RepoPath
 			fancyprint.Debugf("Updating repo path to %s\n", RepoPath)
 		}
 
-		opts.WorkDirName = cfg.WorkDirName
-		opts.RepoName = RepoName
-		opts.RepoPath = RepoPath
-
-		snapshotId := dupver.GetFullSnapshotId(args[0], opts)
-		snap := dupver.ReadSnapshot(snapshotId, opts)
+		snapshotId := workDir.GetFullSnapshotId(args[0])
+		snap := workDir.ReadSnapshot(snapshotId)
 
 		if len(OutFile) == 0 {
 			timeStr := dupver.TimeToPath(snap.Time)
-			OutFile = fmt.Sprintf("%s-%s-%s.tar", opts.WorkDirName, timeStr, snap.ID[0:16])
+			OutFile = fmt.Sprintf("%s-%s-%s.tar", workDir.ProjectName, timeStr, snap.ID[0:16])
 		}
 
-		dupver.UnpackFile(OutFile, opts.RepoPath, snap.ChunkIDs, opts)
+		dupver.UnpackFile(OutFile, RepoPath, snap.ChunkIDs)
 
 		if fancyprint.Verbosity <= fancyprint.WarningLevel {
 			fmt.Println(OutFile)

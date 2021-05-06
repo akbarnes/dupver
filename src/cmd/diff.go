@@ -64,7 +64,7 @@ to quickly create a Cobra application.`,
 		dupver.CreateFolder(tarFolder)
 		tarPath := filepath.Join(tarFolder, "snapshot.tar")
 
-		dupver.UnpackFile(tarPath, opts.RepoPath, snap.ChunkIDs, opts)
+		dupver.UnpackFile(tarPath, opts.RepoPath, snap.ChunkIDs)
 		fancyprint.Debugf("Wrote to %s\n", tarPath)
 
 		// TODO: Create a temporary folder to extract the tar file to
