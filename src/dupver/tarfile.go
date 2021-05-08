@@ -76,13 +76,6 @@ func ReadTarFileIndex(filePath string) []fileInfo {
 // given a file object
 func ReadTarIndex(tarFile *os.File) []fileInfo {
 	files := []fileInfo{}
-	// var baseFolder string
-	// var configPath string
-	maxFiles := 10
-
-	if fancyprint.Verbosity >= fancyprint.NoticeLevel {
-		fmt.Println("Files:")
-	}
 
 	// Open and iterate through the files in the archive.
 	tr := tar.NewReader(tarFile)
@@ -118,18 +111,12 @@ func ReadTarIndex(tarFile *os.File) []fileInfo {
 		myFileInfo.Size = hdr.Size
 		myFileInfo.Hash = fmt.Sprintf("%02x", sha256.Sum256(bytes))
 		myFileInfo.ModTime = hdr.ModTime.Format("2006/01/02 15:04:05")
-
-		i++
-
-		if i <= maxFiles && fancyprint.Verbosity >= fancyprint.NoticeLevel {
-			fmt.Printf("%2d: %s\n", i, hdr.Name)
-		}
-
 		files = append(files, myFileInfo)
+		i++
 	}
 
-	if i > maxFiles && maxFiles > 0 && fancyprint.Verbosity >= fancyprint.NoticeLevel {
-		fmt.Printf("...\nSkipping %d more files\n", i-maxFiles)
+	if fancyprint.Verbosity >= fancyprint.NoticeLevel {
+		fmt.Printf("%d files/directories stored\n", i)
 	}
 
 	return files

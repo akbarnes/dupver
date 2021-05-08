@@ -23,7 +23,6 @@ tag name and commit id are provided, this will add a tag for the
 specifed commit id. If only a tag is specified `,
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg, err := dupver.ReadWorkDirConfig(WorkDirPath)
-		opts := dupver.Options{}
 		tagName := ""
 
 		if err != nil {
@@ -44,20 +43,26 @@ specifed commit id. If only a tag is specified `,
 			fancyprint.Debugf("Updating repo path to %s\n", RepoPath)
 		}
 
-		opts.WorkDirName = cfg.WorkDirName
-		opts.RepoName = RepoName
-		opts.RepoPath = RepoPath
+		if len(RepoName) > 0 {
+			cfg.DefaultRepo = RepoName
+		}		
 
-		fancyprint.Debugf("Options: %+v\n", opts)
-		headPath := filepath.Join(opts.RepoPath, "branches", opts.WorkDirName, "main.toml")
-		fancyprint.Debugf("Head path: %s\n", headPath)
+		workDir := dupver.InstantiateWorkDir(cfg)
+
+		if len(RepoPath) > 0 {
+			workDir.Repo.Path = RepoPath
+			fancyprint.Debugf("Updating repo path to %s\n", RepoPath)
+		}	
+		
+		headPath := filepath.Join(workDir.Repo.Path, "branches", workDir.ProjectName, "main.toml")
+		fancyprint.Debugf("Head path: %s\n", headPath)		
 
 		var snapshotId string
 
 		if len(args) >= 1 {
-			snapshotId = dupver.GetFullSnapshotId(args[0], opts)
+			snapshotId = workDir.GetFullSnapshotId(args[0])
 		} else {
-			mySnapshot, err := dupver.LastSnapshot(opts)
+			mySnapshot, err := workDir.LastSnapshot()
 
 			if err != nil {
 				fancyprint.Warn("No snapshots found in project working directory. Have you initialized and commited yet?")
@@ -72,10 +77,10 @@ specifed commit id. If only a tag is specified `,
 			tagName = args[0]
 
 			if len(args) >= 2 {
-				snapshotId = dupver.GetFullSnapshotId(args[1], opts)
+				snapshotId = workDir.GetFullSnapshotId(args[1])
 			}
 
-			dupver.CreateTag(tagName, snapshotId, opts)
+			workDir.CreateTag(tagName, snapshotId)
 		}
 	},
 }

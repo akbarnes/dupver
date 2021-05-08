@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"os"
+
 	"github.com/spf13/cobra"
 
 	"github.com/akbarnes/dupver/src/dupver"
@@ -23,7 +25,6 @@ positional argument allows for the repository name to be specified.
 if no repository name is specified, the repository takes on the default
 name of "main."`,
 	Run: func(cmd *cobra.Command, args []string) {
-		opts := dupver.Options{JsonOutput: JsonOutput}
 		fancyprint.Setup(Debug, Verbose, Quiet, Monochrome)
 		repoName := RepoName
 		repoPath := RepoPath
@@ -36,13 +37,19 @@ name of "main."`,
 			repoName = args[1]
 		}
 
-		dupver.InitRepo(repoPath, repoName, ChunkerPolynomial, CompressionLevel, opts)
+		dupver.InitRepo(repoPath, repoName, ChunkerPolynomial, CompressionLevel, JsonOutput)
 
 		if len(CopyRepoConfig) > 0 {
 			fancyprint.Infof("Copying repo configuration from %s", CopyRepoConfig)
 			cfg, err := dupver.ReadRepoConfig(CopyRepoConfig)
-			dupver.Check(err)
-			dupver.SaveRepoConfig(repoPath, cfg, true)
+
+			if err != nil {
+				// Todo: handle invalid configuration file
+				fancyprint.Warn("Could not read repository configuration file. Has the repository been initialized?")
+				os.Exit(1)
+			}
+
+			cfg.Save(repoPath, true)
 		}
 	},
 }

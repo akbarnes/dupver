@@ -42,6 +42,10 @@ To specify a tar file name, use the --output flag.`,
 		// if the repo name or path was changed via command line
 		workDir := dupver.InstantiateWorkDir(cfg)
 
+		if len(WorkDirPath) > 0 {
+			workDir.Path = WorkDirPath
+		}		
+
 		if len(RepoPath) > 0 {
 			workDir.Repo.Path = RepoPath
 			fancyprint.Debugf("Updating repo path to %s\n", RepoPath)

@@ -224,7 +224,7 @@ func (cfg workDirConfig) PrintJson() {
 }
 
 // Add a new repository to the working directory configuration
-func AddRepoToWorkDir(workDirPath string, repoName string, repoPath string, makeDefaultRepo bool, opts Options) {
+func AddRepoToWorkDir(workDirPath string, repoName string, repoPath string, makeDefaultRepo bool, jsonOutput bool) {
 	cfg, err := ReadWorkDirConfig(workDirPath)
 
 	if err != nil {
@@ -239,7 +239,7 @@ func AddRepoToWorkDir(workDirPath string, repoName string, repoPath string, make
 		cfg.DefaultRepo = repoName
 	}
 
-	if opts.JsonOutput {
+	if jsonOutput {
 		PrintJson(cfg)
 	}
 
@@ -356,7 +356,9 @@ func ReadWorkDirConfigFile(filePath string) (workDirConfig, error) {
 // Load a project working directory configuration given
 // the project working directory configuration file path
 func InstantiateWorkDir(cfg workDirConfig) (WorkDir) {
-	wd := WorkDir{ProjectName: cfg.WorkDirName, Branch: cfg.Branch}
+	wdPath, err := os.Getwd()
+	Check(err)
+	wd := WorkDir{ProjectName: cfg.WorkDirName, Branch: cfg.Branch, Path: wdPath}
 	wd.Repo = LoadRepo(cfg.Repos[cfg.DefaultRepo])
 	return wd
 }
@@ -865,4 +867,15 @@ func (workDir WorkDir) UnpackSnapshot(sid string, outFile string) {
 	} else {
 		fmt.Printf("Wrote to %s\n", outFile)
 	}
+}
+
+// Create a pointer-style tag given tag name and snapshot ID
+// Repo path is specified in options structure
+func (wd WorkDir) CreateTag(tagName string, snapshotId string) {
+	tagFolder := filepath.Join(wd.Repo.Path, "tags", wd.ProjectName)
+	tagPath := filepath.Join(tagFolder, tagName+".toml")
+	myTag := Branch{CommitID: snapshotId}
+
+	fancyprint.Noticef("Tag commit: %s\n", snapshotId)
+	WriteBranch(tagPath, myTag)
 }

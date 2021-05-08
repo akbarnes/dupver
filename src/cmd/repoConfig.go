@@ -114,7 +114,7 @@ name of "main."`,
 				return
 			}
 
-			dupver.SaveRepoConfig(repoPath, cfg, true)
+			cfg.Save(repoPath, true)
 		}
 
 		if JsonOutput {

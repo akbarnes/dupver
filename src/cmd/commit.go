@@ -34,13 +34,6 @@ var commitCmd = &cobra.Command{
 	commit command does not require a commit message, though
 	this can be specified with the --message flag.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		opts := dupver.Options{}
-		fancyprint.Setup(Debug, Verbose, Quiet, Monochrome)
-
-        if len(WorkDirPath) > 0 {
-            os.Chdir(WorkDirPath)
-        }
-
 		fancyprint.Setup(Debug, Verbose, Quiet, Monochrome)
 		cfg, err := dupver.ReadWorkDirConfig(WorkDirPath)
 
@@ -50,36 +43,27 @@ var commitCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		if len(WorkDirPath) > 0 {
-			os.Chdir(WorkDirPath)
-		}
-
 		fancyprint.Debugf("Workdir Configuration: %+v\n", cfg)
 		fancyprint.Debugf("Repo name: %s\nRepo path: %s\n", RepoName, RepoPath)
 
-		if len(RepoName) == 0 {
-			RepoName = cfg.DefaultRepo
+		if len(RepoName) > 0 {
+			cfg.DefaultRepo = RepoName
 		}
 
-		if len(RepoPath) == 0 {
-			RepoPath = cfg.Repos[RepoName]
-			fancyprint.Debugf("Updating repo path to: %s\n", RepoPath)
-		}
-
-		if len(Branch) == 0 {
-			Branch = cfg.Branch
+		if len(Branch) > 0 {
+			cfg.Branch = Branch
 		}		
-
-
-		opts.RepoName = RepoName
-		opts.RepoPath = RepoPath
-		opts.Branch = Branch
 
 		workDir := dupver.InstantiateWorkDir(cfg)
 
-		if AllBranches {
-			opts.Branch = ""
-		}
+		if len(WorkDirPath) > 0 {
+			workDir.Path = WorkDirPath
+		} 
+
+		if len(RepoPath) > 0 {
+			workDir.Repo.Path = RepoPath
+			fancyprint.Debugf("Updating repo path to %s\n", RepoPath)
+		}		
 
 		if len(args) >= 1 {
 			commitFile := args[0]

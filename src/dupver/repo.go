@@ -14,7 +14,7 @@ import (
 	"github.com/akbarnes/dupver/src/fancyprint"
 )
 
-type repoConfig struct {
+type RepoConfig struct {
 	Version           int
 	ChunkerPolynomial chunker.Pol
 	CompressionLevel  uint16
@@ -27,7 +27,7 @@ type Repo struct {
 }
 
 // Initialize a repository
-func InitRepo(repoPath string, repoName string, chunkerPolynomial string, compressionLevel uint16, opts Options) {
+func InitRepo(repoPath string, repoName string, chunkerPolynomial string, compressionLevel uint16, jsonOutput bool) {
 	if len(repoPath) == 0 {
 		repoPath = path.Join(GetHome(), ".dupver_repo")
 		fmt.Printf("Repo path not specified, setting to %s\n", repoPath)
@@ -63,14 +63,14 @@ func InitRepo(repoPath string, repoName string, chunkerPolynomial string, compre
 		poly.UnmarshalJSON([]byte(chunkerPolynomial))
 	}
 
-	var myConfig repoConfig
+	var myConfig RepoConfig
 	myConfig.Version = 2
 	myConfig.ChunkerPolynomial = poly
 	// TODO: allow compression level to be specified when creating the repo
 	myConfig.CompressionLevel = zip.Deflate
 
 	// TODO: Should this print to stderr?
-	if opts.JsonOutput {
+	if jsonOutput {
 		PrintJson(myConfig)
 	} else if fancyprint.Verbosity >= fancyprint.NoticeLevel {
 		fmt.Println("Chunker polynomial: %+v\n", poly)
@@ -78,12 +78,12 @@ func InitRepo(repoPath string, repoName string, chunkerPolynomial string, compre
 		fmt.Println(poly)
 	}
 
-	SaveRepoConfig(repoPath, myConfig, false)
+	myConfig.Save(repoPath, false)
 }
 
-// Save a repository configuration to file
-// TODO: Should I add SaveRepoCondfigFile?
-func SaveRepoConfig(repoPath string, myConfig repoConfig, forceOverWrite bool) {
+// Save a project working directory configuration given
+// the working directory path
+func (cfg RepoConfig) Save(repoPath string, forceOverWrite bool) {
 	// TODO: add a check to make sure I don't over`write` existing
 	configPath := path.Join(repoPath, "config.toml")
 
@@ -101,11 +101,11 @@ func SaveRepoConfig(repoPath string, myConfig repoConfig, forceOverWrite bool) {
 	}
 
 	myEncoder := toml.NewEncoder(f)
-	myEncoder.Encode(myConfig)
+	myEncoder.Encode(cfg)
 	f.Close()
 }
 
-func ReadRepoConfig(repoPath string) (repoConfig, error) {
+func ReadRepoConfig(repoPath string) (RepoConfig, error) {
 	configPath := filepath.Join(repoPath, "config.toml")
 	return ReadRepoConfigFile(configPath)
 }
@@ -121,25 +121,25 @@ func LoadRepo(repoPath string) Repo {
 
 // Read a repository configuration given a file path
 // TODO: Should I add ReadRepoConfig?
-func ReadRepoConfigFile(filePath string) (repoConfig, error) {
-	var myConfig repoConfig
+func ReadRepoConfigFile(filePath string) (RepoConfig, error) {
+	var myConfig RepoConfig
 	myConfig.CompressionLevel = zip.Deflate
 
 	f, err := os.Open(filePath)
 
 	if err != nil {
-		return repoConfig{}, err
+		return RepoConfig{}, err
 	}
 
 	if _, err := toml.DecodeReader(f, &myConfig); err != nil {
-		return repoConfig{}, err
+		return RepoConfig{}, err
 	}
 
 	f.Close()
 	return myConfig, nil
 }
 
-func (cfg repoConfig) Print() {
+func (cfg RepoConfig) Print() {
 	fmt.Printf("Version: %d\n", cfg.Version)
 	fmt.Printf("Chunker polynomial: %d\n", cfg.ChunkerPolynomial)
 
@@ -152,6 +152,6 @@ func (cfg repoConfig) Print() {
 	fmt.Printf("Compression level: %d (%s)\n", cfg.CompressionLevel, compressionDescription)	
 }
 
-func (cfg repoConfig) PrintJson() {
+func (cfg RepoConfig) PrintJson() {
 	PrintJson(cfg)
 }
