@@ -14,7 +14,6 @@ import (
 )
 
 func TestWorkRepoInit(t *testing.T) {
-	opts := dupver.Options{}
 	debug := false
 	verbose := true
 	quiet := false
@@ -32,7 +31,7 @@ func TestWorkRepoInit(t *testing.T) {
 	repoName := "test"
 
 	repoPath := filepath.Join(homeDir, "temp", repoFolder)
-	dupver.InitRepo(repoPath, repoName, "", zip.Deflate, opts)
+	dupver.InitRepo(repoPath, repoName, "", zip.Deflate, false)
 
 	snapshotsPath := filepath.Join(repoPath, "snapshots")
 	if _, err := os.Stat(snapshotsPath); err != nil {
@@ -115,7 +114,7 @@ func TestCommit(t *testing.T) {
 	repoFolder := ".dupver_repo_" + repoId
 	repoPath := filepath.Join(homeDir, "temp", repoFolder)
 	repoName := "test"
-	dupver.InitRepo(repoPath, repoName, "", zip.Deflate, opts)
+	dupver.InitRepo(repoPath, repoName, "", zip.Deflate, false)
 
 	// ----------- Create a workdir ----------- //
 	workDirId := dupver.RandString(16, dupver.HexChars)
@@ -187,13 +186,13 @@ func TestCopy(t *testing.T) {
 	repoFolder := ".dupver_repo_" + repoId
 	repoPath := filepath.Join(homeDir, "temp", repoFolder)
 	repoName := "test"
-	dupver.InitRepo(repoPath, repoName, "", zip.Deflate, opts)
+	dupver.InitRepo(repoPath, repoName, "", zip.Deflate, false)
 
 	repoId2 := dupver.RandString(16, dupver.HexChars)
 	repoFolder2 := ".dupver_repo_" + repoId2
 	repoPath2 := filepath.Join(homeDir, "temp", repoFolder2)
 	repoName2 := "test2"
-	dupver.InitRepo(repoPath2, repoName2, "", zip.Deflate, opts)
+	dupver.InitRepo(repoPath2, repoName2, "", zip.Deflate, false)
 
 	// ----------- Create a workdir ----------- //
 	workDirId := dupver.RandString(16, dupver.HexChars)
