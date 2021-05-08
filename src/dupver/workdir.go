@@ -777,3 +777,20 @@ func (wd WorkDir) LastSnapshot() (Commit, error) {
 	return snapshotsByDate[snapshotDates[len(snapshotDates)-1]], nil
 }
 
+func (workDir WorkDir) UnpackSnapshot(sid string, outFile string) {
+	snapshotId := workDir.GetFullSnapshotId(sid)
+	snap := workDir.ReadSnapshot(snapshotId)
+
+	if len(outFile) == 0 {
+		timeStr := TimeToPath(snap.Time)
+		outFile = fmt.Sprintf("%s-%s-%s.tar", workDir.ProjectName, timeStr, snap.ID[0:16])
+	}
+
+	UnpackFile(outFile, workDir.Repo.Path, snap.ChunkIDs)
+
+	if fancyprint.Verbosity <= fancyprint.WarningLevel {
+		fmt.Println(outFile)
+	} else {
+		fmt.Printf("Wrote to %s\n", outFile)
+	}
+}

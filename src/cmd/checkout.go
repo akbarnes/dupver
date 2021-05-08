@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"fmt"
+	// "fmt"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -47,21 +47,7 @@ To specify a tar file name, use the --output flag.`,
 			fancyprint.Debugf("Updating repo path to %s\n", RepoPath)
 		}
 
-		snapshotId := workDir.GetFullSnapshotId(args[0])
-		snap := workDir.ReadSnapshot(snapshotId)
-
-		if len(OutFile) == 0 {
-			timeStr := dupver.TimeToPath(snap.Time)
-			OutFile = fmt.Sprintf("%s-%s-%s.tar", workDir.ProjectName, timeStr, snap.ID[0:16])
-		}
-
-		dupver.UnpackFile(OutFile, RepoPath, snap.ChunkIDs)
-
-		if fancyprint.Verbosity <= fancyprint.WarningLevel {
-			fmt.Println(OutFile)
-		} else {
-			fmt.Printf("Wrote to %s\n", OutFile)
-		}
+		workDir.UnpackSnapshot(args[0], OutFile) 
 	},
 }
 

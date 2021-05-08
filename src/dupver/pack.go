@@ -165,6 +165,20 @@ func UnpackFile(filePath string, repoPath string, chunkIds []string) {
 	f.Close()
 }
 
+// Unpack a file from the repository to a specified file path
+func (wd WorkDir) UnpackFile(filePath string, repoPath string, chunkIds []string) {
+	chunkPacks := ReadTrees(repoPath)
+
+	f, err := os.Create(filePath)
+
+	if err != nil {
+		panic(fmt.Sprintf("Could not create output file %s while unpacking", filePath))
+	}
+
+	ReadPacks(f, repoPath, chunkIds, chunkPacks)
+	f.Close()
+}
+
 // Unpack a file from the repository to an output stream
 // TODO: change name to something other than read (UnpackData?)
 func ReadPacks(tarFile *os.File, repoPath string, chunkIds []string, chunkPacks map[string]string) {
