@@ -19,13 +19,12 @@ be applied and each row of the output will be the repo name
 and repo path separated by a space.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// TODO: Read repoPath from environment variable if empty
-		opts := dupver.Options{}
 		fancyprint.Setup(Debug, Verbose, Quiet, Monochrome)
 
 		if JsonOutput {
-			dupver.ListWorkDirReposAsJson(WorkDirPath, opts)
+			dupver.ListWorkDirReposAsJson(WorkDirPath)
 		} else {
-			dupver.ListWorkDirRepos(WorkDirPath, opts)
+			dupver.ListWorkDirRepos(WorkDirPath)
 		}
 	},
 }

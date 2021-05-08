@@ -1,12 +1,11 @@
 package cmd
 
 import (
-	"fmt"
-	"log"
-
+	// "fmt"
+	// "log"
 	// "path"
 	"os"
-	"os/exec"
+	// "os/exec"
 	"path/filepath"
 	"strings"
 
@@ -19,44 +18,6 @@ import (
 var Add bool
 var Message string
 
-// Write a project working directory to a tar file in temp
-// given a working directory path and the path of its parent folder
-func CreateTar(parentPath string, commitPath string, opts dupver.Options) string {
-	tarFile := dupver.RandHexString(40) + ".tar"
-	tarFolder := filepath.Join(dupver.GetHome(), "temp")
-	tarPath := filepath.Join(tarFolder, tarFile)
-
-	// InitRepo(workDir)
-	fancyprint.Debugf("Tar path: %s\n", tarPath)
-	fancyprint.Debugf("Creating folder %s\n", tarFolder)
-
-	os.Mkdir(tarFolder, 0777)
-
-	CompressTar(parentPath, commitPath, tarPath, opts)
-	return tarPath
-}
-
-// Write a project working directory to a tar file
-// given a working directory path, parent folder path and tar file path
-func CompressTar(parentPath string, commitPath string, tarPath string, opts dupver.Options) string {
-	if len(tarPath) == 0 {
-		tarPath = commitPath + ".tar"
-	}
-
-	cleanCommitPath := filepath.Clean(commitPath)
-
-	tarCmd := exec.Command("tar", "cfv", tarPath, cleanCommitPath)
-	tarCmd.Dir = parentPath
-	fancyprint.Debugf("Running tar cfv %s %s\n", tarPath, cleanCommitPath)
-	output, err := tarCmd.CombinedOutput()
-
-	if err != nil {
-		log.Fatal(fmt.Sprintf("Tar command failed\nOutput:\n%s\nError:\n%s\n", output, err))
-	} 
-	
-	fancyprint.Debugf("Ran tar command with output:\n%s\n", output)
-	return tarPath
-}
 
 // commitCmd represents the commit command
 var commitCmd = &cobra.Command{
@@ -127,7 +88,7 @@ var commitCmd = &cobra.Command{
 
 			if !strings.HasSuffix(commitFile, "tar") {
 				fancyprint.Debugf("%s -> %s, %s\n", commitFile, containingFolder, commitFile)
-				tarFile = CreateTar(containingFolder, commitFile, opts)
+				tarFile = dupver.CreateTar(containingFolder, commitFile)
 
 				if len(Message) == 0 {
 					Message = filepath.Base(commitFile)
@@ -135,25 +96,10 @@ var commitCmd = &cobra.Command{
 				}
 			}
 
-			workDir.CommitFile(tarFile, []string{}, Message, JsonOutput)
+			parentIds := []string{}
+			workDir.CommitFile(tarFile, parentIds, Message, JsonOutput)
 		} else {
-			dir, err := os.Getwd()
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			containingFolder := filepath.Dir(dir)
-			workdirFolder := filepath.Base(dir)
-			fancyprint.Debugf("%s -> %s, %s\n", dir, containingFolder, workdirFolder)
-
-			if len(Message) == 0 {
-				Message = workdirFolder
-				fancyprint.Infof("Message not specified, setting to: %s\n", Message)
-			}
-
-			tarFile := CreateTar(containingFolder, workdirFolder, opts)
-			workDir.CommitFile(tarFile, []string{}, Message, JsonOutput)
-			os.Remove(tarFile) // Delete the temporary file 
+			workDir.Commit(Message, JsonOutput)
 		}
 	},
 }

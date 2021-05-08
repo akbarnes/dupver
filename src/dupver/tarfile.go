@@ -2,13 +2,14 @@ package dupver
 
 import (
 	"fmt"
-	// "log"
+	"log"
 	"crypto/sha256"
 	"io"
 	"bufio"
 	"os"
+	"os/exec"
 	// "path"
-	// "path/filepath"
+	"path/filepath"
 	// "strings"
 	"archive/tar"
 	// "encoding/json"
@@ -16,6 +17,45 @@ import (
 	// "github.com/BurntSushi/toml"
 	"github.com/akbarnes/dupver/src/fancyprint"
 )
+
+// Write a project working directory to a tar file in temp
+// given a working directory path and the path of its parent folder
+func CreateTar(parentPath string, commitPath string) string {
+	tarFile := RandHexString(40) + ".tar"
+	tarFolder := filepath.Join(GetHome(), "temp")
+	tarPath := filepath.Join(tarFolder, tarFile)
+
+	// InitRepo(workDir)
+	fancyprint.Debugf("Tar path: %s\n", tarPath)
+	fancyprint.Debugf("Creating folder %s\n", tarFolder)
+
+	os.Mkdir(tarFolder, 0777)
+
+	CompressTar(parentPath, commitPath, tarPath)
+	return tarPath
+}
+
+// Write a project working directory to a tar file
+// given a working directory path, parent folder path and tar file path
+func CompressTar(parentPath string, commitPath string, tarPath string) string {
+	if len(tarPath) == 0 {
+		tarPath = commitPath + ".tar"
+	}
+
+	cleanCommitPath := filepath.Clean(commitPath)
+
+	tarCmd := exec.Command("tar", "cfv", tarPath, cleanCommitPath)
+	tarCmd.Dir = parentPath
+	fancyprint.Debugf("Running tar cfv %s %s\n", tarPath, cleanCommitPath)
+	output, err := tarCmd.CombinedOutput()
+
+	if err != nil {
+		log.Fatal(fmt.Sprintf("Tar command failed\nOutput:\n%s\nError:\n%s\n", output, err))
+	} 
+	
+	fancyprint.Debugf("Ran tar command with output:\n%s\n", output)
+	return tarPath
+}
 
 // Read the files, workdir configuration and head from a tar file
 // given a filename

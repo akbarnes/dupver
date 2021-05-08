@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 	"sort"
+	"time"
 
 	// "io"
 	// "bufio"
@@ -246,7 +247,7 @@ func AddRepoToWorkDir(workDirPath string, repoName string, repoPath string, make
 }
 
 // List the repositories in the working directory configuration
-func ListWorkDirRepos(workDirPath string, opts Options) {
+func ListWorkDirRepos(workDirPath string) {
 	cfg, err := ReadWorkDirConfig(workDirPath)
 	maxLen := 0
 
@@ -274,7 +275,7 @@ func ListWorkDirRepos(workDirPath string, opts Options) {
 }
 
 // List the repositories in the working directory configuration as JSON
-func ListWorkDirReposAsJson(workDirPath string, opts Options) {
+func ListWorkDirReposAsJson(workDirPath string) {
 	type RepoListing struct {
 		Name              string
 		Path              string
@@ -775,6 +776,77 @@ func (wd WorkDir) LastSnapshot() (Commit, error) {
 	}
 
 	return snapshotsByDate[snapshotDates[len(snapshotDates)-1]], nil
+}
+
+func (wd WorkDir) Commit(message string, jsonOutput bool) {
+	containingFolder := filepath.Dir(wd.Path)
+	workdirFolder := filepath.Base(wd.Path)
+	fancyprint.Debugf("%s -> %s, %s\n", wd.Path, containingFolder, workdirFolder)
+
+	if len(message) == 0 {
+		message = workdirFolder
+		fancyprint.Infof("Message not specified, setting to: %s\n", message)
+	}
+
+	tarFile := CreateTar(containingFolder, workdirFolder)
+	parentIds := []string{}
+	wd.CommitFile(tarFile, parentIds, message, jsonOutput)
+	os.Remove(tarFile) // Delete the temporary file 
+}
+
+// Commit a tar file into the repository. Project working directory name,
+// branch and repository path are specified in the .dupver/config.toml
+// file within the tar file
+func (wd WorkDir) CommitFile(filePath string, parentIds []string, msg string, JsonOutput bool) Commit {
+	t := time.Now()
+
+	var snap Commit
+	// var myHead Head
+	snap.ID = RandHexString(SNAPSHOT_ID_LEN)
+	snap.Time = t.Format("2006/01/02 15:04:05")
+	snap = UpdateMessage(snap, msg, filePath)
+	// TODO: write a version of ReadTarFileIndex that won't look for workdir config
+	snap.Files = ReadTarFileIndex(filePath)
+	snap.Branch = wd.Branch
+
+	branchFolder := filepath.Join(wd.Repo.Path, "branches", wd.ProjectName)
+	branchPath := filepath.Join(branchFolder, wd.Branch+".toml")
+	myBranch := ReadBranch(branchPath)
+
+	fancyprint.Infof("Branch: %s\nParent commit: %s\n", wd.Branch, myBranch.CommitID)
+	snap.ParentIDs = append([]string{myBranch.CommitID}, parentIds...)
+
+	chunkIDs, chunkPacks := PackFile(filePath, wd.Repo.Path, wd.Repo.ChunkerPolynomial, wd.Repo.CompressionLevel)
+	snap.ChunkIDs = chunkIDs
+
+	snapshotFolder := filepath.Join(wd.Repo.Path, "snapshots", wd.ProjectName)
+	snapshotBasename := fmt.Sprintf("%s", snap.ID[0:40])
+	os.Mkdir(snapshotFolder, 0777)
+	snapshotPath := filepath.Join(snapshotFolder, snapshotBasename+".json")
+	WriteSnapshot(snapshotPath, snap)
+
+	// Do I really need to track commit id in head??
+	myBranch.CommitID = snap.ID
+
+	WriteBranch(branchPath, myBranch)
+
+	treeFolder := filepath.Join(wd.Repo.Path, "trees")
+	treeBasename := snap.ID[0:40]
+	os.Mkdir(treeFolder, 0777)
+	treePath := filepath.Join(treeFolder, treeBasename+".json")
+	WriteTree(treePath, chunkPacks)
+
+	if JsonOutput {
+		PrintJson(snap.ID)
+	} else if fancyprint.Verbosity >= fancyprint.NoticeLevel {
+		fancyprint.SetColor(fancyprint.ColorGreen)
+		fmt.Printf("Created snapshot %s (%s)\n", snap.ID[0:16], snap.ID)
+		fancyprint.ResetColor()
+	} else {
+		fmt.Println(snap.ID)
+	}
+
+	return snap
 }
 
 func (workDir WorkDir) UnpackSnapshot(sid string, outFile string) {
