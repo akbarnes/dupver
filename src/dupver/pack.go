@@ -129,7 +129,7 @@ func WritePacks(f *os.File, repoPath string, poly chunker.Pol, compressionLevel 
 
 
 		if stillReadingInput {
-			fancyprint.Info("Pack size %d exceeds max size %d\n", curPackSize, maxPackSize)		
+			fancyprint.Infof("Pack size %d exceeds max size %d\n", curPackSize, maxPackSize)		
 		}
 
 		fancyprint.Info("Reached end of input, closing zip file\n")
@@ -241,7 +241,7 @@ func LoadChunk(repoPath string, chunkId string, chunkPacks map[string]string, op
 			
 			if err != nil {
 				// TODO: return err
-				panic(fmt.Sprintf("Error opening chunk %s from pack file", h.Name, packPath))
+				panic(fmt.Sprintf("Error opening chunk %s from pack file %s", h.Name, packPath))
 			}
 
 			{
@@ -251,7 +251,7 @@ func LoadChunk(repoPath string, chunkId string, chunkPacks map[string]string, op
 				if data, err = ioutil.ReadAll(chunkReader); err != nil {
 					// fmt.Fprintf(tarFile, "Pack %s, chunk %s, csize %d, usize %d\n", packId, h.Name, h.CompressedSize, h.UncompressedSize)
 					// TODO: return err
-					panic(fmt.Sprintf("Error opening chunk %s from pack file", h.Name, packPath))
+					panic(fmt.Sprintf("Error opening chunk %s from pack file %s", h.Name, packPath))
 				}
 			}
 

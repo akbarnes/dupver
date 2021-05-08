@@ -21,3 +21,4 @@
 *.orig
 
 *.code-workspace
+/cp.out

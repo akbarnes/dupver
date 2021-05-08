@@ -73,7 +73,7 @@ func InitRepo(repoPath string, repoName string, chunkerPolynomial string, compre
 	if jsonOutput {
 		PrintJson(myConfig)
 	} else if fancyprint.Verbosity >= fancyprint.NoticeLevel {
-		fmt.Println("Chunker polynomial: %+v\n", poly)
+		fmt.Printf("Chunker polynomial: %+v\n", poly)
 	} else {
 		fmt.Println(poly)
 	}

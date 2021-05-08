@@ -1,4 +1,4 @@
-package main
+package dupver
 
 import (
 	"archive/zip"
@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/akbarnes/dupver/src/dupver"
 	"github.com/akbarnes/dupver/src/fancyprint"
 )
 
@@ -20,18 +19,18 @@ func TestWorkRepoInit(t *testing.T) {
 	monochrome := false
 	fancyprint.Setup(debug, verbose, quiet, monochrome)
 
-	homeDir := dupver.GetHome()
+	homeDir := GetHome()
 
 	if len(homeDir) == 0 {
 		t.Error("Could not read home directory environment variable")
 	}
 
-	repoId := dupver.RandString(16, dupver.HexChars)
+	repoId := RandString(16, HexChars)
 	repoFolder := ".dupver_repo_" + repoId
 	repoName := "test"
 
 	repoPath := filepath.Join(homeDir, "temp", repoFolder)
-	dupver.InitRepo(repoPath, repoName, "", zip.Deflate, false)
+	InitRepo(repoPath, repoName, "", zip.Deflate, false)
 
 	snapshotsPath := filepath.Join(repoPath, "snapshots")
 	if _, err := os.Stat(snapshotsPath); err != nil {
@@ -45,7 +44,7 @@ func TestWorkRepoInit(t *testing.T) {
 		t.Error("Did not create trees folder", treesPath)
 	}
 
-	cfg, err := dupver.ReadRepoConfigFile(filepath.Join(repoPath, "config.toml"))
+	cfg, err := ReadRepoConfigFile(filepath.Join(repoPath, "config.toml"))
 
 	if err != nil {
 		t.Error("could not read repo config file for repo", repoPath)
@@ -63,14 +62,14 @@ func TestWorkRepoInit(t *testing.T) {
 }
 
 func TestWorkDirInit(t *testing.T) {
-	opts := dupver.Options{}
-	homeDir := dupver.GetHome()
+	opts := Options{}
+	homeDir := GetHome()
 
 	if len(homeDir) == 0 {
 		t.Error("Could not read home directory environment variable")
 	}
 
-	workDirId := dupver.RandString(16, dupver.HexChars)
+	workDirId := RandString(16, HexChars)
 	workDirFolder := "Test_" + workDirId
 	// workDirPath := filepath.Join("temp", workDirFolder)
 	err := os.MkdirAll(workDirFolder, 0777)
@@ -88,9 +87,9 @@ func TestWorkDirInit(t *testing.T) {
 	opts.RepoPath = repoPath
 	opts.Branch = "main"
 
-	dupver.InitWorkDir(workDirFolder, projectName, opts)
+	InitWorkDir(workDirFolder, projectName, opts)
 
-	cfg, _ := dupver.ReadWorkDirConfig(workDirFolder)
+	cfg, _ := ReadWorkDirConfig(workDirFolder)
 
 	if cfg.Repos[cfg.DefaultRepo] != repoPath {
 		t.Error("Incorrect repo path retrieved")
@@ -105,19 +104,19 @@ func TestWorkDirInit(t *testing.T) {
 }
 
 func TestCommit(t *testing.T) {
-	opts := dupver.Options{}
+	opts := Options{}
 	msg := "Commit random data"
 
 	// ----------- Create a repo ----------- //
-	homeDir := dupver.GetHome()
-	repoId := dupver.RandString(16, dupver.HexChars)
+	homeDir := GetHome()
+	repoId := RandString(16, HexChars)
 	repoFolder := ".dupver_repo_" + repoId
 	repoPath := filepath.Join(homeDir, "temp", repoFolder)
 	repoName := "test"
-	dupver.InitRepo(repoPath, repoName, "", zip.Deflate, false)
+	InitRepo(repoPath, repoName, "", zip.Deflate, false)
 
 	// ----------- Create a workdir ----------- //
-	workDirId := dupver.RandString(16, dupver.HexChars)
+	workDirId := RandString(16, HexChars)
 	workDirFolder := "Test_" + workDirId
 	err := os.MkdirAll(workDirFolder, 0777)
 
@@ -132,15 +131,15 @@ func TestCommit(t *testing.T) {
 	opts.RepoPath = repoPath
 	opts.Branch = "main"
 
-	dupver.InitWorkDir(workDirFolder, projectName, opts)
+	InitWorkDir(workDirFolder, projectName, opts)
 
 	// ----------- Create tar file with random data ----------- //
 	// TODO: add random permutes to data
-	fileName := dupver.CreateRandomTarFile(workDirFolder, repoPath)
+	fileName := CreateRandomTarFile(workDirFolder, repoPath)
 	fmt.Printf("Created tar file %s\n", fileName)
 
 	// ----------- Commit the tar file  ----------- //
-	workDir, _ :=  dupver.LoadWorkDir(workDirFolder)
+	workDir, _ :=  LoadWorkDir(workDirFolder)
 	snapshot := workDir.CommitFile(fileName, nil, msg, true)
 
 	// ----------- Commit the tar file  ----------- //
@@ -153,9 +152,9 @@ func TestCommit(t *testing.T) {
 	
 	// ----------- Checkout the tar file  ----------- //
 	mySnapshot := workDir.ReadSnapshot(snapshot.ID)
-	timeStr := dupver.TimeToPath(mySnapshot.Time)
+	timeStr := TimeToPath(mySnapshot.Time)
 	outputFileName := fmt.Sprintf("%s-%s-%s.tar", workDir.ProjectName, timeStr, snapshot.ID[0:16])
-	dupver.UnpackFile(outputFileName, opts.RepoPath, mySnapshot.ChunkIDs)
+	UnpackFile(outputFileName, opts.RepoPath, mySnapshot.ChunkIDs)
 	fmt.Printf("Wrote to %s\n", outputFileName)
 
 	cmd := exec.Command("diff", fileName, outputFileName)
@@ -177,25 +176,25 @@ func TestCommit(t *testing.T) {
 
 
 func TestCopy(t *testing.T) {
-	opts := dupver.Options{}
+	opts := Options{}
 	msg := "Commit random data"
 
 	// ----------- Create a repo ----------- //
-	homeDir := dupver.GetHome()
-	repoId := dupver.RandString(16, dupver.HexChars)
+	homeDir := GetHome()
+	repoId := RandString(16, HexChars)
 	repoFolder := ".dupver_repo_" + repoId
 	repoPath := filepath.Join(homeDir, "temp", repoFolder)
 	repoName := "test"
-	dupver.InitRepo(repoPath, repoName, "", zip.Deflate, false)
+	InitRepo(repoPath, repoName, "", zip.Deflate, false)
 
-	repoId2 := dupver.RandString(16, dupver.HexChars)
+	repoId2 := RandString(16, HexChars)
 	repoFolder2 := ".dupver_repo_" + repoId2
 	repoPath2 := filepath.Join(homeDir, "temp", repoFolder2)
 	repoName2 := "test2"
-	dupver.InitRepo(repoPath2, repoName2, "", zip.Deflate, false)
+	InitRepo(repoPath2, repoName2, "", zip.Deflate, false)
 
 	// ----------- Create a workdir ----------- //
-	workDirId := dupver.RandString(16, dupver.HexChars)
+	workDirId := RandString(16, HexChars)
 	workDirFolder := "Test_" + workDirId
 	err := os.MkdirAll(workDirFolder, 0777)
 
@@ -210,22 +209,22 @@ func TestCopy(t *testing.T) {
 	opts.RepoPath = repoPath
 	opts.Branch = "main"
 
-	dupver.InitWorkDir(workDirFolder, projectName, opts)
+	InitWorkDir(workDirFolder, projectName, opts)
 
 	// ----------- Create tar file with random data ----------- //
 	// TODO: add random permutes to data
-	fileName := dupver.CreateRandomTarFile(workDirFolder, repoPath)
+	fileName := CreateRandomTarFile(workDirFolder, repoPath)
 	fmt.Printf("Created tar file %s\n", fileName)
 
 	// ----------- Commit the tar file  ----------- //
-	workDir, _ :=  dupver.LoadWorkDir(workDirFolder)
+	workDir, _ :=  LoadWorkDir(workDirFolder)
 	snapshot := workDir.CommitFile(fileName, nil, msg, true)	
 
 	// ----------- Copy to the second repo  ----------- //
 	snapshotId := snapshot.ID
-	dupver.CopySnapshot(snapshotId, repoPath, repoPath2, opts)
+	CopySnapshot(snapshotId, repoPath, repoPath2, opts)
 
-	opts2 := dupver.Options{}
+	opts2 := Options{}
 	opts2.WorkDirName = opts.WorkDirName
 	opts2.RepoName = opts.RepoName
 	opts2.RepoPath = repoPath2
@@ -239,12 +238,12 @@ func TestCopy(t *testing.T) {
 	fmt.Printf("workdir: %+v\n\n", workDir)
 
 	// // ----------- Checkout the tar file  ----------- //
-	mySnapshot := dupver.ReadSnapshot(snapshot.ID, opts2)
-	timeStr := dupver.TimeToPath(mySnapshot.Time)
+	mySnapshot := ReadSnapshot(snapshot.ID, opts2)
+	timeStr := TimeToPath(mySnapshot.Time)
 	outputFileName := fmt.Sprintf("%s-%s-%s.tar", workDir.ProjectName, timeStr, snapshot.ID[0:16])
 
-	// dupver.UnpackFile(outputFileName, myWorkDirConfig.RepoPath, mySnapshot.ChunkIDs, verbosity)
-	dupver.UnpackFile(outputFileName, opts2.RepoPath, mySnapshot.ChunkIDs)
+	// UnpackFile(outputFileName, myWorkDirConfig.RepoPath, mySnapshot.ChunkIDs, verbosity)
+	UnpackFile(outputFileName, opts2.RepoPath, mySnapshot.ChunkIDs)
 	fmt.Printf("Wrote to %s\n", outputFileName)
 
 	cmd := exec.Command("diff", fileName, outputFileName)
