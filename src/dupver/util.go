@@ -9,6 +9,7 @@ import (
 	// "errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"os"
 	"path"
@@ -212,7 +213,7 @@ func WriteRandomTar(buf *os.File, workDirFolder string, repoPath string) {
 	}
 
 	for _, file := range files {
-		n := 50 * 1000 * 1000
+		n := 80 * 1000 * 1000
 		bytes := make([]byte, n)
 		seededRand.Read(bytes)
 
@@ -231,6 +232,85 @@ func WriteRandomTar(buf *os.File, workDirFolder string, repoPath string) {
 	if err := tw.Close(); err != nil {
 		log.Fatal(err)
 	}
+}
+
+// Given a filename, create a tar file with a dupver  workdir configuration
+// and and a set of 10 50 MB random binary files
+func CreateRandomFiles(workDirFolder string) ([]string, error) {
+	nFiles := 10
+	nBytes := 50 * 1000 * 1000
+	fileNames := []string{}
+
+	for i := 0; i < nFiles; i += 1 {
+		fileName := path.Join(workDirFolder, RandString(24, HexChars)+".bin")
+		fileNames = append(fileNames, fileName)
+		err := CreateRandomFile(fileName, nBytes)
+
+		if err != nil {
+			return []string{}, err
+		}
+	}
+
+	return fileNames, nil
+}
+
+func CreateRandomFile(fileName string, nBytes int) error {
+	f, err := os.Create(fileName)
+
+	if err != nil {
+		return err
+	}
+
+	WriteRandomBytes(f, nBytes)
+	f.Close()
+
+	return nil
+}
+
+// Given a file handle, create a random binary file
+func WriteRandomBytes(buf *os.File, nBytes int) error {
+	bytes := make([]byte, nBytes)
+	seededRand.Read(bytes)
+
+	if _, err := buf.Write(bytes); err != nil {
+		return err
+	}
+
+
+	if err := buf.Close(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func DiffFile(f1 string, f2 string) (bool, error) {
+	dat1, err1 := ioutil.ReadFile(f1)
+
+	if err1 != nil {
+		return false, err1
+	}
+
+	dat2, err2 := ioutil.ReadFile(f2)
+
+	if err2 != nil {
+		return false, err2
+	}	
+
+	if len(dat1) != len(dat2) {
+		return false, nil
+	}
+
+	for i := 0; i < len(dat1); i++ {
+		x1 := dat1[i]
+		x2 := dat2[i]
+
+		if x1 != x2 {
+			return false, nil
+		}
+	}
+
+	return true, nil
 }
 
 // Print an object as JSON to stdout

@@ -780,7 +780,7 @@ func (wd WorkDir) LastSnapshot() (Commit, error) {
 	return snapshotsByDate[snapshotDates[len(snapshotDates)-1]], nil
 }
 
-func (wd WorkDir) Commit(message string, jsonOutput bool) {
+func (wd WorkDir) Commit(message string, jsonOutput bool) Commit {
 	containingFolder := filepath.Dir(wd.Path)
 	workdirFolder := filepath.Base(wd.Path)
 	fancyprint.Debugf("%s -> %s, %s\n", wd.Path, containingFolder, workdirFolder)
@@ -792,8 +792,9 @@ func (wd WorkDir) Commit(message string, jsonOutput bool) {
 
 	tarFile := CreateTar(containingFolder, workdirFolder)
 	parentIds := []string{}
-	wd.CommitFile(tarFile, parentIds, message, jsonOutput)
+	commit := wd.CommitFile(tarFile, parentIds, message, jsonOutput)
 	os.Remove(tarFile) // Delete the temporary file 
+	return commit
 }
 
 // Commit a tar file into the repository. Project working directory name,

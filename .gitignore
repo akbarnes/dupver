@@ -7,6 +7,10 @@
 *.tar
 *.exe
 *.swp
+*.bin
+*.tar
+*.out
+config.toml
 
 /chunks/*
 /data/*
@@ -21,4 +25,3 @@
 *.orig
 
 *.code-workspace
-/cp.out

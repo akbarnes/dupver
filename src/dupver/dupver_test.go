@@ -103,7 +103,7 @@ func TestWorkDirInit(t *testing.T) {
 	os.RemoveAll(workDirFolder)
 }
 
-func TestCommit(t *testing.T) {
+func TestCommitFile(t *testing.T) {
 	opts := Options{}
 	msg := "Commit random data"
 
@@ -156,26 +156,97 @@ func TestCommit(t *testing.T) {
 	outputFileName := fmt.Sprintf("%s-%s-%s.tar", workDir.ProjectName, timeStr, snapshot.ID[0:16])
 	UnpackFile(outputFileName, opts.RepoPath, mySnapshot.ChunkIDs)
 	fmt.Printf("Wrote to %s\n", outputFileName)
-
-	cmd := exec.Command("diff", fileName, outputFileName)
-	log.Printf("Running command and waiting for it to finish...")
-	output, err := cmd.Output()
-
-	if err != nil {
-		fmt.Printf("diff %s %s\nreturned error\nDiff output:\n%s", fileName, outputFileName, output)
-		t.Error("Error comparing tar files")
-	}
-
-	if len(output) > 0 {
-		t.Error("Checked out tar file dose not match input")
+	
+	if isEqual, _ := DiffFile(fileName,  outputFileName); !isEqual {
+		t.Error("Checked out tar file does not match input")
 	}
 
 	os.RemoveAll(workDirFolder)
 	os.RemoveAll(repoPath)
 }
 
+func TestCommit(t *testing.T) {
+	opts := Options{}
+	msg := "Commit random data"
 
-func TestCopy(t *testing.T) {
+	// ----------- Create a repo ----------- //
+	homeDir := GetHome()
+	repoId := RandString(16, HexChars)
+	repoFolder := ".dupver_repo_" + repoId
+	repoPath := filepath.Join(homeDir, "temp", repoFolder)
+	repoName := "test"
+	InitRepo(repoPath, repoName, "", zip.Deflate, false)
+
+	// ----------- Create a workdir ----------- //
+	workDirId := RandString(16, HexChars)
+	workDirFolder := "Test_Folder_" + workDirId
+	err := os.MkdirAll(workDirFolder, 0777)
+
+	if err != nil {
+		t.Error("Could not create workdir folder " + workDirFolder)
+	}
+
+	projectName := ""
+
+	opts.WorkDirName = "test"
+	opts.RepoName = "test"
+	opts.RepoPath = repoPath
+	opts.Branch = "main"
+
+	InitWorkDir(workDirFolder, projectName, opts)
+
+	// ----------- Create tar file with random data ----------- //
+	// TODO: add random permutes to data
+	fileNames, err := CreateRandomFiles(workDirFolder)
+
+	for i, fileName := range fileNames {
+		fmt.Printf("Created tar file %d %s\n", i, fileName)
+	}
+
+	// ----------- Commit the tar file  ----------- //
+	workDir, _ :=  LoadWorkDir(workDirFolder)
+	fmt.Printf("workdir: %+v\n\n", workDir)		
+	snapshot := workDir.Commit(msg, false)
+	fmt.Printf("snapshot: %+v\n\n", snapshot)
+
+	// ----------- Commit the tar file  ----------- //
+	// TODO: Replace with PrintSnapshots
+	workDir.PrintSnapshots()
+
+	// ----------- Checkout the tar file  ----------- //
+	mySnapshot := workDir.ReadSnapshot(snapshot.ID)
+	timeStr := TimeToPath(mySnapshot.Time)
+	outputFileName := fmt.Sprintf("%s-%s-%s.tar", workDir.ProjectName, timeStr, snapshot.ID[0:16])
+	workDir.UnpackSnapshot(snapshot.ID, outputFileName) 
+	fmt.Printf("Wrote to %s\n", outputFileName)
+
+	// ----------- Create a workdir ----------- //
+	extractDirId := RandString(16, HexChars)
+	extractDirFolder := "Extract_Folder_" + extractDirId
+	extractDirErr := os.MkdirAll(extractDirFolder, 0777)
+
+	if extractDirErr != nil {
+		t.Error("Could not create extract folder " + extractDirFolder)
+	}
+
+	cmd := exec.Command("tar", "xf", outputFileName, "--directory", extractDirFolder)
+	log.Printf("Running command and waiting for it to finish...")
+	output, err := cmd.Output()	
+
+	for _, fileName := range fileNames {
+		inputBinName := filepath.Join(workDirFolder, fileName)
+		outputBinName := filepath.Join(extractDirFolder, workDirFolder, fileName)
+
+		if isEqual, _ := DiffFile(inputBinName,  outputBinName); !isEqual {
+			t.Error("Checked out tar file does not match input")
+		}		
+	}
+
+	os.RemoveAll(workDirFolder)
+	os.RemoveAll(repoPath)
+}
+
+func TstCopy(t *testing.T) {
 	opts := Options{}
 	msg := "Commit random data"
 
@@ -246,7 +317,7 @@ func TestCopy(t *testing.T) {
 	UnpackFile(outputFileName, opts2.RepoPath, mySnapshot.ChunkIDs)
 	fmt.Printf("Wrote to %s\n", outputFileName)
 
-	cmd := exec.Command("diff", fileName, outputFileName)
+	cmd := exec.Command("diff", "-ReferenceObject", fileName, "-DifferenceObject", outputFileName)
 	log.Printf("Running command and waiting for it to finish...")
 	output, err := cmd.Output()
 
