@@ -233,6 +233,11 @@ func TestCommit(t *testing.T) {
 	log.Printf("Running command and waiting for it to finish...")
 	output, err := cmd.Output()	
 
+	if err != nil {
+		fmt.Printf("tar xf %s -C %s\nreturned error\ntar output:\n%s", outputFileName, extractDirFolder, output)
+		t.Error("Tar retuned error")
+	}
+
 	for _, fileName := range fileNames {
 		inputBinName := filepath.Join(workDirFolder, fileName)
 		outputBinName := filepath.Join(extractDirFolder, workDirFolder, fileName)
