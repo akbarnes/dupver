@@ -23,7 +23,8 @@ import (
 	"github.com/akbarnes/dupver/src/fancyprint"
 )
 
-type workDirConfig struct {
+type WorkDirConfig struct {
+	Version 	int
 	WorkDirName string
 	Branch      string
 	DefaultRepo string
@@ -95,7 +96,7 @@ func InitWorkDir(workDirFolder string, workDirName string, opts Options) {
 		fmt.Println(workDirName)
 	}
 
-	var myConfig workDirConfig
+	var myConfig WorkDirConfig
 	// need to pass this as a parameter
 	myConfig.DefaultRepo = repoName
 
@@ -109,7 +110,7 @@ func InitWorkDir(workDirFolder string, workDirName string, opts Options) {
 }
 
 // Print the project working directory configuration
-func (cfg workDirConfig) Print() {
+func (cfg WorkDirConfig) Print() {
 	// WorkDirName = "admin"
 	// Branch = "test"
 	// DefaultRepo = "store"
@@ -122,7 +123,7 @@ func (cfg workDirConfig) Print() {
 	cfg.PrintRepos()
 }
 
-func (cfg workDirConfig) PrintRepos() {
+func (cfg WorkDirConfig) PrintRepos() {
 	for name, path := range cfg.Repos {
 		repoCfg, err := ReadRepoConfig(path)
 
@@ -153,7 +154,7 @@ func (cfg workDirConfig) PrintRepos() {
 	}
 }
 
-func (cfg workDirConfig) PrintReposAsJson() {
+func (cfg WorkDirConfig) PrintReposAsJson() {
 	type repoConfigPrint struct {
 		Name              string
 		Path              string
@@ -185,7 +186,7 @@ func (cfg workDirConfig) PrintReposAsJson() {
 	PrintJson(repoConfigs)
 }
 
-func (cfg workDirConfig) PrintReposConfig() {
+func (cfg WorkDirConfig) PrintReposConfig() {
 	for name, path := range cfg.Repos {
 		repoCfg, err := ReadRepoConfig(path)
 		Check(err)
@@ -209,7 +210,7 @@ func (cfg workDirConfig) PrintReposConfig() {
 	}
 }
 
-func (cfg workDirConfig) PrintJson() {
+func (cfg WorkDirConfig) PrintJson() {
 	type workDirConfigPrint struct {
 		WorkDirName string
 		Branch      string
@@ -311,7 +312,7 @@ func ListWorkDirReposAsJson(workDirPath string) {
 }
 
 // Change the project name in the working directory configuration
-func UpdateWorkDirName(myWorkDirConfig workDirConfig, workDirName string) workDirConfig {
+func UpdateWorkDirName(myWorkDirConfig WorkDirConfig, workDirName string) WorkDirConfig {
 	if len(workDirName) > 0 {
 		myWorkDirConfig.WorkDirName = workDirName
 	}
@@ -321,7 +322,7 @@ func UpdateWorkDirName(myWorkDirConfig workDirConfig, workDirName string) workDi
 
 // Load a project working directory configuration given
 // the working directory path
-func ReadWorkDirConfig(workDir string) (workDirConfig, error) {
+func ReadWorkDirConfig(workDir string) (WorkDirConfig, error) {
 	var configPath string
 
 	if len(workDir) == 0 {
@@ -335,27 +336,32 @@ func ReadWorkDirConfig(workDir string) (workDirConfig, error) {
 
 // Load a project working directory configuration given
 // the project working directory configuration file path
-func ReadWorkDirConfigFile(filePath string) (workDirConfig, error) {
-	var myConfig workDirConfig
+func ReadWorkDirConfigFile(filePath string) (WorkDirConfig, error) {
+	var cfg WorkDirConfig
 
 	f, err := os.Open(filePath)
 
 	if err != nil {
-		return workDirConfig{}, errors.New("config file missing")
+		return WorkDirConfig{}, errors.New("config file missing")
 	}
 
-	if _, err = toml.DecodeReader(f, &myConfig); err != nil {
+	if _, err = toml.DecodeReader(f, &cfg); err != nil {
 		panic(fmt.Sprintf("Invalid configuration file: %s\n", filePath))
 	}
 
 	f.Close()
 
-	return myConfig, nil
+	// TODO: store file version globally
+	if cfg.Version != 2 {
+		return cfg, errors.New("wrong version of config file")
+	}
+
+	return cfg, nil
 }
 
 // Load a project working directory configuration given
 // the project working directory configuration file path
-func InstantiateWorkDir(cfg workDirConfig) (WorkDir) {
+func InstantiateWorkDir(cfg WorkDirConfig) (WorkDir) {
 	wdPath, err := os.Getwd()
 	Check(err)
 	wd := WorkDir{ProjectName: cfg.WorkDirName, Branch: cfg.Branch, Path: wdPath}
@@ -379,7 +385,7 @@ func LoadWorkDir(workDirPath string) (WorkDir, error) {
 
 // Save a project working directory configuration given
 // the working directory path
-func (cfg workDirConfig) Save(workDir string, forceWrite bool) {
+func (cfg WorkDirConfig) Save(workDir string, forceWrite bool) {
 	configPath := filepath.Join(".dupver", "config.toml")
 
 	if len(workDir) > 0 {
@@ -391,7 +397,7 @@ func (cfg workDirConfig) Save(workDir string, forceWrite bool) {
 
 // Save a project working directory configuration given
 // the project working directory configuration file path
-func (cfg workDirConfig) SaveFile(configPath string, forceWrite bool) {
+func (cfg WorkDirConfig) SaveFile(configPath string, forceWrite bool) {
 	if _, err := os.Stat(configPath); err == nil && !forceWrite {
 		// panic("Refusing to write existing project workdir config " + configPath)
 		panic(fmt.Sprintf("Refusing to write existing project workdir config: %s\n", configPath))

@@ -107,6 +107,7 @@ will limit only a single specified snapshot id to be copied.`,
 
 		if len(args) >= 2 {
 			snapshotId = dupver.GetFullSnapshotId(args[1], opts)
+			// TODO: convert copysnapshot to be a method
 			dupver.CopySnapshot(snapshotId, sourcePath, destPath, opts)
 		} else {
 			//dupver.CopyRepo(opts)

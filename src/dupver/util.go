@@ -173,7 +173,7 @@ func WriteRandomTar(buf *os.File, workDirFolder string, repoPath string) {
 		fancyprint.Warnf("Repo path not specified, setting to %s\n", repoPath)
 	}
 
-	// var myConfig workDirConfig
+	// var myConfig WorkDirConfig
 	// myConfig.RepoPath = repoPath
 	// myConfig.WorkDirName = workDirName
 	// myEncoder := toml.NewEncoder(tw)
