@@ -61,7 +61,7 @@ func TestWorkRepoInit(t *testing.T) {
 	os.RemoveAll(repoPath)
 }
 
-func TestWorkDirInit(t *testing.T) {
+func TstWorkDirInit(t *testing.T) {
 	opts := Options{}
 	homeDir := GetHome()
 
@@ -103,7 +103,7 @@ func TestWorkDirInit(t *testing.T) {
 	os.RemoveAll(workDirFolder)
 }
 
-func TestCommitFile(t *testing.T) {
+func TstCommitFile(t *testing.T) {
 	opts := Options{}
 	msg := "Commit random data"
 
@@ -239,16 +239,21 @@ func TestCommit(t *testing.T) {
 	}
 
 	for _, fileName := range fileNames {
-		inputBinName := filepath.Join(workDirFolder, fileName)
-		outputBinName := filepath.Join(extractDirFolder, workDirFolder, fileName)
+		outputBinName := filepath.Join(extractDirFolder, fileName)
+		log.Printf("Comparing %s and %s\n", fileName, outputBinName)
 
-		if isEqual, _ := DiffFile(inputBinName,  outputBinName); !isEqual {
-			t.Error("Checked out tar file does not match input")
+
+		isEqual, diffErr := DiffFile(fileName,  outputBinName)
+
+		if diffErr != nil {
+			t.Error("Error comparing extracted files")
+		} else if !isEqual {
+			t.Error("Checked out file does not match input")
 		}		
 	}
 
-	os.RemoveAll(workDirFolder)
-	os.RemoveAll(repoPath)
+	// os.RemoveAll(workDirFolder)
+	// os.RemoveAll(repoPath)
 }
 
 func TstCopy(t *testing.T) {
