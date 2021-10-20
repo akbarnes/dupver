@@ -24,67 +24,52 @@ a few GB, but it is expected to scale up to the low 100's of GB.
 There are a number of [similar software projects](similar-software.md) both
 in terms of technical implementation and use case.
 
+## TODO
+- Add partial checkouts
+- Add trees
+- Use snapshot structures from Xover
+- Add diff?
+- Add json output
 
-## Setup
-To build from source run `go build` or `go install`.
-
-## Update repos to v0.4 format
-1. Add prev pointers to snapshot files
-2. Add branch & head pointers
-3. Convert snapshot filenames to drop date
-
-## Update repos to v0.8  format
-1. Remove head pointers
-2. Add main branch tag to snapshots
+## Installation
+To build:
+``` bash
+go mod init dupver
+go mod tidy
+go get github.com/akbarnes/dupver
+```
 
 ## Usage
 
-### Initialize repository
-Initialize a repository with
-`dupver repo init repo_path`
-
-Specify a name when initializing a repository
-`dupver repo init repo_path repo_name`
-
-### Initialize project working directory
-From inside the working directory
-`dupver -r repo_path init -p project_name`
-
-Or from the parent directory
-`dupver -r repo_path init -p project_name working_directory`
-
 ### Commit
-Stage your files by adding them to a tar file
+The `-msg` or `-m` message flag is optional, as is the `-commit` or `-ci` flag as commiting is the default action:
+``` bash
+gover -commit -msg 'a message' file1 file2 file3
+gover -ci -msg 'a message' file1 file2 file3
+gover -m  'a message 'file1 file2 file3
+gover file1 file2 file3
+```
 
-`tar cfv tarfile.tar file1 file2 file`
+### Log
+This takes the optional `-json` or `-j` argument to output json for use with object shells. To list all the snapshots:
+``` bash
+gover -log
+gover -json -log
+gover -j -log
+gover -l
+```
 
-Commit the tarfile with
-`dupver commit -m "commit message" tarfile.tar`
+To list the files in a particular snapshot:
+``` bash
+gover -log snapshot_time
+gover -log -json snapshot_time
+```
 
-Alternatively run 
-`dupver commit -m "commit message"`
-from within the working directory
-
-To commit to a specific repository run
-`dupver commit -n repo_name -m "commit message"`    
-
-### List commits
-List all commits
-`dupver log`
-
-List a specific commit
-`dupver log commit_id`
-
-### Copy
-Copy a commit 
-`dupver copy dest_repo commit_id`
-
-### Check if files are modified/added
-`dupver status`
-
-### Restore
-Restore another commit
-`dupver checkout commit_id`
-
-Restore to a particular file
-`dupver checkout -o filename.tar commit_id `
+## Checkout
+This takes an optional argument to specify an output folder. To checkout a snapshot:
+``` bash
+gover -checkout snapshot_time
+gover -co snapshot_time
+gover -out output_folder -co snapshot_time
+gover -o output_folder -co snapshot_time
+```

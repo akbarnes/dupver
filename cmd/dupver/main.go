@@ -7,17 +7,24 @@ import (
 	"math/rand"
 	"os"
 	"strconv"
-	"errors"
 
 	"github.com/akbarnes/dupver"
 	"github.com/restic/chunker"
 )
 
-func ReadFilters() ([]string, error) {
+func ReadFilters() []string {
 	filterPath := ".dupver_ignore"
 	var filters []string
-	if f, err := os.Open(filterPath); err != nil && !os.IsNotExist(err) {
-		return []string{}, errors.New("Ignore file .dupver_ignore exists, but encountered an error while trying to open it")
+	f, openErr := os.Open(filterPath) 
+
+	if openErr != nil {
+		if os.IsNotExist(openErr) {
+			return []string{}
+		} else {
+			// TODO: use logger instead
+			os.Stderr.WriteString("Ignore file .dupver_ignore exists but encountered an error while trying to open it, aborting\n")
+			os.Exit(1)
+		}
 	}
 
 
@@ -28,10 +35,11 @@ func ReadFilters() ([]string, error) {
 	}
 
 	if err := scanner.Err(); err != nil {
-		return []string{}, errors.New("Encountered an error while attemping to read .dupver_ignore filters")
+		os.Stderr.WriteString("Encountered an error while attemping to read .dupver_ignore filters, aborting\n")
+		os.Exit(1)
 	}
 
-	return filters, nil
+	return filters
 }
 
 var Message string
