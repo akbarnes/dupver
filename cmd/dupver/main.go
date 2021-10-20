@@ -113,6 +113,8 @@ func main() {
 		checkoutCmd.Parse(os.Args[2:])
 		snapshotNum, _ := strconv.Atoi(checkoutCmd.Arg(0))
 		dupver.CheckoutSnaphot(snapshotNum, OutputFolder)
+	} else if cmd == "version" || cmd == "ver" {
+		fmt.Println("2.0.0")
 	} else {
 		fmt.Println("Unknown subcommand")
 		os.Exit(1)
