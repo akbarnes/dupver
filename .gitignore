@@ -1,23 +1,16 @@
-*.pwb
-*.PWB
-*.raw
-*.RAW
-*.txt
-*.tgz
-*.tar
+# Binaries for programs and plugins
 *.exe
-*.swp
+*.exe~
+*.dll
+*.so
+*.dylib
 
-/chunks/*
-/data/*
-/SyntheticUSA/*
-/dupver.code-workspace
-/dupver
-/bin/*
-    
-/dupver-linux-x64
-/Test_*/
-.DS_Store
-*.orig
+# Test binary, built with `go test -c`
+*.test
 
-*.code-workspace
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
+
+# Dependency directories (remove the comment below to include it)
+# vendor/
+/.gover/*
