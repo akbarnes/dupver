@@ -15,23 +15,23 @@ const HexChars = "0123456789abcdef"
 var seededRand *rand.Rand = rand.New(rand.NewSource(time.Now().UnixNano()))
 
 func ExcludedFile(fileName string, info os.FileInfo, filters []string) bool {
-	// goverDir := filepath.Join(WorkingDirectory, ".gover2")
-	goverDir := ".gover2"
-	goverPattern := filepath.Join(goverDir, "**")
+	// dupverDir := filepath.Join(WorkingDirectory, ".gover2")
+	dupverDir := ".dupver"
+	dupverPattern := filepath.Join(dupverDir, "**")
 
 	if info.IsDir() {
 		return true
 	}
 
-	matched, err := doublestar.PathMatch(goverPattern, fileName)
+	matched, err := doublestar.PathMatch(dupverPattern, fileName)
 
 	if err != nil && VerboseMode {
-		fmt.Printf("Error matching %s\n", goverDir)
+		fmt.Printf("Error matching %s\n", dupverDir)
 	}
 
 	if matched {
 		if VerboseMode {
-			fmt.Printf("Skipping file %s in .gover2\n", fileName)
+			fmt.Printf("Skipping file %s in .dupver\n", fileName)
 		}
 
 		return true
@@ -41,7 +41,7 @@ func ExcludedFile(fileName string, info os.FileInfo, filters []string) bool {
 		matched, err := doublestar.PathMatch(pattern, fileName)
 
 		if err != nil && VerboseMode {
-			fmt.Printf("Error matching %s\n", goverDir)
+			fmt.Printf("Error matching %s\n", dupverDir)
 		}
 
 		if matched {

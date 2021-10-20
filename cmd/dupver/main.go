@@ -7,15 +7,20 @@ import (
 	"math/rand"
 	"os"
 	"strconv"
+	"errors"
 
 	"github.com/akbarnes/dupver"
 	"github.com/restic/chunker"
 )
 
-func ReadFilters() []string {
+func ReadFilters() ([]string, error) {
 	filterPath := ".dupver_ignore"
 	var filters []string
-	f, _ := os.Open(filterPath)
+	if f, err := os.Open(filterPath); err != nil && !os.IsNotExist(err) {
+		return []string{}, errors.New("Ignore file .dupver_ignore exists, but encountered an error while trying to open it")
+	}
+
+
 	scanner := bufio.NewScanner(f)
 
 	for scanner.Scan() {
@@ -23,18 +28,18 @@ func ReadFilters() []string {
 	}
 
 	if err := scanner.Err(); err != nil {
-		fmt.Fprintln(os.Stderr, "reading standard input:", err)
+		return []string{}, errors.New("Encountered an error while attemping to read .dupver_ignore filters")
 	}
 
-	return filters
+	return filters, nil
 }
 
 var Message string
 var OutputFolder string
 
 func AddOptionFlags(fs *flag.FlagSet) {
-	fs.BoolVar(&gover.VerboseMode, "verbose", false, "verbose mode")
-	fs.BoolVar(&gover.VerboseMode, "v", false, "verbose mode")
+	fs.BoolVar(&dupver.VerboseMode, "verbose", false, "verbose mode")
+	fs.BoolVar(&dupver.VerboseMode, "v", false, "verbose mode")
 }
 
 func main() {
@@ -66,22 +71,22 @@ func main() {
 		// p, _ := chunker.RandomPolynomial()
 		const p chunker.Pol = 0x3abc9bff07d9e5
 
-		if gover.VerboseMode {
+		if dupver.VerboseMode {
 			fmt.Printf("Random polynomial: ")
 			fmt.Println(p)
 		}
 
 		const packSize int64 = 100 * 1024 * 1024
-		gover.CommitSnapshot(Message, filters, p, packSize)
+		dupver.CommitSnapshot(Message, filters, p, packSize)
 	} else if cmd == "status" || cmd == "st" {
 		AddOptionFlags(statusCmd)
 		statusCmd.Parse(os.Args[2:])
 		filters := ReadFilters()
 
 		if statusCmd.NArg() >= 1 {
-			gover.DiffSnapshot(statusCmd.Arg(0), filters)
+			dupver.DiffSnapshot(statusCmd.Arg(0), filters)
 		} else {
-			gover.DiffSnapshot("", filters)
+			dupver.DiffSnapshot("", filters)
 		}
 	} else if cmd == "log" {
 		AddOptionFlags(logCmd)
@@ -89,9 +94,9 @@ func main() {
 
 		if logCmd.NArg() >= 1 {
 			snapshotNum, _ := strconv.Atoi(logCmd.Arg(0))
-			gover.LogSingleSnapshot(snapshotNum)
+			dupver.LogSingleSnapshot(snapshotNum)
 		} else {
-			gover.LogAllSnapshots()
+			dupver.LogAllSnapshots()
 		}
 	} else if cmd == "checkout" || cmd == "co" {
 		AddOptionFlags(checkoutCmd)
@@ -99,7 +104,7 @@ func main() {
 		checkoutCmd.StringVar(&OutputFolder, "o", "", "output folder")
 		checkoutCmd.Parse(os.Args[2:])
 		snapshotNum, _ := strconv.Atoi(checkoutCmd.Arg(0))
-		gover.CheckoutSnaphot(snapshotNum, OutputFolder)
+		dupver.CheckoutSnaphot(snapshotNum, OutputFolder)
 	} else {
 		fmt.Println("Unknown subcommand")
 		os.Exit(1)
