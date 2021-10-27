@@ -12,18 +12,17 @@ import (
 	"github.com/restic/chunker"
 )
 
-func ReadFilters() []string {
+func ReadFilters() ([]string, error) {
 	filterPath := ".dupver_ignore"
 	var filters []string
-	f, openErr := os.Open(filterPath) 
+	f, err := os.Open(filterPath)
 
-	if openErr != nil {
+	if err != nil {
 		if os.IsNotExist(openErr) {
 			return []string{}
 		} else {
-			// TODO: use logger instead
-			os.Stderr.WriteString("Ignore file .dupver_ignore exists but encountered an error while trying to open it, aborting\n")
-			os.Exit(1)
+            err = fmt.Errorf("Ignore file %s exists but encountered error trying to open it: %w", filterPath, err)
+            return []string, err
 		}
 	}
 
@@ -34,12 +33,12 @@ func ReadFilters() []string {
 		filters = append(filters, scanner.Text())
 	}
 
-	if err := scanner.Err(); err != nil {
-		os.Stderr.WriteString("Encountered an error while attemping to read .dupver_ignore filters, aborting\n")
-		os.Exit(1)
+	if err = scanner.Err(); err != nil {
+		err = fmt.Errorf("Encountered an error while attemping to read filters from %s: %w", filterPath, err)
+        return []string, err
 	}
 
-	return filters
+	return filters, nil
 }
 
 var Message string
@@ -89,7 +88,11 @@ func main() {
 	} else if cmd == "status" || cmd == "st" {
 		AddOptionFlags(statusCmd)
 		statusCmd.Parse(os.Args[2:])
-		filters := ReadFilters()
+		filters, err := ReadFilters()
+
+        if err != nil {
+            fmt.Printf("Encountered error when trying to read filters file, aborting:\n%v\n", err)
+        }
 
 		if statusCmd.NArg() >= 1 {
 			dupver.DiffSnapshot(statusCmd.Arg(0), filters)
