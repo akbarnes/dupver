@@ -7,6 +7,13 @@
 - `trees/`
 - `tags/` (to be implemented later)
 - `branches/` (to be implemented later)
+- `head.json`
+
+## Repo Settings `dupver_settings.toml`
+- `repo_version`
+- `dupver_version`
+- `compression_level`
+- `prime`
 
 ## Snapshots `snapshots/<snapshot_id>.json`
 - `username` (to be added later, this can be queried)

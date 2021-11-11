@@ -7,6 +7,19 @@ const PACK_ID_LEN int = 64
 type Snapshot struct {
 	Message      string
 	Time         string
+}
+
+type FileProperties struct {
+    Hash string
+    Length int64
+    ModificationTime string
+    CreationTime string
+    Owner string
+    Group string
+    Permissions string
+}
+
+type SnapshotFiles struct {
 	ChunkPackIds map[string]string
 	FileChunkIds map[string][]string
 	FileModTimes map[string]string

@@ -41,7 +41,6 @@ func ReadFilters() ([]string, error) {
 	return filters, nil
 }
 
-var Message string
 var OutputFolder string
 
 func AddOptionFlags(fs *flag.FlagSet) {
@@ -65,12 +64,13 @@ func main() {
 	cmd := os.Args[1]
 
 	if cmd == "commit" || cmd == "ci" {
+        message := ""
 		AddOptionFlags(commitCmd)
 		commitCmd.Parse(os.Args[2:])
 		filters := ReadFilters()
 
 		if commitCmd.NArg() >= 1 {
-			Message = commitCmd.Arg(0)
+			message = commitCmd.Arg(0)
 		}
 
 		// TODO: need to use fixed poly
@@ -84,7 +84,7 @@ func main() {
 		}
 
 		const packSize int64 = 100 * 1024 * 1024
-		dupver.CommitSnapshot(Message, filters, p, packSize)
+		dupver.CommitSnapshot(message, filters, p, packSize)
 	} else if cmd == "status" || cmd == "st" {
 		AddOptionFlags(statusCmd)
 		statusCmd.Parse(os.Args[2:])
