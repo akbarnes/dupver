@@ -16,6 +16,9 @@ func CommitSnapshot(message string, filters []string, poly chunker.Pol, maxPackB
 	buf := make([]byte, 8*1024*1024) // reuse this buffer
 	head := ReadHead()
 	snap, ts := CreateSnapshot(message)
+    files := map[string]SnapshotFile{}
+    packs := map[string][]string
+
 	dupverDir := filepath.Join(WorkingDirectory, ".dupver")
 
 	if err := os.MkdirAll(dupverDir, 0777); err != nil {
@@ -50,17 +53,18 @@ func CommitSnapshot(message string, filters []string, poly chunker.Pol, maxPackB
 		}
 
 		modTime := props.ModTime().Format("2006-01-02T15-04-05")
-		snap.FileModTimes[fileName] = modTime
-		snap.FileChunkIds[fileName] = []string{}
+        file := SnapshotFile{ModTime: modTime, Size: props.Size()}
+		file.ChunkIds = []string{}
 
-		if headModTime, ok := head.FileModTimes[fileName]; ok && modTime == headModTime {
-			if VerboseMode {
-				fmt.Printf("Skipping %s\n", fileName)
-			}
+        // TODO: fix this. Currently not reading in filechunks from head 
+		//if headModTime, ok := head.FileModTimes[fileName]; ok && modTime == headModTime {
+		//	if VerboseMode {
+		//		fmt.Printf("Skipping %s\n", fileName)
+		//	}
 
-			snap.AddFileChunkIds(head, fileName)
-			return nil
-		}
+		//	snap.AddFileChunkIds(head, fileName)
+		//	return nil
+		//}
 
 		in, err := os.Open(fileName)
 
@@ -139,6 +143,7 @@ func CommitSnapshot(message string, filters []string, poly chunker.Pol, maxPackB
 			}
 		}
 
+        files[fileName] = file
 		return nil
 	}
 

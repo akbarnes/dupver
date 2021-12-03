@@ -3,6 +3,7 @@
 ## Directory Organization
 - `dupver_settings.toml`
 - `snapshots/`
+- `packs/`
 - `files/`
 - `trees/`
 - `tags/` (to be implemented later)
@@ -28,10 +29,9 @@ Dictionary indexed by filename where each entry has
 - `md5hash`?
 - `length` 
 - `mtime`
-- `ctime`
-- `owner`
-- `group`
-- `permissions`
+- `chunks`
+
+Note: removing permissions because git doesn't have it
 
 ## Trees `trees/<snapshot_id.json>`
 Dictionary indexed by pack id where each entry is a list of chunk ids
