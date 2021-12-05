@@ -14,10 +14,10 @@ import (
 
 func CommitSnapshot(message string, filters []string, poly chunker.Pol, maxPackBytes int64) {
 	buf := make([]byte, 8*1024*1024) // reuse this buffer
-	head := ReadHead()
-	snap, ts := CreateSnapshot(message)
-    files := map[string]SnapshotFile{}
-    packs := map[string][]string
+	// head := ReadHead()
+	snap := CreateSnapshot(message)
+	files := map[string]SnapshotFile{}
+	packs := map[string]string{}
 
 	dupverDir := filepath.Join(WorkingDirectory, ".dupver")
 
@@ -53,10 +53,10 @@ func CommitSnapshot(message string, filters []string, poly chunker.Pol, maxPackB
 		}
 
 		modTime := props.ModTime().Format("2006-01-02T15-04-05")
-        file := SnapshotFile{ModTime: modTime, Size: props.Size()}
+		file := SnapshotFile{ModTime: modTime, Size: props.Size()}
 		file.ChunkIds = []string{}
 
-        // TODO: fix this. Currently not reading in filechunks from head 
+		// TODO: fix this. Currently not reading in filechunks from head
 		//if headModTime, ok := head.FileModTimes[fileName]; ok && modTime == headModTime {
 		//	if VerboseMode {
 		//		fmt.Printf("Skipping %s\n", fileName)
@@ -98,11 +98,11 @@ func CommitSnapshot(message string, filters []string, poly chunker.Pol, maxPackB
 			}
 
 			chunkId := fmt.Sprintf("%064x", sha256.Sum256(chunk.Data))
-			snap.FileChunkIds[fileName] = append(snap.FileChunkIds[fileName], chunkId)
+			file.ChunkIds = append(file.ChunkIds, chunkId)
 
-			if _, ok := snap.ChunkPackIds[chunkId]; ok {
+			if _, ok := packs[chunkId]; ok {
 				if VerboseMode {
-					fmt.Printf("Skipping Chunk ID %s already in pack %s\n", chunkId[0:16], snap.ChunkPackIds[chunkId][0:16])
+					fmt.Printf("Skipping Chunk ID %s already in pack %s\n", chunkId[0:16], packs[chunkId][0:16])
 				}
 
 				continue
@@ -112,11 +112,10 @@ func CommitSnapshot(message string, filters []string, poly chunker.Pol, maxPackB
 				fmt.Printf("Chunk %s: chunk size %d kB\n", chunkId[0:16], chunk.Length/1024)
 			}
 
-			snap.ChunkPackIds[chunkId] = packId
+			packs[chunkId] = packId
 
 			// save zip data
 			WriteChunkToPack(zipWriter, chunkId, chunk)
-			snap.ChunkPackIds[chunkId] = packId
 			packBytesRemaining -= int64(chunk.Length)
 
 			if packBytesRemaining <= 0 {
@@ -143,7 +142,7 @@ func CommitSnapshot(message string, filters []string, poly chunker.Pol, maxPackB
 			}
 		}
 
-        files[fileName] = file
+		files[fileName] = file
 		return nil
 	}
 
@@ -161,6 +160,8 @@ func CommitSnapshot(message string, filters []string, poly chunker.Pol, maxPackB
 		panic(fmt.Sprintf("Error closing file for pack %s\n", packId))
 	}
 
-	snap.Write(ts)
-	WriteHead(ts)
+	snap.Write()
+	// Write files
+	// Write tree
+	// WriteHead(ts)
 }

@@ -6,7 +6,8 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
-	"strconv"
+
+	// "strconv"
 
 	"github.com/akbarnes/dupver"
 	"github.com/restic/chunker"
@@ -18,14 +19,13 @@ func ReadFilters() ([]string, error) {
 	f, err := os.Open(filterPath)
 
 	if err != nil {
-		if os.IsNotExist(openErr) {
-			return []string{}
+		if os.IsNotExist(err) {
+			return []string{}, nil
 		} else {
-            err = fmt.Errorf("Ignore file %s exists but encountered error trying to open it: %w", filterPath, err)
-            return []string, err
+			err = fmt.Errorf("Ignore file %s exists but encountered error trying to open it: %w", filterPath, err)
+			return []string{}, err
 		}
 	}
-
 
 	scanner := bufio.NewScanner(f)
 
@@ -35,7 +35,7 @@ func ReadFilters() ([]string, error) {
 
 	if err = scanner.Err(); err != nil {
 		err = fmt.Errorf("Encountered an error while attemping to read filters from %s: %w", filterPath, err)
-        return []string, err
+		return []string{}, err
 	}
 
 	return filters, nil
@@ -50,9 +50,9 @@ func AddOptionFlags(fs *flag.FlagSet) {
 
 func main() {
 	commitCmd := flag.NewFlagSet("commit", flag.ExitOnError)
-	statusCmd := flag.NewFlagSet("status", flag.ExitOnError)
-	logCmd := flag.NewFlagSet("log", flag.ExitOnError)
-	checkoutCmd := flag.NewFlagSet("checkout", flag.ExitOnError)
+	// statusCmd := flag.NewFlagSet("status", flag.ExitOnError)
+	// logCmd := flag.NewFlagSet("log", flag.ExitOnError)
+	// checkoutCmd := flag.NewFlagSet("checkout", flag.ExitOnError)
 
 	flag.Parse()
 
@@ -64,10 +64,16 @@ func main() {
 	cmd := os.Args[1]
 
 	if cmd == "commit" || cmd == "ci" {
-        message := ""
+		message := ""
 		AddOptionFlags(commitCmd)
 		commitCmd.Parse(os.Args[2:])
-		filters := ReadFilters()
+		filters, err := ReadFilters()
+
+		if err != nil {
+			// TODO: write to stderr
+			fmt.Println("Couldn't read filters file")
+			os.Exit(1)
+		}
 
 		if commitCmd.NArg() >= 1 {
 			message = commitCmd.Arg(0)
@@ -83,39 +89,39 @@ func main() {
 			fmt.Println(p)
 		}
 
-		const packSize int64 = 100 * 1024 * 1024
+		const packSize int64 = 500 * 1024 * 1024
 		dupver.CommitSnapshot(message, filters, p, packSize)
-	} else if cmd == "status" || cmd == "st" {
-		AddOptionFlags(statusCmd)
-		statusCmd.Parse(os.Args[2:])
-		filters, err := ReadFilters()
+		// } else if cmd == "status" || cmd == "st" {
+		// 	AddOptionFlags(statusCmd)
+		// 	statusCmd.Parse(os.Args[2:])
+		// 	filters, err := ReadFilters()
 
-        if err != nil {
-            fmt.Printf("Encountered error when trying to read filters file, aborting:\n%v\n", err)
-        }
+		//     if err != nil {
+		//         fmt.Printf("Encountered error when trying to read filters file, aborting:\n%v\n", err)
+		//     }
 
-		if statusCmd.NArg() >= 1 {
-			dupver.DiffSnapshot(statusCmd.Arg(0), filters)
-		} else {
-			dupver.DiffSnapshot("", filters)
-		}
-	} else if cmd == "log" {
-		AddOptionFlags(logCmd)
-		logCmd.Parse(os.Args[2:])
+		// 	if statusCmd.NArg() >= 1 {
+		// 		dupver.DiffSnapshot(statusCmd.Arg(0), filters)
+		// 	} else {
+		// 		dupver.DiffSnapshot("", filters)
+		// 	}
+		// } else if cmd == "log" {
+		// 	AddOptionFlags(logCmd)
+		// 	logCmd.Parse(os.Args[2:])
 
-		if logCmd.NArg() >= 1 {
-			snapshotNum, _ := strconv.Atoi(logCmd.Arg(0))
-			dupver.LogSingleSnapshot(snapshotNum)
-		} else {
-			dupver.LogAllSnapshots()
-		}
-	} else if cmd == "checkout" || cmd == "co" {
-		AddOptionFlags(checkoutCmd)
-		checkoutCmd.StringVar(&OutputFolder, "out", "", "output folder")
-		checkoutCmd.StringVar(&OutputFolder, "o", "", "output folder")
-		checkoutCmd.Parse(os.Args[2:])
-		snapshotNum, _ := strconv.Atoi(checkoutCmd.Arg(0))
-		dupver.CheckoutSnaphot(snapshotNum, OutputFolder)
+		// 	if logCmd.NArg() >= 1 {
+		// 		snapshotNum, _ := strconv.Atoi(logCmd.Arg(0))
+		// 		dupver.LogSingleSnapshot(snapshotNum)
+		// 	} else {
+		// 		dupver.LogAllSnapshots()
+		// 	}
+		// } else if cmd == "checkout" || cmd == "co" {
+		// 	AddOptionFlags(checkoutCmd)
+		// 	checkoutCmd.StringVar(&OutputFolder, "out", "", "output folder")
+		// 	checkoutCmd.StringVar(&OutputFolder, "o", "", "output folder")
+		// 	checkoutCmd.Parse(os.Args[2:])
+		// 	snapshotNum, _ := strconv.Atoi(checkoutCmd.Arg(0))
+		// 	dupver.CheckoutSnaphot(snapshotNum, OutputFolder)
 	} else if cmd == "version" || cmd == "ver" {
 		fmt.Println("2.0.0")
 	} else {

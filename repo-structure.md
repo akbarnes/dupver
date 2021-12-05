@@ -3,14 +3,14 @@
 ## Directory Organization
 - `dupver_settings.toml`
 - `snapshots/`
-- `packs/`
 - `files/`
 - `trees/`
+- `packs/`
 - `tags/` (to be implemented later)
 - `branches/` (to be implemented later)
 - `head.json`
 
-## Repo Settings `dupver_settings.toml`
+## Repo Settings `dupver_settings.json`
 - `repo_version`
 - `dupver_version`
 - `compression_level`
