@@ -110,15 +110,17 @@ func CommitSnapshot(message string, filters []string, poly chunker.Pol, maxPackB
 				continue
 			}
 
-			if VerboseMode {
-				fmt.Printf("Chunk %s: chunk size %d kB\n", chunkId[0:16], chunk.Length/1024)
+			if chunk.Length > 0 {
+				if VerboseMode {
+					fmt.Printf("Chunk %s: chunk size %d kB\n", chunkId[0:16], chunk.Length/1024)
+				}
+
+				packs[chunkId] = packId
+
+				// save zip data
+				WriteChunkToPack(zipWriter, chunkId, chunk)
+				packBytesRemaining -= int64(chunk.Length)
 			}
-
-			packs[chunkId] = packId
-
-			// save zip data
-			WriteChunkToPack(zipWriter, chunkId, chunk)
-			packBytesRemaining -= int64(chunk.Length)
 
 			if packBytesRemaining <= 0 {
 				if err := zipWriter.Close(); err != nil {

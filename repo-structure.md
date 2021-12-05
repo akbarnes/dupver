@@ -37,6 +37,13 @@ Note: removing permissions because git doesn't have it
 Dictionary indexed by pack id where each entry is a list of chunk ids
 
 # Preferences `.config/dupver/dupver_prefs.json`
+
 - default prime?
 - default compression
 
+## Thoughts on Using Key-Value Store
+
+- Store snapshots (time, message) indexed by snapshot id
+- Store pack ids indexed by chunk id
+
+- Store snapshot file list as json file
