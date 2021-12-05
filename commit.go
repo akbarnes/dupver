@@ -161,6 +161,7 @@ func CommitSnapshot(message string, filters []string, poly chunker.Pol, maxPackB
 	}
 
 	snap.Write()
+	snap.WriteFiles(files)
 	// Write files
 	// Write tree
 	// WriteHead(ts)

@@ -11,26 +11,48 @@ import (
 	"github.com/restic/chunker"
 )
 
+// TODO: return err instead of panic?
 func (snap Snapshot) Write() {
 	snapFolder := filepath.Join(WorkingDirectory, ".dupver", "snapshots")
-	os.MkdirAll(snapFolder, 0777)
-	snapFile := filepath.Join(snapFolder, snap.SnapshotId+".json")
-	snap.WriteFile(snapFile)
-}
 
-func (snap Snapshot) WriteFile(snapshotPath string) {
-	f, err := os.Create(snapshotPath)
+	if err := os.MkdirAll(snapFolder, 0777); err != nil {
+		panic(fmt.Sprintf("Error creating snapshot folder %s\n", snapFolder))
+	}
+
+	snapFile := filepath.Join(snapFolder, snap.SnapshotId+".json")
+	f, err := os.Create(snapFile)
 
 	if err != nil {
-		panic(fmt.Sprintf("Error: Could not create snapshot file %s", snapshotPath))
+		panic(fmt.Sprintf("Error: Could not create snapshot json %s", snapFile))
 	}
+
 	myEncoder := json.NewEncoder(f)
 	myEncoder.SetIndent("", "  ")
 	myEncoder.Encode(snap)
 	f.Close()
 }
 
-// func WriteSnapshotFiles(snapshotPath string) {
+func (snap Snapshot) WriteFiles(files map[string]SnapshotFile) {
+	filesFolder := filepath.Join(WorkingDirectory, ".dupver", "files")
+
+	if err := os.MkdirAll(filesFolder, 0777); err != nil {
+		panic(fmt.Sprintf("Error creating files listing folder %s\n", filesFolder))
+	}
+
+	snapFile := filepath.Join(filesFolder, snap.SnapshotId+".json")
+	f, err := os.Create(snapFile)
+
+	if err != nil {
+		panic(fmt.Sprintf("Error: Could not create snapshot files listing json %s", snapFile))
+	}
+
+	myEncoder := json.NewEncoder(f)
+	myEncoder.SetIndent("", "  ")
+	myEncoder.Encode(files)
+	f.Close()
+}
+
+// func WriteTree() {
 
 // }
 
