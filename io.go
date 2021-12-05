@@ -52,6 +52,37 @@ func (snap Snapshot) WriteFiles(files map[string]SnapshotFile) {
 	f.Close()
 }
 
+func (snap Snapshot) WriteTree(packs map[string]string) {
+	treesFolder := filepath.Join(WorkingDirectory, ".dupver", "trees")
+
+	if err := os.MkdirAll(treesFolder, 0777); err != nil {
+		panic(fmt.Sprintf("Error creating trees folder %s\n", treesFolder))
+	}
+
+	treeFile := filepath.Join(treesFolder, snap.SnapshotId+".json")
+	f, err := os.Create(treeFile)
+
+	if err != nil {
+		panic(fmt.Sprintf("Error: Could not create snapshot tree json %s", treeFile))
+	}
+
+	tree := map[string][]string{}
+
+	// Remember that I'll only encounter each chunk id once
+	for chunkId, packId := range packs {
+		if _, ok := tree[packId]; ok {
+			tree[packId] = append(tree[packId], chunkId)
+		} else {
+			tree[packId] = []string{}
+		}
+	}
+
+	myEncoder := json.NewEncoder(f)
+	myEncoder.SetIndent("", "  ")
+	myEncoder.Encode(tree)
+	f.Close()
+}
+
 // func WriteTree() {
 
 // }
