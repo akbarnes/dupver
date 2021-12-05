@@ -19,7 +19,7 @@ func CommitSnapshot(message string, filters []string, poly chunker.Pol, maxPackB
 	files := map[string]SnapshotFile{}
 	packs := map[string]string{}
 
-	dupverDir := filepath.Join(WorkingDirectory, ".dupver")
+	dupverDir := filepath.Join(".dupver")
 
 	if err := os.MkdirAll(dupverDir, 0777); err != nil {
 		panic(fmt.Sprintf("Error creating dupver folder %s\n", dupverDir))
@@ -66,6 +66,8 @@ func CommitSnapshot(message string, filters []string, poly chunker.Pol, maxPackB
 		//	return nil
 		//}
 
+		existingPacks := ReadTrees()
+
 		in, err := os.Open(fileName)
 
 		if err != nil {
@@ -100,9 +102,9 @@ func CommitSnapshot(message string, filters []string, poly chunker.Pol, maxPackB
 			chunkId := fmt.Sprintf("%064x", sha256.Sum256(chunk.Data))
 			file.ChunkIds = append(file.ChunkIds, chunkId)
 
-			if _, ok := packs[chunkId]; ok {
+			if _, ok := existingPacks[chunkId]; ok {
 				if VerboseMode {
-					fmt.Printf("Skipping Chunk ID %s already in pack %s\n", chunkId[0:16], packs[chunkId][0:16])
+					fmt.Printf("Skipping Chunk ID %s already in pack %s\n", chunkId[0:16], existingPacks[chunkId][0:16])
 				}
 
 				continue

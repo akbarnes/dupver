@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"path"
 	"path/filepath"
 
 	"github.com/restic/chunker"
@@ -13,7 +12,7 @@ import (
 
 // TODO: return err instead of panic?
 func (snap Snapshot) Write() {
-	snapFolder := filepath.Join(WorkingDirectory, ".dupver", "snapshots")
+	snapFolder := filepath.Join(".dupver", "snapshots")
 
 	if err := os.MkdirAll(snapFolder, 0777); err != nil {
 		panic(fmt.Sprintf("Error creating snapshot folder %s\n", snapFolder))
@@ -33,7 +32,7 @@ func (snap Snapshot) Write() {
 }
 
 func (snap Snapshot) WriteFiles(files map[string]SnapshotFile) {
-	filesFolder := filepath.Join(WorkingDirectory, ".dupver", "files")
+	filesFolder := filepath.Join(".dupver", "files")
 
 	if err := os.MkdirAll(filesFolder, 0777); err != nil {
 		panic(fmt.Sprintf("Error creating files listing folder %s\n", filesFolder))
@@ -53,7 +52,7 @@ func (snap Snapshot) WriteFiles(files map[string]SnapshotFile) {
 }
 
 func (snap Snapshot) WriteTree(packs map[string]string) {
-	treesFolder := filepath.Join(WorkingDirectory, ".dupver", "trees")
+	treesFolder := filepath.Join(".dupver", "trees")
 
 	if err := os.MkdirAll(treesFolder, 0777); err != nil {
 		panic(fmt.Sprintf("Error creating trees folder %s\n", treesFolder))
@@ -83,9 +82,53 @@ func (snap Snapshot) WriteTree(packs map[string]string) {
 	f.Close()
 }
 
-// func WriteTree() {
+func ReadTrees() map[string]string {
+	treesFolder := filepath.Join(".dupver", "trees")
 
-// }
+	if err := os.MkdirAll(treesFolder, 0777); err != nil {
+		panic(fmt.Sprintf("Error creating trees folder %s\n", treesFolder))
+	}
+
+	treesGlob := filepath.Join(treesFolder, "*.json")
+	treePaths, err := filepath.Glob(treesGlob)
+
+	if err != nil {
+		panic(fmt.Sprintf("Error: Could not glob trees %s", treesGlob))
+	}
+
+	packs := map[string]string{}
+
+	for _, treePath := range treePaths {
+		tree := ReadTree(treePath)
+
+		for packId, chunkIds := range tree {
+			for _, chunkId := range chunkIds {
+				packs[chunkId] = packId
+			}
+		}
+	}
+
+	return packs
+}
+
+// Read a tree given a file path
+func ReadTree(treePath string) map[string][]string {
+	tree := map[string][]string{}
+	f, err := os.Open(treePath)
+
+	if err != nil {
+		panic(fmt.Sprintf("Error: Could not read tree file %s", treePath))
+	}
+
+	myDecoder := json.NewDecoder(f)
+
+	if err := myDecoder.Decode(&tree); err != nil {
+		panic(fmt.Sprintf("Error: could not decode tree file %s\n", treePath))
+	}
+
+	f.Close()
+	return tree
+}
 
 // func ReadSnapshot(snapId string) Snapshot {
 // 	snapshotPath := filepath.Join(".dupver", "snapshots", snapId+".json")
@@ -169,10 +212,9 @@ func (snap Snapshot) WriteTree(packs map[string]string) {
 // }
 
 func CreatePackFile(packId string) (*os.File, error) {
-	dupverDir := filepath.Join(WorkingDirectory, ".dupver")
-	packFolderPath := path.Join(dupverDir, "packs", packId[0:2])
+	packFolderPath := filepath.Join(".dupver", "packs", packId[0:2])
 	os.MkdirAll(packFolderPath, 0777)
-	packPath := path.Join(packFolderPath, packId+".zip")
+	packPath := filepath.Join(packFolderPath, packId+".zip")
 
 	if VerboseMode {
 		fmt.Printf("Creating pack: %s\n", packId[0:16])
