@@ -51,6 +51,31 @@ func (snap Snapshot) WriteFiles(files map[string]SnapshotFile) {
 	f.Close()
 }
 
+func (snap Snapshot) ReadFiles() map[string]SnapshotFile {
+	filesFolder := filepath.Join(".dupver", "files")
+
+	if err := os.MkdirAll(filesFolder, 0777); err != nil {
+		panic(fmt.Sprintf("Error creating files listing folder %s\n", filesFolder))
+	}
+
+	snapFile := filepath.Join(filesFolder, snap.SnapshotId+".json")
+	f, err := os.Open(snapFile)
+
+	if err != nil {
+		panic(fmt.Sprintf("Error: Could not create snapshot files listing json %s", snapFile))
+	}
+
+	myDecoder := json.NewDecoder(f)
+	files := map[string]SnapshotFile{}
+
+	if err := myDecoder.Decode(&files); err != nil {
+		panic(fmt.Sprintf("Error: could not decode snapshot files %s\n", snapFile))
+	}
+
+	f.Close()
+	return files
+}
+
 func (snap Snapshot) WriteTree(packs map[string]string) {
 	treesFolder := filepath.Join(".dupver", "trees")
 
@@ -130,86 +155,79 @@ func ReadTree(treePath string) map[string][]string {
 	return tree
 }
 
-// func ReadSnapshot(snapId string) Snapshot {
-// 	snapshotPath := filepath.Join(".dupver", "snapshots", snapId+".json")
+func ReadSnapshot(snapId string) Snapshot {
+	snapshotPath := filepath.Join(".dupver", "snapshots", snapId+".json")
 
-// 	if VerboseMode {
-// 		fmt.Printf("Reading %s\n", snapshotPath)
-// 	}
+	if VerboseMode {
+		fmt.Printf("Reading %s\n", snapshotPath)
+	}
 
-// 	return ReadSnapshotFile(snapId)
-// }
+	return ReadSnapshotJson(snapshotPath)
+}
 
-// // Read a snapshot given a file path
-// func ReadSnapshotFile(snapshotPath string) Snapshot {
-// 	var snap Snapshot
-// 	f, err := os.Open(snapshotPath)
+// Read a snapshot given a file path
+func ReadSnapshotJson(snapshotPath string) Snapshot {
+	var snap Snapshot
+	f, err := os.Open(snapshotPath)
 
-// 	// ChunkPackIds map[string]string
-// 	// FileChunkIds map[string][]string
-// 	// FileModTimes map[string]string
+	if err != nil {
+		return Snapshot{}
+	}
 
-// 	if err != nil {
-// 		// panic(fmt.Sprintf("Error: Could not read snapshot file %s", snapshotPath))
-// 		snap := Snapshot{}
-// 		snap.ChunkPackIds = make(map[string]string)
-// 		snap.FileChunkIds = make(map[string][]string)
-// 		snap.FileModTimes = make(map[string]string)
-// 		return snap
-// 	}
+	myDecoder := json.NewDecoder(f)
 
-// 	myDecoder := json.NewDecoder(f)
+	if err := myDecoder.Decode(&snap); err != nil {
+		fmt.Printf("Error:could not decode head file %s\n", snapshotPath)
+		Check(err)
+	}
 
-// 	if err := myDecoder.Decode(&snap); err != nil {
-// 		fmt.Printf("Error:could not decode head file %s\n", snapshotPath)
-// 		Check(err)
-// 	}
+	f.Close()
+	return snap
+}
 
-// 	f.Close()
-// 	return snap
-// }
+func (snap Snapshot) WriteHead() {
+	headPath := filepath.Join(".dupver", "head.json")
+	f, err := os.Create(headPath)
 
-// func WriteHead(snapshotPath string) {
-// 	headPath := filepath.Join(".dupver", "head.json")
-// 	f, err := os.Create(headPath)
+	if err != nil {
+		panic(fmt.Sprintf("Error: Could not create head file %s", headPath))
+	}
 
-// 	if err != nil {
-// 		panic(fmt.Sprintf("Error: Could not create head file %s", headPath))
-// 	}
+	head := Head{SnapshotTime: snap.SnapshotTime, SnapshotId: snap.SnapshotId}
 
-// 	myEncoder := json.NewEncoder(f)
-// 	myEncoder.SetIndent("", "  ")
-// 	myEncoder.Encode(snapshotPath)
-// 	f.Close()
-// }
+	myEncoder := json.NewEncoder(f)
+	myEncoder.SetIndent("", "  ")
+	myEncoder.Encode(head)
+	f.Close()
+}
 
-// // Read a snapshot given a file path
-// func ReadHead() Snapshot {
-// 	headPath := filepath.Join(".dupver", "head.json")
-// 	f, err := os.Open(headPath)
+// Read a snapshot given a file path
+func ReadHead() (Snapshot, map[string]SnapshotFile) {
+	headPath := filepath.Join(".dupver", "head.json")
+	f, err := os.Open(headPath)
 
-// 	if err != nil {
-// 		// panic(fmt.Sprintf("Error: Could not read snapshot file %s", snapshotPath))
-// 		snap := Snapshot{}
-// 		snap.ChunkPackIds = make(map[string]string)
-// 		snap.FileChunkIds = make(map[string][]string)
-// 		snap.FileModTimes = make(map[string]string)
-// 		return snap
-// 	}
+	if err != nil {
+		// panic(fmt.Sprintf("Error: Could not read snapshot file %s", snapshotPath))
+		snap := Snapshot{}
+		files := map[string]SnapshotFile{}
+		return snap, files
+	}
 
-// 	snapshotId := ""
-// 	myDecoder := json.NewDecoder(f)
+	head := Head{}
+	myDecoder := json.NewDecoder(f)
 
-// 	if err := myDecoder.Decode(&snapshotId); err != nil {
-// 		fmt.Printf("Error:could not decode head file %s\n", headPath)
-// 		Check(err)
-// 	}
+	if err := myDecoder.Decode(&head); err != nil {
+		fmt.Printf("Error:could not decode head file %s\n", headPath)
+		Check(err)
+	}
 
-// 	f.Close()
+	f.Close()
 
-// 	snapshotPath := filepath.Join(".dupver", "snapshots", snapshotId+".json")
-// 	return ReadSnapshotFile(snapshotPath)
-// }
+	snap := ReadSnapshot(head.SnapshotId)
+	files := snap.ReadFiles()
+
+	return snap, files
+}
 
 func CreatePackFile(packId string) (*os.File, error) {
 	packFolderPath := filepath.Join(".dupver", "packs", packId[0:2])

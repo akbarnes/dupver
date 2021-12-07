@@ -14,7 +14,7 @@ import (
 
 func CommitSnapshot(message string, filters []string, poly chunker.Pol, maxPackBytes int64) {
 	buf := make([]byte, 8*1024*1024) // reuse this buffer
-	// head := ReadHead()
+	_, headFiles := ReadHead()
 	snap := CreateSnapshot(message)
 	files := map[string]SnapshotFile{}
 	packs := map[string]string{}
@@ -57,14 +57,15 @@ func CommitSnapshot(message string, filters []string, poly chunker.Pol, maxPackB
 		file.ChunkIds = []string{}
 
 		// TODO: fix this. Currently not reading in filechunks from head
-		//if headModTime, ok := head.FileModTimes[fileName]; ok && modTime == headModTime {
-		//	if VerboseMode {
-		//		fmt.Printf("Skipping %s\n", fileName)
-		//	}
+		if headFile, ok := headFiles[fileName]; ok && modTime == headFile.ModTime {
+			if VerboseMode {
+				fmt.Printf("Skipping %s\n", fileName)
+			}
 
-		//	snap.AddFileChunkIds(head, fileName)
-		//	return nil
-		//}
+			files[fileName] = headFiles[fileName]
+			// snap.AddFileChunkIds(head, fileName)
+			return nil
+		}
 
 		existingPacks := ReadTrees()
 
@@ -167,5 +168,5 @@ func CommitSnapshot(message string, filters []string, poly chunker.Pol, maxPackB
 	snap.Write()
 	snap.WriteFiles(files)
 	snap.WriteTree(packs)
-	// WriteHead(ts)
+	snap.WriteHead()
 }

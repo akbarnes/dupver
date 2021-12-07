@@ -13,19 +13,22 @@ type Snapshot struct {
 	SnapshotId   string // Is this needed?
 }
 
+type Head struct {
+	SnapshotTime string
+	SnapshotId   string // Is this needed?
+}
+
 type SnapshotFile struct {
 	Size     int64
 	ModTime  string
 	ChunkIds []string
 }
 
-//type SnapshotFiles struct {
-//    Properties map[string]SnapshotFile
-//}
-//
-//type SnapshotTrees struct {
-//    Packs map[string]string
-//}
+// Snapshot Files
+// files := map[string]SnapshotFile{}
+
+// Pack for each Chunk
+// packs := map[string]string{}
 
 func CreateSnapshot(message string) Snapshot {
 	t := time.Now()
@@ -35,10 +38,10 @@ func CreateSnapshot(message string) Snapshot {
 	return snap
 }
 
-//func (snap Snapshot) AddFileChunkIds(head Snapshot, fileName string) {
-//	snap.FileChunkIds[fileName] = head.FileChunkIds[fileName]
-//
-//	for _, chunkId := range snap.FileChunkIds[fileName] {
-//		snap.ChunkPackIds[chunkId] = head.ChunkPackIds[chunkId]
-//	}
-//}
+func AddFileChunkIds(files map[string]SnapshotFile, headFiles map[string]SnapshotFile, fileName string) {
+	files[fileName] = headFiles[fileName]
+
+	// for _, chunkId := range files.ChunkIds[fileName] {
+	// 	snap.ChunkPackIds[chunkId] = head.ChunkPackIds[chunkId]
+	// }
+}
