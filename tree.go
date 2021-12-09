@@ -28,7 +28,7 @@ func (snap Snapshot) WriteTree(packs map[string]string) {
 		if _, ok := tree[packId]; ok {
 			tree[packId] = append(tree[packId], chunkId)
 		} else {
-			tree[packId] = []string{}
+			tree[packId] = []string{chunkId}
 		}
 	}
 

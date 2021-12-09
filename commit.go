@@ -14,7 +14,23 @@ import (
 
 func CommitSnapshot(message string, filters []string, poly chunker.Pol, maxPackBytes int64) {
 	buf := make([]byte, 8*1024*1024) // reuse this buffer
+
+	if VerboseMode {
+		fmt.Println("Start reading head...")
+	}
+
 	headFiles := ReadHead().ReadFilesList()
+
+	if VerboseMode {
+		fmt.Println("Done reading head")
+		fmt.Println("Start reading trees...")
+	}
+
+	existingPacks := ReadTrees()
+
+	if VerboseMode {
+		fmt.Println("Done reading trees")
+	}
 
 	snap := CreateSnapshot(message)
 	files := map[string]SnapshotFile{}
@@ -68,8 +84,6 @@ func CommitSnapshot(message string, filters []string, poly chunker.Pol, maxPackB
 			return nil
 		}
 
-		existingPacks := ReadTrees()
-
 		in, err := os.Open(fileName)
 
 		if err != nil {
@@ -115,10 +129,11 @@ func CommitSnapshot(message string, filters []string, poly chunker.Pol, maxPackB
 				}
 
 				if VerboseMode {
-					fmt.Printf("Chunk %s: chunk size %d kB\n", chunkId[0:16], chunk.Length/1024)
+					fmt.Printf("Chunk %s: chunk size %d kB, pack %s\n", chunkId[0:16], chunk.Length/1024, packId[0:16])
 				}
 
 				packs[chunkId] = packId
+				existingPacks[chunkId] = packId
 
 				// save zip data
 				WriteChunkToPack(zipWriter, chunkId, chunk)
