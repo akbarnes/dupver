@@ -51,7 +51,7 @@ func (snap Snapshot) WriteFiles(files map[string]SnapshotFile) {
 	f.Close()
 }
 
-func (snap Snapshot) ReadFiles() map[string]SnapshotFile {
+func (snap Snapshot) ReadFilesList() map[string]SnapshotFile {
 	filesFolder := filepath.Join(".dupver", "files")
 
 	if err := os.MkdirAll(filesFolder, 0777); err != nil {
@@ -224,7 +224,7 @@ func ReadHead() (Snapshot, map[string]SnapshotFile) {
 	f.Close()
 
 	snap := ReadSnapshot(head.SnapshotId)
-	files := snap.ReadFiles()
+	files := snap.ReadFilesList()
 
 	return snap, files
 }

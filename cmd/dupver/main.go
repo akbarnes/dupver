@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"strconv"
 
 	// "strconv"
 
@@ -51,7 +52,7 @@ func AddOptionFlags(fs *flag.FlagSet) {
 func main() {
 	commitCmd := flag.NewFlagSet("commit", flag.ExitOnError)
 	// statusCmd := flag.NewFlagSet("status", flag.ExitOnError)
-	// logCmd := flag.NewFlagSet("log", flag.ExitOnError)
+	logCmd := flag.NewFlagSet("log", flag.ExitOnError)
 	// checkoutCmd := flag.NewFlagSet("checkout", flag.ExitOnError)
 
 	flag.Parse()
@@ -105,16 +106,16 @@ func main() {
 		// 	} else {
 		// 		dupver.DiffSnapshot("", filters)
 		// 	}
-		// } else if cmd == "log" {
-		// 	AddOptionFlags(logCmd)
-		// 	logCmd.Parse(os.Args[2:])
+	} else if cmd == "log" {
+		AddOptionFlags(logCmd)
+		logCmd.Parse(os.Args[2:])
 
-		// 	if logCmd.NArg() >= 1 {
-		// 		snapshotNum, _ := strconv.Atoi(logCmd.Arg(0))
-		// 		dupver.LogSingleSnapshot(snapshotNum)
-		// 	} else {
-		// 		dupver.LogAllSnapshots()
-		// 	}
+		if logCmd.NArg() >= 1 {
+			snapshotNum, _ := strconv.Atoi(logCmd.Arg(0))
+			dupver.LogSingleSnapshot(snapshotNum)
+		} else {
+			dupver.LogAllSnapshots()
+		}
 		// } else if cmd == "checkout" || cmd == "co" {
 		// 	AddOptionFlags(checkoutCmd)
 		// 	checkoutCmd.StringVar(&OutputFolder, "out", "", "output folder")
