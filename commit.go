@@ -14,7 +14,8 @@ import (
 
 func CommitSnapshot(message string, filters []string, poly chunker.Pol, maxPackBytes int64) {
 	buf := make([]byte, 8*1024*1024) // reuse this buffer
-	_, headFiles := ReadHead()
+	headFiles := ReadHead().ReadFilesList()
+
 	snap := CreateSnapshot(message)
 	files := map[string]SnapshotFile{}
 	packs := map[string]string{}

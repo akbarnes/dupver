@@ -51,7 +51,7 @@ func AddOptionFlags(fs *flag.FlagSet) {
 
 func main() {
 	commitCmd := flag.NewFlagSet("commit", flag.ExitOnError)
-	// statusCmd := flag.NewFlagSet("status", flag.ExitOnError)
+	statusCmd := flag.NewFlagSet("status", flag.ExitOnError)
 	logCmd := flag.NewFlagSet("log", flag.ExitOnError)
 	// checkoutCmd := flag.NewFlagSet("checkout", flag.ExitOnError)
 
@@ -92,20 +92,20 @@ func main() {
 
 		const packSize int64 = 500 * 1024 * 1024
 		dupver.CommitSnapshot(message, filters, p, packSize)
-		// } else if cmd == "status" || cmd == "st" {
-		// 	AddOptionFlags(statusCmd)
-		// 	statusCmd.Parse(os.Args[2:])
-		// 	filters, err := ReadFilters()
+	} else if cmd == "status" || cmd == "st" {
+		AddOptionFlags(statusCmd)
+		statusCmd.Parse(os.Args[2:])
+		filters, err := ReadFilters()
 
-		//     if err != nil {
-		//         fmt.Printf("Encountered error when trying to read filters file, aborting:\n%v\n", err)
-		//     }
+		if err != nil {
+			fmt.Printf("Encountered error when trying to read filters file, aborting:\n%v\n", err)
+		}
 
-		// 	if statusCmd.NArg() >= 1 {
-		// 		dupver.DiffSnapshot(statusCmd.Arg(0), filters)
-		// 	} else {
-		// 		dupver.DiffSnapshot("", filters)
-		// 	}
+		if statusCmd.NArg() >= 1 {
+			dupver.DiffSnapshot(statusCmd.Arg(0), filters)
+		} else {
+			dupver.DiffSnapshot("", filters)
+		}
 	} else if cmd == "log" {
 		AddOptionFlags(logCmd)
 		logCmd.Parse(os.Args[2:])

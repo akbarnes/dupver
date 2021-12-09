@@ -201,16 +201,14 @@ func (snap Snapshot) WriteHead() {
 	f.Close()
 }
 
-// Read a snapshot given a file path
-func ReadHead() (Snapshot, map[string]SnapshotFile) {
+// Read the head snapshot and files list
+func ReadHead() Snapshot {
 	headPath := filepath.Join(".dupver", "head.json")
 	f, err := os.Open(headPath)
 
 	if err != nil {
 		// panic(fmt.Sprintf("Error: Could not read snapshot file %s", snapshotPath))
-		snap := Snapshot{}
-		files := map[string]SnapshotFile{}
-		return snap, files
+		return Snapshot{}
 	}
 
 	head := Head{}
@@ -223,10 +221,7 @@ func ReadHead() (Snapshot, map[string]SnapshotFile) {
 
 	f.Close()
 
-	snap := ReadSnapshot(head.SnapshotId)
-	files := snap.ReadFilesList()
-
-	return snap, files
+	return ReadSnapshot(head.SnapshotId)
 }
 
 func CreatePackFile(packId string) (*os.File, error) {

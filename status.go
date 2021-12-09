@@ -16,16 +16,20 @@ func DiffSnapshot(snapId string, filters []string) {
 		snap = ReadHead()
 	}
 
-	status := make(map[string]string)
+	snap.Diff(filters)
+}
 
-	for fileName, _ := range snap.FileModTimes {
+func (snap Snapshot) Diff(filters []string) {
+	status := make(map[string]string)
+	snapFiles := snap.ReadFilesList()
+
+	for fileName, _ := range snapFiles {
 		status[fileName] = "-"
 	}
 
 	// workingDirectory, err := os.Getwd()
 	// Check(err)
 	workingDirectory := "."
-	head := ReadHead()
 
 	var DiffFile = func(fileName string, info os.FileInfo, err error) error {
 		fileName = strings.TrimSuffix(fileName, "\n")
@@ -46,8 +50,8 @@ func DiffSnapshot(snapId string, filters []string) {
 
 		modTime := props.ModTime().Format("2006-01-02T15-04-05")
 
-		if headModTime, ok := head.FileModTimes[fileName]; ok {
-			if modTime == headModTime {
+		if snapFile, ok := snapFiles[fileName]; ok {
+			if modTime == snapFile.ModTime {
 				status[fileName] = "="
 			} else {
 				status[fileName] = "M"
