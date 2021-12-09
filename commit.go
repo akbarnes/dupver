@@ -102,17 +102,18 @@ func CommitSnapshot(message string, filters []string, poly chunker.Pol, maxPackB
 			}
 
 			chunkId := fmt.Sprintf("%064x", sha256.Sum256(chunk.Data))
-			file.ChunkIds = append(file.ChunkIds, chunkId)
-
-			if _, ok := existingPacks[chunkId]; ok {
-				if VerboseMode {
-					fmt.Printf("Skipping Chunk ID %s already in pack %s\n", chunkId[0:16], existingPacks[chunkId][0:16])
-				}
-
-				continue
-			}
 
 			if chunk.Length > 0 {
+				file.ChunkIds = append(file.ChunkIds, chunkId)
+
+				if _, ok := existingPacks[chunkId]; ok {
+					if VerboseMode {
+						fmt.Printf("Skipping Chunk ID %s already in pack %s\n", chunkId[0:16], existingPacks[chunkId][0:16])
+					}
+
+					continue
+				}
+
 				if VerboseMode {
 					fmt.Printf("Chunk %s: chunk size %d kB\n", chunkId[0:16], chunk.Length/1024)
 				}

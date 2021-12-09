@@ -3,24 +3,10 @@ package dupver
 import (
 	"fmt"
 	"path/filepath"
-	"sort"
 )
 
 func LogAllSnapshots() {
-	snapshotGlob := filepath.Join(".dupver", "snapshots", "*.json")
-	snapshotPaths, err := filepath.Glob(snapshotGlob)
-	Check(err)
-	snaps := []Snapshot{}
-
-	for _, snapshotPath := range snapshotPaths {
-		snaps = append(snaps, ReadSnapshotJson(snapshotPath))
-	}
-
-	sort.Slice(snaps, func(i, j int) bool {
-		return snaps[i].SnapshotTime < snaps[j].SnapshotTime
-	})
-
-	for i, snap := range snaps {
+	for i, snap := range ReadAllSnapshots() {
 		// Time: 2021/05/08 08:57:46
 		// Message: specify workdir path explicitly
 		fmt.Printf("%3d) Time: %s\n", i+1, snap.SnapshotTime)

@@ -53,7 +53,7 @@ func main() {
 	commitCmd := flag.NewFlagSet("commit", flag.ExitOnError)
 	statusCmd := flag.NewFlagSet("status", flag.ExitOnError)
 	logCmd := flag.NewFlagSet("log", flag.ExitOnError)
-	// checkoutCmd := flag.NewFlagSet("checkout", flag.ExitOnError)
+	checkoutCmd := flag.NewFlagSet("checkout", flag.ExitOnError)
 
 	flag.Parse()
 
@@ -116,13 +116,13 @@ func main() {
 		} else {
 			dupver.LogAllSnapshots()
 		}
-		// } else if cmd == "checkout" || cmd == "co" {
-		// 	AddOptionFlags(checkoutCmd)
-		// 	checkoutCmd.StringVar(&OutputFolder, "out", "", "output folder")
-		// 	checkoutCmd.StringVar(&OutputFolder, "o", "", "output folder")
-		// 	checkoutCmd.Parse(os.Args[2:])
-		// 	snapshotNum, _ := strconv.Atoi(checkoutCmd.Arg(0))
-		// 	dupver.CheckoutSnaphot(snapshotNum, OutputFolder)
+	} else if cmd == "checkout" || cmd == "co" {
+		AddOptionFlags(checkoutCmd)
+		checkoutCmd.StringVar(&OutputFolder, "out", "", "output folder")
+		checkoutCmd.StringVar(&OutputFolder, "o", "", "output folder")
+		checkoutCmd.Parse(os.Args[2:])
+		snapshotNum, _ := strconv.Atoi(checkoutCmd.Arg(0))
+		dupver.CheckoutSnapshot(snapshotNum, OutputFolder)
 	} else if cmd == "version" || cmd == "ver" {
 		fmt.Println("2.0.0")
 	} else {
