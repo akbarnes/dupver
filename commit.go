@@ -115,9 +115,10 @@ func CommitSnapshot(message string, filters []string, poly chunker.Pol, maxPackB
 				// TODO: Should I return an error instead of quitting here? Is there anythig to do?
                 if VerboseMode {
 				    fmt.Printf("Error reading chunk from  file %s\n", fileName)
-                    readOk = false
-                    break
                 }
+
+                readOk = false
+                break
 			}
 
 			chunkId := fmt.Sprintf("%064x", sha256.Sum256(chunk.Data))
