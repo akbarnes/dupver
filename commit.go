@@ -104,6 +104,7 @@ func CommitSnapshot(message string, filters []string, poly chunker.Pol, maxPackB
 		}
 
 		readingFile := true
+        readOk := true
 
 		for readingFile {
 			chunk, err := myChunker.Next(buf)
@@ -112,7 +113,11 @@ func CommitSnapshot(message string, filters []string, poly chunker.Pol, maxPackB
 				readingFile = false
 			} else if err != nil {
 				// TODO: Should I return an error instead of quitting here? Is there anythig to do?
-				panic(fmt.Sprintf("Error writing file %s to pack %s, aborting\n", fileName, packId))
+                if VerboseMode {
+				    fmt.Printf("Error reading chunk from  file %s\n", fileName)
+                    readOk = false
+                    break
+                }
 			}
 
 			chunkId := fmt.Sprintf("%064x", sha256.Sum256(chunk.Data))
@@ -164,7 +169,10 @@ func CommitSnapshot(message string, filters []string, poly chunker.Pol, maxPackB
 			}
 		}
 
-		files[fileName] = file
+        if readOk {
+		    files[fileName] = file
+        }
+
 		return nil
 	}
 
