@@ -124,7 +124,7 @@ func main() {
 		snapshotNum, _ := strconv.Atoi(checkoutCmd.Arg(0))
 		dupver.CheckoutSnapshot(snapshotNum, OutputFolder)
 	} else if cmd == "version" || cmd == "ver" {
-		fmt.Println("2.0.0")
+		fmt.Printlf("%d.%d.%f", DupverMajorVersion, DupverMinorVersion, DupverPatchVersion)
 	} else {
 		fmt.Println("Unknown subcommand")
 		os.Exit(1)
