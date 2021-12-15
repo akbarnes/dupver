@@ -1,14 +1,11 @@
 package main
 
 import (
-	"bufio"
 	"flag"
 	"fmt"
 	"math/rand"
 	"os"
 	"strconv"
-
-	// "strconv"
 
 	"github.com/akbarnes/dupver"
 	"github.com/restic/chunker"
@@ -36,28 +33,13 @@ func main() {
 
 	cmd := os.Args[1]
        if cmd == "init" {
-         cfg, err := dupver.ReadRepoConfig()
-
-         if err == os.ErrNotExist {
-            dupver.CreateDefaultRepoConfig().Write()
-         } else if err = nil {
-            fmt.Println("Repo configuration already exists, refusing to overwrite")
-         } else { // err != nil
-            panic("Invalid repo configuration, aborting")
+         if _, err := dupver.ReadRepoConfig(true); err != nil {
+            panic("Invalid repo configuration already present, aborting")
          }
 	} else if cmd == "commit" || cmd == "ci" {
-         cfg, err := dupver.ReadRepoConfig()
+        cfg, err := dupver.ReadRepoConfig(true)
 
-         if err == os.ErrNotExist {
-            cfg = dupver.CreateDefaultRepoConfig()
-            cfg.Write()
-
-            if VerboseMode {
-                fmt.Println("Repo configuration not present, writing default")
-            }
-         } else if err = nil {
-            fmt.Println("Repo configuration already exists, refusing to overwrite")
-         } else { // err != nil
+        if err != nil {
             panic("Invalid repo configuration, aborting")
          }
 

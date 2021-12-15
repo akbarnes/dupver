@@ -59,7 +59,7 @@ func (cfg RepoConfig) Write() {
 	f.Close()
 }
 
-func ReadRepoConfig() (RepoConfig, error) {
+func ReadRepoConfig(writeIfMissing bool) (RepoConfig, error) {
 	cfgPath := filepath.Join(".dupver", "repo_config.json")
 
 	if VerboseMode {
@@ -71,7 +71,17 @@ func ReadRepoConfig() (RepoConfig, error) {
     defer f.Close()
 
     if errors.Is(err, os.ErrNotExist) {
-        return RepoConfig{}, err
+        if writeIfMissing {
+            if VerboseMode {
+                fmt.Println("Repo configuration not present, writing default")
+            }
+
+            cfg = CreateDefaultRepoConfig()
+            cfg.Write()
+            return cfg, nil
+        } else {
+            return RepoConfig{}, err
+        }
 	} else if err != nil {
 		return RepoConfig{}, errors.New("Cannot open repo config")
 	}

@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"time"
+    "bufio"
 
 	"github.com/bmatcuk/doublestar"
 )
