@@ -14,6 +14,34 @@ const HexChars = "0123456789abcdef"
 
 var seededRand *rand.Rand = rand.New(rand.NewSource(time.Now().UnixNano()))
 
+func ReadFilters() ([]string, error) {
+	filterPath := ".dupver_ignore"
+	var filters []string
+	f, err := os.Open(filterPath)
+
+	if err != nil {
+		if os.IsNotExist(err) {
+			return []string{}, nil
+		} else {
+			err = fmt.Errorf("Ignore file %s exists but encountered error trying to open it: %w", filterPath, err)
+			return []string{}, err
+		}
+	}
+
+	scanner := bufio.NewScanner(f)
+
+	for scanner.Scan() {
+		filters = append(filters, scanner.Text())
+	}
+
+	if err = scanner.Err(); err != nil {
+		err = fmt.Errorf("Encountered an error while attemping to read filters from %s: %w", filterPath, err)
+		return []string{}, err
+	}
+
+	return filters, nil
+}
+
 func ExcludedFile(fileName string, info os.FileInfo, filters []string) bool {
 	// dupverDir := filepath.Join(WorkingDirectory, ".gover2")
 	dupverDir := ".dupver"

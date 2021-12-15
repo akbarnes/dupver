@@ -14,34 +14,6 @@ import (
 	"github.com/restic/chunker"
 )
 
-func ReadFilters() ([]string, error) {
-	filterPath := ".dupver_ignore"
-	var filters []string
-	f, err := os.Open(filterPath)
-
-	if err != nil {
-		if os.IsNotExist(err) {
-			return []string{}, nil
-		} else {
-			err = fmt.Errorf("Ignore file %s exists but encountered error trying to open it: %w", filterPath, err)
-			return []string{}, err
-		}
-	}
-
-	scanner := bufio.NewScanner(f)
-
-	for scanner.Scan() {
-		filters = append(filters, scanner.Text())
-	}
-
-	if err = scanner.Err(); err != nil {
-		err = fmt.Errorf("Encountered an error while attemping to read filters from %s: %w", filterPath, err)
-		return []string{}, err
-	}
-
-	return filters, nil
-}
-
 var OutputFolder string
 
 func AddOptionFlags(fs *flag.FlagSet) {
@@ -63,12 +35,36 @@ func main() {
 	}
 
 	cmd := os.Args[1]
+       if cmd == "init" {
+         cfg, err := dupver.ReadRepoConfig()
 
-	if cmd == "commit" || cmd == "ci" {
+         if err == os.ErrNotExist {
+            dupver.CreateDefaultRepoConfig().Write()
+         } else if err = nil {
+            fmt.Println("Repo configuration already exists, refusing to overwrite")
+         } else { // err != nil
+            panic("Invalid repo configuration, aborting")
+         }
+	} else if cmd == "commit" || cmd == "ci" {
+         cfg, err := dupver.ReadRepoConfig()
+
+         if err == os.ErrNotExist {
+            cfg = dupver.CreateDefaultRepoConfig()
+            cfg.Write()
+
+            if VerboseMode {
+                fmt.Println("Repo configuration not present, writing default")
+            }
+         } else if err = nil {
+            fmt.Println("Repo configuration already exists, refusing to overwrite")
+         } else { // err != nil
+            panic("Invalid repo configuration, aborting")
+         }
+
 		message := ""
 		AddOptionFlags(commitCmd)
 		commitCmd.Parse(os.Args[2:])
-		filters, err := ReadFilters()
+		filters, err := dupver.ReadFilters()
 
 		if err != nil {
 			// TODO: write to stderr
@@ -95,7 +91,7 @@ func main() {
 	} else if cmd == "status" || cmd == "st" {
 		AddOptionFlags(statusCmd)
 		statusCmd.Parse(os.Args[2:])
-		filters, err := ReadFilters()
+		filters, err := dupver.ReadFilters()
 
 		if err != nil {
 			fmt.Printf("Encountered error when trying to read filters file, aborting:\n%v\n", err)
@@ -124,7 +120,7 @@ func main() {
 		snapshotNum, _ := strconv.Atoi(checkoutCmd.Arg(0))
 		dupver.CheckoutSnapshot(snapshotNum, OutputFolder)
 	} else if cmd == "version" || cmd == "ver" {
-		fmt.Printlf("%d.%d.%f", DupverMajorVersion, DupverMinorVersion, DupverPatchVersion)
+		fmt.Printf("%d.%d.%f", dupver.MajorVersion, dupver.MinorVersion, dupver.PatchVersion)
 	} else {
 		fmt.Println("Unknown subcommand")
 		os.Exit(1)

@@ -42,7 +42,7 @@ func CommitSnapshot(message string, filters []string, poly chunker.Pol, maxPackB
 		panic(fmt.Sprintf("Error creating dupver folder %s\n", dupverDir))
 	}
 
-	packId := RandHexString(PACK_ID_LEN)
+	packId := RandHexString(PackIdLen)
 	packFile, err := CreatePackFile(packId)
 
 	if err != nil {
@@ -157,7 +157,7 @@ func CommitSnapshot(message string, filters []string, poly chunker.Pol, maxPackB
 					panic(fmt.Sprintf("Error closing file for pack %s\n", packId))
 				}
 
-				packId = RandHexString(PACK_ID_LEN)
+				packId = RandHexString(PackIdLen)
 				packFile, err = CreatePackFile(packId)
 
 				if err != nil {

@@ -9,8 +9,8 @@ import (
     "time"
 )
 
-const SNAPSHOT_ID_LEN int = 40
-const PACK_ID_LEN int = 64
+const SnapshotIdLen int = 40
+const PackIdLen int = 64
 
 // TODO: change this to SerializedSnaphot
 // and use Time type for SnapshotTime?
@@ -40,7 +40,7 @@ type SnapshotFile struct {
 func CreateSnapshot(message string) Snapshot {
 	t := time.Now()
 	ts := t.Format("2006-01-02T15-04-05")
-	sid := RandHexString(SNAPSHOT_ID_LEN)
+	sid := RandHexString(SnapshotIdLen)
 	snap := Snapshot{SnapshotTime: ts, Message: message, SnapshotId: sid}
 	return snap
 }

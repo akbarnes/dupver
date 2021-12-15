@@ -1,9 +1,20 @@
 package dupver
 
-import "time"
+import (
+    "fmt"
+    "errors"
+    "path/filepath"
+    "encoding/json"
+    "os"
+)
 
-const SNAPSHOT_ID_LEN int = 40
-const PACK_ID_LEN int = 64
+type RepoConfigMissingError struct {
+    err string
+}
+
+func (e *RepoConfigMissingError) Error() string {
+    return "Repo config is missing"
+}
 
 // TODO: change this to SerializedSnaphot
 // and use Time type for SnapshotTime?
@@ -12,22 +23,29 @@ type RepoConfig struct {
 	RepoMinorVersion int64
 	DupverMajorVersion int64
 	DupverMinorVersion int64
-	CompressionLevel  int16
+	CompressionLevel uint16
     ChunkerPoly string
 }
 
-func CreateDefaultRepoConfig() {
+func CreateDefaultRepoConfig() RepoConfig {
     cfg := RepoConfig{}
-    cfg.DupverMajorVersion = DupverMajorVersion
-    cfg.DupverMinorVersion = DupverMinorVersion
+    cfg.DupverMajorVersion = MajorVersion
+    cfg.DupverMinorVersion = MinorVersion
     cfg.RepoMajorVersion = RepoMajorVersion
     cfg.RepoMinorVersion = RepoMinorVersion
     cfg.CompressionLevel = CompressionLevel
     cfg.ChunkerPoly = "0x3abc9bff07d9e5"
+    return cfg
 }
 
 
 func (cfg RepoConfig) Write() {
+  	dupverDir := filepath.Join(".dupver")
+
+	if err := os.MkdirAll(dupverDir, 0777); err != nil {
+		panic(fmt.Sprintf("Error creating dupver folder %s\n", dupverDir))
+	}
+
 	cfgPath := filepath.Join(".dupver", "repo_config.json")
 	f, err := os.Create(cfgPath)
 
@@ -53,13 +71,7 @@ func ReadRepoConfig() (RepoConfig, error) {
     defer f.Close()
 
     if errors.Is(err, os.ErrNotExist) {
-    	if VerboseMode {
-		    fmt.Printf("No repo configuration present, creating")
-	    }
-
-        cfg = CreateDefaultRepoConfig()
-        cfg.Write()
-        return cfg, nil
+        return RepoConfig{}, err
 	} else if err != nil {
 		return RepoConfig{}, errors.New("Cannot open repo config")
 	}
