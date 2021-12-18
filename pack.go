@@ -34,10 +34,10 @@ func CreatePackFile(packId string) (*os.File, error) {
 	return packFile, nil
 }
 
-func WriteChunkToPack(zipWriter *zip.Writer, chunkId string, chunk chunker.Chunk) error {
+func WriteChunkToPack(zipWriter *zip.Writer, chunkId string, chunk chunker.Chunk, compressionLevel uint16) error {
 	var header zip.FileHeader
 	header.Name = chunkId
-	header.Method = CompressionLevel
+	header.Method = compressionLevel
 
 	writer, err := zipWriter.CreateHeader(&header)
 

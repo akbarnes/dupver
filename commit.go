@@ -12,7 +12,7 @@ import (
 	"github.com/restic/chunker"
 )
 
-func CommitSnapshot(message string, filters []string, poly chunker.Pol, maxPackBytes int64) {
+func CommitSnapshot(message string, filters []string, poly chunker.Pol, maxPackBytes int64, compressionLevel uint16) {
 	buf := make([]byte, 8*1024*1024) // reuse this buffer
 
 	if VerboseMode {
@@ -142,7 +142,7 @@ func CommitSnapshot(message string, filters []string, poly chunker.Pol, maxPackB
 				existingPacks[chunkId] = packId
 
 				// save zip data
-				WriteChunkToPack(zipWriter, chunkId, chunk)
+				WriteChunkToPack(zipWriter, chunkId, chunk, compressionLevel)
 				packBytesRemaining -= int64(chunk.Length)
 			}
 

@@ -33,15 +33,9 @@ func main() {
 
 	cmd := os.Args[1]
        if cmd == "init" {
-         if _, err := dupver.ReadRepoConfig(true); err != nil {
-            panic("Invalid repo configuration already present, aborting")
-         }
+         dupver.ReadRepoConfig(true)
 	} else if cmd == "commit" || cmd == "ci" {
         cfg, err := dupver.ReadRepoConfig(true)
-
-        if err != nil {
-            panic("Invalid repo configuration, aborting")
-         }
 
 		message := ""
 		AddOptionFlags(commitCmd)
@@ -69,7 +63,7 @@ func main() {
 		}
 
 		const packSize int64 = 500 * 1024 * 1024
-		dupver.CommitSnapshot(message, filters, p, packSize)
+		dupver.CommitSnapshot(message, filters, p, packSize, cfg.CompressionLevel)
 	} else if cmd == "status" || cmd == "st" {
 		AddOptionFlags(statusCmd)
 		statusCmd.Parse(os.Args[2:])

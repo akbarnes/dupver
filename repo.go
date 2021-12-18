@@ -33,7 +33,7 @@ func CreateDefaultRepoConfig() RepoConfig {
     cfg.DupverMinorVersion = MinorVersion
     cfg.RepoMajorVersion = RepoMajorVersion
     cfg.RepoMinorVersion = RepoMinorVersion
-    cfg.CompressionLevel = CompressionLevel
+    cfg.CompressionLevel = 0
     cfg.ChunkerPoly = "0x3abc9bff07d9e5"
     return cfg
 }
@@ -57,6 +57,10 @@ func (cfg RepoConfig) Write() {
 	myEncoder.SetIndent("", "  ")
 	myEncoder.Encode(cfg)
 	f.Close()
+}
+
+func (cfg RepoConfig) CorrectRepoVersion() bool {
+    return (cfg.RepoMajorVersion == MajorVersion)
 }
 
 func ReadRepoConfig(writeIfMissing bool) (RepoConfig, error) {
@@ -89,8 +93,12 @@ func ReadRepoConfig(writeIfMissing bool) (RepoConfig, error) {
 	myDecoder := json.NewDecoder(f)
 
 	if err := myDecoder.Decode(&cfg); err != nil {
-		return RepoConfig{}, errors.New("Cannot decode repo config")
+		panic("Cannot decode repo config")
 	}
+
+    if !cfg.CorrectRepoVersion() {
+		panic(fmt.Sprintf("Invalid repo version %d.%d, expecting %d.x\n", cfg.RepoMajorVersion, cfg.RepoMinorVersion, MajorRepoVersion))
+    }
 
 	return cfg, nil
 }
