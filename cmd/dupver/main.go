@@ -102,7 +102,14 @@ func main() {
 		checkoutCmd.StringVar(&OutputFolder, "out", "", "output folder")
 		checkoutCmd.StringVar(&OutputFolder, "o", "", "output folder")
 		checkoutCmd.Parse(os.Args[2:])
-		dupver.CheckoutSnapshot(checkoutCmd.Arg(0), OutputFolder)
+
+        checkoutFilter := ""
+
+        if checkoutCmd.NArg() >= 2 {
+            checkoutFilter = checkoutCmd.Arg(1)
+        }
+
+		dupver.CheckoutSnapshot(checkoutCmd.Arg(0), OutputFolder, checkoutFilter)
 	} else if cmd == "version" || cmd == "ver" {
 		fmt.Printf("%d.%d.%d\n", dupver.DupverMajorversion, dupver.MinorVersion, dupver.PatchVersion)
 	} else {
