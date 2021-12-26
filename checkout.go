@@ -6,15 +6,17 @@ import (
 	"path/filepath"
 )
 
-func CheckoutSnapshot(snapshotNum int, outputFolder string) {
-	snaps := ReadAllSnapshots()
+func CheckoutSnapshot(commitId string, outputFolder string) {
+    snap, err := MatchSnapshot(commitId)
 
-	if len(outputFolder) == 0 {
-		outputFolder = fmt.Sprintf("snapshot%03d", snapshotNum)
-	}
+    if err != nil {
+        fmt.Println("No matching snapshot paths")
+        os.Exit(1)
+    }
 
-	fmt.Printf("Checking out %d\n", snapshotNum)
-	snaps[snapshotNum-1].Checkout(outputFolder)
+
+	fmt.Printf("Checking out %d\n", snap.SnapshotId[0:9])
+	snap.Checkout(outputFolder)
 }
 
 func (snap Snapshot) Checkout(outputFolder string) {

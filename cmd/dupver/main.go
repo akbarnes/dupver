@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
-	"strconv"
+	//"strconv"
 
 	"github.com/akbarnes/dupver"
 	"github.com/restic/chunker"
@@ -103,8 +103,7 @@ func main() {
 		checkoutCmd.StringVar(&OutputFolder, "out", "", "output folder")
 		checkoutCmd.StringVar(&OutputFolder, "o", "", "output folder")
 		checkoutCmd.Parse(os.Args[2:])
-		snapshotNum, _ := strconv.Atoi(checkoutCmd.Arg(0))
-		dupver.CheckoutSnapshot(snapshotNum, OutputFolder)
+		dupver.CheckoutSnapshot(checkoutCmd.Arg(0), OutputFolder)
 	} else if cmd == "version" || cmd == "ver" {
 		fmt.Printf("%d.%d.%d\n", dupver.DupverMajorversion, dupver.MinorVersion, dupver.PatchVersion)
 	} else {
