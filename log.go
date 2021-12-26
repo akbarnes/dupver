@@ -3,6 +3,8 @@ package dupver
 import (
 	"fmt"
     "strings"
+    "errors"
+    "os"
 	"path/filepath"
 )
 
@@ -19,20 +21,28 @@ func LogAllSnapshots() {
 	}
 }
 
-func LogSingleSnapshot(commitId string) {
+func MatchSnapshot(commitId string) (Snapshot, error) {
 	snapshotGlob := filepath.Join(".dupver", "snapshots", "*.json")
 	snapshotPaths, err := filepath.Glob(snapshotGlob)
 	Check(err)
 
-    var snapshotPath string
-
     for _, snapshotPath := range snapshotPaths {
         if strings.Contains(snapshotPath, commitId) {
-            break
+	        return ReadSnapshotJson(snapshotPath), nil
         }
     }
 
-	snap := ReadSnapshotJson(snapshotPath)
+    return Snapshot{}, errors.New("No matching snapshots")
+}
+
+func LogSingleSnapshot(commitId string) {
+    snap, err := MatchSnapshot(commitId)
+
+    if err != nil {
+        fmt.Println("No matching snapshot paths")
+        os.Exit(1)
+    }
+
 
 	snapFiles := snap.ReadFilesList()
 
