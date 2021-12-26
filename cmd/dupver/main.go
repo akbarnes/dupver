@@ -63,8 +63,7 @@ func main() {
 			fmt.Println(p)
 		}
 
-		const packSize int64 = 500 * 1024 * 1024
-		dupver.CommitSnapshot(message, filters, p, packSize, cfg.CompressionLevel)
+		dupver.CommitSnapshot(message, filters, p, cfg.PackSize, cfg.CompressionLevel)
 	} else if cmd == "status" || cmd == "st" {
 		dupver.AbortIfIncorrectRepoVersion()
 		_, err := dupver.ReadRepoConfig(false)

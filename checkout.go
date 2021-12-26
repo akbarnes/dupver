@@ -15,7 +15,7 @@ func CheckoutSnapshot(commitId string, outputFolder string) {
     }
 
 
-	fmt.Printf("Checking out %d\n", snap.SnapshotId[0:9])
+	fmt.Printf("Checking out %s\n", snap.SnapshotId[0:9])
 	snap.Checkout(outputFolder)
 }
 

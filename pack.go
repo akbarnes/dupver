@@ -11,6 +11,8 @@ import (
 	"github.com/restic/chunker"
 )
 
+const PackSize int64 = 500 * 1024 * 1024
+
 func CreatePackFile(packId string) (*os.File, error) {
 	packFolderPath := filepath.Join(".dupver", "packs", packId[0:2])
 	os.MkdirAll(packFolderPath, 0777)

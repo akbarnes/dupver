@@ -1,6 +1,0 @@
-WorkDirName = "dupver"
-Branch = "main"
-DefaultRepo = "test"
-
-[Repos]
-  test = "C:\\Users\\305232\\.dupver_repo"

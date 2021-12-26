@@ -24,6 +24,7 @@ type RepoConfig struct {
 	DupverMajorVersion int64
 	DupverMinorVersion int64
 	CompressionLevel   uint16
+    PackSize           int64
 	ChunkerPoly        string
 }
 
@@ -33,6 +34,7 @@ func CreateDefaultRepoConfig() RepoConfig {
 	cfg.DupverMinorVersion = MinorVersion
 	cfg.RepoMajorVersion = RepoMajorVersion
 	cfg.RepoMinorVersion = RepoMinorVersion
+    cfg.PackSize = PackSize
 	cfg.CompressionLevel = 0
 	cfg.ChunkerPoly = "0x3abc9bff07d9e5"
 	return cfg
