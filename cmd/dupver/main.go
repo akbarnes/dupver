@@ -103,7 +103,7 @@ func main() {
 		checkoutCmd.StringVar(&OutputFolder, "o", "", "output folder")
 		checkoutCmd.Parse(os.Args[2:])
 
-        checkoutFilter := ""
+        checkoutFilter := "*"
 
         if checkoutCmd.NArg() >= 2 {
             checkoutFilter = checkoutCmd.Arg(1)

@@ -20,66 +20,24 @@ func CheckoutSnapshot(commitId string, outputFolder string, filter string) {
     snap.Checkout(outputFolder, filter)
 }
 
-func (snap Snapshot) FullCheckout(outputFolder string) {
-	os.MkdirAll(outputFolder, 0777)
-	snapFiles := snap.ReadFilesList()
-	packs := ReadTrees()
-
-	for fileName, fileProps := range snapFiles {
-		fileDir := filepath.Dir(fileName)
-		outDir := outputFolder
-
-		if fileDir != "." {
-			outDir = filepath.Join(outputFolder, fileDir)
-			fmt.Printf("Creating folder %s\n", outDir)
-			os.MkdirAll(outDir, 0777)
-		}
-
-		outPath := filepath.Join(outputFolder, fileName)
-		outFile, err := os.Create(outPath)
-
-		if err != nil {
-			// fmt.Fprintln(os.Stderr, "Error creating %s, skipping\n", outPath)
-			fmt.Printf("Error creating %s, skipping\n", outPath)
-			continue
-		}
-
-		defer outFile.Close()
-
-		for _, chunkId := range fileProps.ChunkIds {
-			packId := packs[chunkId]
-
-			if VerboseMode {
-				fmt.Printf("Extracting:\n  Pack %s\n  Chunk %s\n  to %s\n\n", packId, chunkId, outPath)
-			}
-
-			ExtractChunkFromPack(outFile, chunkId, packId)
-		}
-
-		fmt.Printf("Restored %s to %s\n", fileName, outPath)
-	}
-}
-
 func (snap Snapshot) Checkout(outputFolder string, filter string) {
 	os.MkdirAll(outputFolder, 0777)
 	snapFiles := snap.ReadFilesList()
 	packs := ReadTrees()
 
 	for fileName, fileProps := range snapFiles {
-        if len(filter) > 0 {
-            matched, err := doublestar.PathMatch(filter, fileName)
+        matched, err := doublestar.PathMatch(filter, fileName)
 
-            if err != nil && VerboseMode {
-                fmt.Printf("Error matching %s\n", filter)
+        if err != nil && VerboseMode {
+            fmt.Printf("Error matching %s\n", filter)
+        }
+
+        if !matched {
+            if VerboseMode {
+                fmt.Printf("Skipping file %s\n", fileName)
             }
 
-            if !matched {
-                if VerboseMode {
-                    fmt.Printf("Skipping file %s\n", fileName)
-                }
-
-                continue
-            }
+            continue
         }
 
 		fileDir := filepath.Dir(fileName)
