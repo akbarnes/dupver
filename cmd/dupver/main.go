@@ -93,8 +93,7 @@ func main() {
 		logCmd.Parse(os.Args[2:])
 
 		if logCmd.NArg() >= 1 {
-			snapshotNum, _ := strconv.Atoi(logCmd.Arg(0))
-			dupver.LogSingleSnapshot(snapshotNum)
+			dupver.LogSingleSnapshot(logCmd.Arg(0))
 		} else {
 			dupver.LogAllSnapshots()
 		}
@@ -107,7 +106,7 @@ func main() {
 		snapshotNum, _ := strconv.Atoi(checkoutCmd.Arg(0))
 		dupver.CheckoutSnapshot(snapshotNum, OutputFolder)
 	} else if cmd == "version" || cmd == "ver" {
-		fmt.Printf("%d.%d.%f", dupver.DupverMajorversion, dupver.MinorVersion, dupver.PatchVersion)
+		fmt.Printf("%d.%d.%d\n", dupver.DupverMajorversion, dupver.MinorVersion, dupver.PatchVersion)
 	} else {
 		fmt.Println("Unknown subcommand")
 		os.Exit(1)

@@ -6,6 +6,7 @@
 - [ ] Use a logging package or print warnings/info to stderr
 - [ ] Support partial checkout
 - [ ] Add unit tests
+- [ ] Add repack/prune
 
 # Maybe TODO:
 - [ ] Re-add WorkDirPath to work well with Xojo
