@@ -63,14 +63,14 @@ func (cfg RepoConfig) CorrectRepoVersion() bool {
 }
 
 func AbortIfIncorrectRepoVersion() {
-	cfg, err := dupver.ReadRepoConfig(false)
+	cfg, err := ReadRepoConfig(false)
 
 	if err != nil {
 		fmt.Println("Can't read repo configuration, exiting\n")
 		os.Exit(1)
 	}
 
-	if !cfg.CorrectRepoversion() {
+	if !cfg.CorrectRepoVersion() {
 		fmt.Printf("Incorrect repo version of %d.%d, expecting %d.x\n", cfg.RepoMajorVersion, cfg.RepoMinorVersion, RepoMajorVersion)
 		os.Exit(1)
 	}
@@ -110,7 +110,7 @@ func ReadRepoConfig(writeIfMissing bool) (RepoConfig, error) {
 	}
 
 	if !cfg.CorrectRepoVersion() {
-		panic(fmt.Sprintf("Invalid repo version %d.%d, expecting %d.x\n", cfg.RepoMajorVersion, cfg.RepoMinorVersion, MajorRepoVersion))
+		panic(fmt.Sprintf("Invalid repo version %d.%d, expecting %d.x\n", cfg.RepoMajorVersion, cfg.RepoMinorVersion, RepoMajorVersion))
 	}
 
 	return cfg, nil

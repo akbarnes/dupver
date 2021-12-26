@@ -67,7 +67,7 @@ func main() {
 		dupver.CommitSnapshot(message, filters, p, packSize, cfg.CompressionLevel)
 	} else if cmd == "status" || cmd == "st" {
 		dupver.AbortIfIncorrectRepoVersion()
-		cfg, err := dupver.ReadRepoConfig(false)
+		_, err := dupver.ReadRepoConfig(false)
 
 		if err != nil {
 			fmt.Printf("Can't read repo configuration, exiting")
