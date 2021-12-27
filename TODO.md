@@ -1,8 +1,9 @@
 # TODO:
-- [ ] Add diff
+- [x] Add diff
 - [x] Print warnings/info to stderr
 - [ ] Add repack/prune
 - [ ] Add global preferences (for diff tool or editor)
+- [ ] Fix timestamp issue on checkout - not storing milliseconds?
 
 # Maybe TODO:
 - [ ] Re-add WorkDirPath to work well with Xojo
