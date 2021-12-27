@@ -68,12 +68,12 @@ func AbortIfIncorrectRepoVersion() {
 	cfg, err := ReadRepoConfig(false)
 
 	if err != nil {
-		fmt.Println("Can't read repo configuration, exiting\n")
+		fmt.Fprintf(os.Stderr, "Can't read repo configuration, exiting\n")
 		os.Exit(1)
 	}
 
 	if !cfg.CorrectRepoVersion() {
-		fmt.Printf("Incorrect repo version of %d.%d, expecting %d.x\n", cfg.RepoMajorVersion, cfg.RepoMinorVersion, RepoMajorVersion)
+		fmt.Fprintf(os.Stderr, "Incorrect repo version of %d.%d, expecting %d.x\n", cfg.RepoMajorVersion, cfg.RepoMinorVersion, RepoMajorVersion)
 		os.Exit(1)
 	}
 }
@@ -82,7 +82,7 @@ func ReadRepoConfig(writeIfMissing bool) (RepoConfig, error) {
 	cfgPath := filepath.Join(".dupver", "repo_config.json")
 
 	if VerboseMode {
-		fmt.Printf("Reading %s\n", cfgPath)
+		fmt.Fprintf(os.Stderr, "Reading %s\n", cfgPath)
 	}
 
 	var cfg RepoConfig
@@ -92,7 +92,7 @@ func ReadRepoConfig(writeIfMissing bool) (RepoConfig, error) {
 	if errors.Is(err, os.ErrNotExist) {
 		if writeIfMissing {
 			if VerboseMode {
-				fmt.Println("Repo configuration not present, writing default")
+				fmt.Fprintf(os.Stderr, "Repo configuration not present, writing default")
 			}
 
 			cfg = CreateDefaultRepoConfig()

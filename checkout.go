@@ -3,6 +3,7 @@ package dupver
 import (
 	"fmt"
 	"os"
+    "time"
 	"path/filepath"
 
 	"github.com/bmatcuk/doublestar"
@@ -12,11 +13,11 @@ func CheckoutSnapshot(commitId string, outputFolder string, filter string) {
     snap, err := MatchSnapshot(commitId)
 
     if err != nil {
-        fmt.Println("No matching snapshot paths")
+        fmt.Fprintf(os.Stderr, "No matching snapshot paths\n")
         os.Exit(1)
     }
 
-	fmt.Printf("Checking out %s\n", snap.SnapshotId[0:9])
+	fmt.Fprintf(os.Stderr, "Checking out %s\n", snap.SnapshotId[0:9])
     snap.Checkout(outputFolder, filter)
 }
 
@@ -29,12 +30,12 @@ func (snap Snapshot) Checkout(outputFolder string, filter string) {
         matched, err := doublestar.PathMatch(filter, fileName)
 
         if err != nil && VerboseMode {
-            fmt.Printf("Error matching %s\n", filter)
+            fmt.Fprintf(os.Stderr, "Error matching %s\n", filter)
         }
 
         if !matched {
             if VerboseMode {
-                fmt.Printf("Skipping file %s\n", fileName)
+                fmt.Fprintf(os.Stderr, "Skipping file %s\n", fileName)
             }
 
             continue
@@ -45,7 +46,7 @@ func (snap Snapshot) Checkout(outputFolder string, filter string) {
 
 		if fileDir != "." {
 			outDir = filepath.Join(outputFolder, fileDir)
-			fmt.Printf("Creating folder %s\n", outDir)
+			fmt.Fprintf(os.Stderr, "Creating folder %s\n", outDir)
 			os.MkdirAll(outDir, 0777)
 		}
 
@@ -54,7 +55,7 @@ func (snap Snapshot) Checkout(outputFolder string, filter string) {
 
 		if err != nil {
 			// fmt.Fprintln(os.Stderr, "Error creating %s, skipping\n", outPath)
-			fmt.Printf("Error creating %s, skipping\n", outPath)
+			fmt.Fprintf(os.Stderr, "Error creating %s, skipping\n", outPath)
 			continue
 		}
 
@@ -64,12 +65,24 @@ func (snap Snapshot) Checkout(outputFolder string, filter string) {
 			packId := packs[chunkId]
 
 			if VerboseMode {
-				fmt.Printf("Extracting:\n  Pack %s\n  Chunk %s\n  to %s\n\n", packId, chunkId, outPath)
+				fmt.Fprintf(os.Stderr, "Extracting:\n  Pack %s\n  Chunk %s\n  to %s\n\n", packId, chunkId, outPath)
 			}
 
 			ExtractChunkFromPack(outFile, chunkId, packId)
 		}
 
-		fmt.Printf("Restored %s to %s\n", fileName, outPath)
+        mtime, err := time.Parse("2006-01-02T15-04-05", fileProps.ModTime)
+
+        if err == nil { 
+            os.Chtimes(outPath, mtime, mtime)
+        } else { 
+            fmt.Fprintf(os.Stderr, "Error parsing time %s for file %s, not setting", fileProps.ModTime, fileName)
+        }
+
+        if VerboseMode { 
+		    fmt.Printf("Restored %s to %s\n", fileName, outPath)
+        } else {
+            fmt.Println(fileName)
+        }
 	}
 }

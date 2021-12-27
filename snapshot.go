@@ -127,7 +127,7 @@ func ReadSnapshot(snapId string) Snapshot {
 	snapshotPath := filepath.Join(".dupver", "snapshots", snapId+".json")
 
 	if VerboseMode {
-		fmt.Printf("Reading %s\n", snapshotPath)
+		fmt.Fprintf(os.Stderr, "Reading %s\n", snapshotPath)
 	}
 
 	return ReadSnapshotJson(snapshotPath)
@@ -145,7 +145,7 @@ func ReadSnapshotJson(snapshotPath string) Snapshot {
 	myDecoder := json.NewDecoder(f)
 
 	if err := myDecoder.Decode(&snap); err != nil {
-		fmt.Printf("Error:could not decode head file %s\n", snapshotPath)
+		fmt.Fprintf(os.Stderr, "Error:could not decode head file %s\n", snapshotPath)
 		Check(err)
 	}
 
@@ -201,7 +201,7 @@ func ReadHead() Snapshot {
 	myDecoder := json.NewDecoder(f)
 
 	if err := myDecoder.Decode(&head); err != nil {
-		fmt.Printf("Error:could not decode head file %s\n", headPath)
+		fmt.Fprintf(os.Stderr, "Error:could not decode head file %s\n", headPath)
 		Check(err)
 	}
 

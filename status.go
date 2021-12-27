@@ -42,7 +42,7 @@ func (snap Snapshot) Diff(filters []string) {
 
 		if err != nil {
 			if VerboseMode {
-				fmt.Printf("Skipping unreadable file %s\n", fileName)
+				fmt.Fprintf(os.Stderr, "Skipping unreadable file %s\n", fileName)
 			}
 
 			return nil
@@ -63,7 +63,7 @@ func (snap Snapshot) Diff(filters []string) {
 		return nil
 	}
 
-	// fmt.Printf("No changes detected in %s for commit %s\n", workDir, snapshot.ID)
+	// fmt.Fprintf(os.Stderr, "No changes detected in %s for commit %s\n", workDir, snapshot.ID)
 	filepath.Walk(workingDirectory, DiffFile)
 
 	for fileName, fileStatus := range status {

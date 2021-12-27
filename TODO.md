@@ -1,11 +1,6 @@
 # TODO:
-- [x] Set chunk size as a parameter for repo config
-- [ ] Don't use hardcoded prime
-- [ ] Add diffs
-- [x] Use commit id instead of index for co and print on log
-- [ ] Use a logging package or print warnings/info to stderr
-- [ ] Support partial checkout
-- [x] Add unit tests
+- [ ] Add diff
+- [ ] Print warnings/info to stderr
 - [ ] Add repack/prune
 - [ ] Add global preferences (for diff tool or editor)
 
@@ -13,4 +8,11 @@
 - [ ] Re-add WorkDirPath to work well with Xojo
 - [ ] Use -m flag for commit message, promit for message if absent
 - [ ] Add username/fullname/email to commits
-
+- [ ] Add quiet mode to just print snapshot ids on log
+- [ ] Add command to print repo stats
+- [x] Preserve date stamps on checkout?
+- [ ] Add option to generate random polynomial on init
+- [ ] Use a logging package 
+- [ ] Command to print repo stats
+- [ ] Add codecov
+- [ ] Decompress archives before deduplicating

@@ -12,11 +12,11 @@ func LogAllSnapshots() {
 	for i, snap := range ReadAllSnapshots() {
 		// Time: 2021/05/08 08:57:46
 		// Message: specify workdir path explicitly
-		fmt.Printf("%d) Time: %s\n", i+1, snap.SnapshotTime)
-        fmt.Printf("ID: %s\n", snap.SnapshotId[0:9])
+		fmt.Fprintf(os.Stderr, "%d) Time: %s\n", i+1, snap.SnapshotTime)
+        fmt.Printf("%s\n", snap.SnapshotId[0:9])
 
 		if len(snap.Message) > 0 {
-			fmt.Printf("Message: %s\n\n", snap.Message)
+			fmt.Fprintf(os.Stderr, "Message: %s\n\n", snap.Message)
 		}
 	}
 }
@@ -39,7 +39,7 @@ func LogSingleSnapshot(commitId string) {
     snap, err := MatchSnapshot(commitId)
 
     if err != nil {
-        fmt.Println("No matching snapshot paths")
+        fmt.Fprintf(os.Stderr, "No matching snapshot paths")
         os.Exit(1)
     }
 

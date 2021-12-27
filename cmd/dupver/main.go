@@ -27,7 +27,7 @@ func main() {
 	flag.Parse()
 
 	if len(os.Args) < 2 {
-		fmt.Println("Expected subcommand")
+		fmt.Fprintf(os.Stderr, "Expected subcommand\n")
 		os.Exit(1)
 	}
 
@@ -45,7 +45,7 @@ func main() {
 
 		if err != nil {
 			// TODO: write to stderr
-			fmt.Println("Couldn't read filters file")
+			fmt.Fprintf(os.Stderr, "Couldn't read filters file\n")
 			os.Exit(1)
 		}
 
@@ -59,8 +59,7 @@ func main() {
 		const p chunker.Pol = 0x3abc9bff07d9e5
 
 		if dupver.VerboseMode {
-			fmt.Printf("Random polynomial: ")
-			fmt.Println(p)
+			fmt.Fprintf(os.Stderr, "Random polynomial: %v\n", p)
 		}
 
 		dupver.CommitSnapshot(message, filters, p, cfg.PackSize, cfg.CompressionLevel)
@@ -69,7 +68,7 @@ func main() {
 		_, err := dupver.ReadRepoConfig(false)
 
 		if err != nil {
-			fmt.Printf("Can't read repo configuration, exiting")
+			fmt.Fprintf(os.Stderr, "Can't read repo configuration, exiting")
 			os.Exit(1)
 		}
 
@@ -78,7 +77,7 @@ func main() {
 		filters, err := dupver.ReadFilters()
 
 		if err != nil {
-			fmt.Printf("Encountered error when trying to read filters file, aborting:\n%v\n", err)
+			fmt.Fprintf(os.Stderr, "Encountered error when trying to read filters file, aborting:\n%v\n", err)
 		}
 
 		if statusCmd.NArg() >= 1 {
@@ -113,7 +112,7 @@ func main() {
 	} else if cmd == "version" || cmd == "ver" {
 		fmt.Printf("%d.%d.%d\n", dupver.DupverMajorversion, dupver.MinorVersion, dupver.PatchVersion)
 	} else {
-		fmt.Println("Unknown subcommand")
+        fmt.Fprintf(os.Stderr, "Unknown subcommand\n")
 		os.Exit(1)
 	}
 }

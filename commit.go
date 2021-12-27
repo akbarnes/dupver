@@ -16,20 +16,20 @@ func CommitSnapshot(message string, filters []string, poly chunker.Pol, maxPackB
 	buf := make([]byte, 8*1024*1024) // reuse this buffer
 
 	if VerboseMode {
-		fmt.Println("Start reading head...")
+		fmt.Fprintf(os.Stderr, "Start reading head...\n")
 	}
 
 	headFiles := ReadHead().ReadFilesList()
 
 	if VerboseMode {
-		fmt.Println("Done reading head")
-		fmt.Println("Start reading trees...")
+		fmt.Fprintf(os.Stderr, "Done reading head\n")
+		fmt.Fprintf(os.Stderr, "Start reading trees...\n")
 	}
 
 	existingPacks := ReadTrees()
 
 	if VerboseMode {
-		fmt.Println("Done reading trees")
+		fmt.Fprintf(os.Stderr, "Done reading trees\n")
 	}
 
 	snap := CreateSnapshot(message)
@@ -63,7 +63,7 @@ func CommitSnapshot(message string, filters []string, poly chunker.Pol, maxPackB
 
 		if err != nil {
 			if VerboseMode {
-				fmt.Printf("Can't stat file %s, skipping\n", fileName)
+				fmt.Fprintf(os.Stderr, "Can't stat file %s, skipping\n", fileName)
 			}
 
 			return nil
@@ -76,7 +76,7 @@ func CommitSnapshot(message string, filters []string, poly chunker.Pol, maxPackB
 		// TODO: fix this. Currently not reading in filechunks from head
 		if headFile, ok := headFiles[fileName]; ok && modTime == headFile.ModTime {
 			if VerboseMode {
-				fmt.Printf("Skipping %s\n", fileName)
+				fmt.Fprintf(os.Stderr, "Skipping %s\n", fileName)
 			}
 
 			files[fileName] = headFiles[fileName]
@@ -88,7 +88,7 @@ func CommitSnapshot(message string, filters []string, poly chunker.Pol, maxPackB
 
 		if err != nil {
 			if VerboseMode {
-				fmt.Printf("Can't open file %s for reading, skipping\n", fileName)
+				fmt.Fprintf(os.Stderr, "Can't open file %s for reading, skipping\n", fileName)
 			}
 
 			return nil
@@ -98,7 +98,7 @@ func CommitSnapshot(message string, filters []string, poly chunker.Pol, maxPackB
 		myChunker := chunker.New(in, chunker.Pol(poly))
 
 		if VerboseMode {
-			fmt.Printf("\nChunking %s\n", fileName)
+			fmt.Fprintf(os.Stderr, "\nChunking %s\n", fileName)
 		} else {
 			fmt.Println(fileName)
 		}
@@ -114,7 +114,7 @@ func CommitSnapshot(message string, filters []string, poly chunker.Pol, maxPackB
 			} else if err != nil {
 				// TODO: Should I return an error instead of quitting here? Is there anythig to do?
                 if VerboseMode {
-				    fmt.Printf("Error reading chunk from  file %s\n", fileName)
+				    fmt.Fprintf(os.Stderr, "Error reading chunk from  file %s\n", fileName)
                 }
 
                 readOk = false
@@ -128,14 +128,14 @@ func CommitSnapshot(message string, filters []string, poly chunker.Pol, maxPackB
 
 				if _, ok := existingPacks[chunkId]; ok {
 					if VerboseMode {
-						fmt.Printf("Skipping Chunk ID %s already in pack %s\n", chunkId[0:16], existingPacks[chunkId][0:16])
+						fmt.Fprintf(os.Stderr, "Skipping Chunk ID %s already in pack %s\n", chunkId[0:16], existingPacks[chunkId][0:16])
 					}
 
 					continue
 				}
 
 				if VerboseMode {
-					fmt.Printf("Chunk %s: chunk size %d kB, pack %s\n", chunkId[0:16], chunk.Length/1024, packId[0:16])
+					fmt.Fprintf(os.Stderr, "Chunk %s: chunk size %d kB, pack %s\n", chunkId[0:16], chunk.Length/1024, packId[0:16])
 				}
 
 				packs[chunkId] = packId
@@ -179,8 +179,8 @@ func CommitSnapshot(message string, filters []string, poly chunker.Pol, maxPackB
 
 	// fmt.Printf("No changes detected in %s for commit %s\n", workDir, snapshot.ID)
 	if err := filepath.Walk(WorkingDirectory, VersionFile); err != nil {
-		fmt.Printf("Error committing:\n")
-		fmt.Println(err)
+		fmt.Fprintf(os.Stderr, "Error committing:\n")
+		fmt.Fprintf(os.Stderr, "%v\n", err)
 	}
 
 	if err := zipWriter.Close(); err != nil {

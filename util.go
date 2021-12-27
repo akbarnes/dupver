@@ -55,12 +55,12 @@ func ExcludedFile(fileName string, info os.FileInfo, filters []string) bool {
 	matched, err := doublestar.PathMatch(dupverPattern, fileName)
 
 	if err != nil && VerboseMode {
-		fmt.Printf("Error matching %s\n", dupverDir)
+		fmt.Fprintf(os.Stderr, "Error matching %s\n", dupverDir)
 	}
 
 	if matched {
 		if VerboseMode {
-			fmt.Printf("Skipping file %s in .dupver\n", fileName)
+			fmt.Fprintf(os.Stderr, "Skipping file %s in .dupver\n", fileName)
 		}
 
 		return true
@@ -70,12 +70,12 @@ func ExcludedFile(fileName string, info os.FileInfo, filters []string) bool {
 		matched, err := doublestar.PathMatch(pattern, fileName)
 
 		if err != nil && VerboseMode {
-			fmt.Printf("Error matching %s\n", dupverDir)
+			fmt.Fprintf(os.Stderr, "Error matching %s\n", dupverDir)
 		}
 
 		if matched {
 			if VerboseMode {
-				fmt.Printf("Skipping file %s which matches with %s\n", fileName, pattern)
+				fmt.Fprintf(os.Stderr, "Skipping file %s which matches with %s\n", fileName, pattern)
 			}
 
 			return true

@@ -19,7 +19,7 @@ func CreatePackFile(packId string) (*os.File, error) {
 	packPath := filepath.Join(packFolderPath, packId+".zip")
 
 	if VerboseMode {
-		fmt.Printf("Creating pack: %s\n", packId[0:16])
+		fmt.Fprintf(os.Stderr, "Creating pack: %s\n", packId[0:16])
 	}
 
 	// TODO: only create pack file if we need to save stuff - set to nil initially
@@ -27,7 +27,7 @@ func CreatePackFile(packId string) (*os.File, error) {
 
 	if err != nil {
 		if VerboseMode {
-			fmt.Printf("Error creating pack file %s", packPath)
+			fmt.Fprintf(os.Stderr, "Error creating pack file %s", packPath)
 		}
 
 		return nil, err
@@ -45,7 +45,7 @@ func WriteChunkToPack(zipWriter *zip.Writer, chunkId string, chunk chunker.Chunk
 
 	if err != nil {
 		if VerboseMode {
-			fmt.Printf("Error creating zip header\n")
+			fmt.Fprintf(os.Stderr, "Error creating zip header\n")
 		}
 
 		return err
@@ -53,7 +53,7 @@ func WriteChunkToPack(zipWriter *zip.Writer, chunkId string, chunk chunker.Chunk
 
 	if _, err := writer.Write(chunk.Data); err != nil {
 		if VerboseMode {
-			fmt.Printf("Error writing chunk %s to zip file\n", chunkId)
+			fmt.Fprintf(os.Stderr, "Error writing chunk %s to zip file\n", chunkId)
 		}
 
 		return err
@@ -69,7 +69,7 @@ func ExtractChunkFromPack(outFile *os.File, chunkId string, packId string) error
 
 	if err != nil {
 		if VerboseMode {
-			fmt.Printf("Error extracting pack %s[%s]\n", packId, chunkId)
+			fmt.Fprintf(os.Stderr, "Error extracting pack %s[%s]\n", packId, chunkId)
 		}
 		return err
 	}
@@ -82,12 +82,12 @@ func ExtractChunkFromZipFile(outFile *os.File, packFile *zip.ReadCloser, chunkId
 	for _, f := range packFile.File {
 
 		if f.Name == chunkId {
-			// fmt.Printf("Contents of %s:\n", f.Name)
+			// fmt.Fprintf(os.Stderr, "Contents of %s:\n", f.Name)
 			chunkFile, err := f.Open()
 
 			if err != nil {
 				if VerboseMode {
-					fmt.Printf("Error opening chunk %s\n", chunkId)
+					fmt.Fprintf(os.Stderr, "Error opening chunk %s\n", chunkId)
 				}
 
 				return err
@@ -97,7 +97,7 @@ func ExtractChunkFromZipFile(outFile *os.File, packFile *zip.ReadCloser, chunkId
 
 			if err != nil {
 				if VerboseMode {
-					fmt.Printf("Error reading chunk %s\n", chunkId)
+					fmt.Fprintf(os.Stderr, "Error reading chunk %s\n", chunkId)
 				}
 
 				return err
