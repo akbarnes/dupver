@@ -23,6 +23,7 @@ func AddOptionFlags(fs *flag.FlagSet) {
 func main() {
 	commitCmd := flag.NewFlagSet("commit", flag.ExitOnError)
 	statusCmd := flag.NewFlagSet("status", flag.ExitOnError)
+	diffCmd := flag.NewFlagSet("diff", flag.ExitOnError)
 	logCmd := flag.NewFlagSet("log", flag.ExitOnError)
 	checkoutCmd := flag.NewFlagSet("checkout", flag.ExitOnError)
 
@@ -87,6 +88,23 @@ func main() {
 		} else {
 			dupver.DiffSnapshot("", filters)
 		}
+	} else if cmd == "diff" {
+		dupver.AbortIfIncorrectRepoVersion()
+		_, err := dupver.ReadRepoConfig(false)
+
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Can't read repo configuration, exiting")
+			os.Exit(1)
+		}
+
+		AddOptionFlags(diffCmd)
+		diffCmd.Parse(os.Args[2:])
+
+		if diffCmd.NArg() >= 1 {
+			dupver.DiffToolSnapshotFile(diffCmd.Arg(0))
+		} else {
+			dupver.DiffToolSnapshot()
+        }
 	} else if cmd == "log" {
 		dupver.AbortIfIncorrectRepoVersion()
 		AddOptionFlags(logCmd)

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
     "time"
+    "os/exec"
 	"path/filepath"
 
 	"github.com/bmatcuk/doublestar"
@@ -19,6 +20,37 @@ func CheckoutSnapshot(commitId string, outputFolder string, filter string) {
 
 	fmt.Fprintf(os.Stderr, "Checking out %s\n", snap.SnapshotId[0:9])
     snap.Checkout(outputFolder, filter)
+}
+
+func DiffToolSnapshot() {
+    snap := ReadHead()
+	fmt.Fprintf(os.Stderr, "Comparing %s\n", snap.SnapshotId[0:9])
+    snap.DiffTool()
+}
+
+func (snap Snapshot) DiffTool() {
+    home, err := os.UserHomeDir()
+    Check(err)
+    tempFolder := filepath.Join(home, ".dupver", "temp", RandHexString(24))
+    snap.Checkout(tempFolder, "*")
+    cmd := exec.Command("kdiff3", tempFolder, ".")
+    cmd.Run()
+}
+
+func DiffToolSnapshotFile(fileName string) {
+    snap := ReadHead()
+	fmt.Fprintf(os.Stderr, "Comparing %s/%s\n", snap.SnapshotId[0:9], fileName)
+    snap.DiffToolFile(fileName)
+}
+
+func (snap Snapshot) DiffToolFile(fileName string) {
+    home, err := os.UserHomeDir()
+    Check(err)
+    tempFolder := filepath.Join(home, ".dupver", "temp", RandHexString(24))
+    snap.Checkout(tempFolder, fileName)
+    tempFile := filepath.Join(tempFolder, fileName)
+    cmd := exec.Command("kdiff3", tempFile, fileName) 
+    cmd.Run()
 }
 
 func (snap Snapshot) Checkout(outputFolder string, filter string) {
