@@ -10,14 +10,16 @@ import (
 
 func LogAllSnapshots() {
 	for i, snap := range ReadAllSnapshots() {
-		// Time: 2021/05/08 08:57:46
-		// Message: specify workdir path explicitly
-		fmt.Fprintf(os.Stderr, "%d) Time: %s\n", i+1, snap.SnapshotTime)
-        fmt.Printf("%s\n", snap.SnapshotId[0:9])
+        if QuietMode {
+            fmt.Println(snap.SnapshotId)
+        } else { 
+            fmt.Printf("%d) Time: %s\n", i+1, snap.SnapshotTime)
+            fmt.Printf("ID: %s\n", snap.SnapshotId[0:9])
 
-		if len(snap.Message) > 0 {
-			fmt.Fprintf(os.Stderr, "Message: %s\n\n", snap.Message)
-		}
+            if len(snap.Message) > 0 {
+                fmt.Printf("Message: %s\n\n", snap.Message)
+            }
+        }
 	}
 }
 
@@ -46,7 +48,16 @@ func LogSingleSnapshot(commitId string) {
 
 	snapFiles := snap.ReadFilesList()
 
-	for fileName, _ := range snapFiles {
-		fmt.Println(fileName)
+    i := 1
+
+	for fileName, fileProps := range snapFiles {
+        if QuietMode {
+		    fmt.Println(fileName)
+        } else {
+            fmt.Printf("%d) %s\n", i, fileName)
+            fmt.Printf("Modified: %s\n", fileProps.ModTime)
+            fmt.Printf("Size: %0.3f MB\n\n", float64(fileProps.Size)/(1024.0*1024.0))
+            i += 1
+        }
 	}
 }

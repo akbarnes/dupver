@@ -1,6 +1,6 @@
 # TODO:
 - [ ] Add diff
-- [ ] Print warnings/info to stderr
+- [x] Print warnings/info to stderr
 - [ ] Add repack/prune
 - [ ] Add global preferences (for diff tool or editor)
 
@@ -8,7 +8,7 @@
 - [ ] Re-add WorkDirPath to work well with Xojo
 - [ ] Use -m flag for commit message, promit for message if absent
 - [ ] Add username/fullname/email to commits
-- [ ] Add quiet mode to just print snapshot ids on log
+- [x] Add quiet mode to just print snapshot ids on log
 - [ ] Add command to print repo stats
 - [x] Preserve date stamps on checkout?
 - [ ] Add option to generate random polynomial on init
