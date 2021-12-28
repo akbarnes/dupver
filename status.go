@@ -41,19 +41,23 @@ func (snap Snapshot) Diff(filters []string) {
 		props, err := os.Stat(fileName)
 
 		if err != nil {
-			if VerboseMode {
+			if DebugMode {
 				fmt.Fprintf(os.Stderr, "Skipping unreadable file %s\n", fileName)
 			}
 
 			return nil
 		}
 
-		modTime := props.ModTime().Format("2006-01-02T15-04-05")
+		modTime := props.ModTime().UTC().Format("2006-01-02T15-04-05")
 
 		if snapFile, ok := snapFiles[fileName]; ok {
 			if modTime == snapFile.ModTime {
 				status[fileName] = "="
 			} else {
+                if DebugMode {
+                    fmt.Printf("%s -> %s: %s\n", snapFile.ModTime, modTime, fileName)
+                }
+
 				status[fileName] = "M"
 			}
 		} else {

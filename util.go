@@ -59,7 +59,7 @@ func ExcludedFile(fileName string, info os.FileInfo, filters []string) bool {
 	}
 
 	if matched {
-		if VerboseMode {
+		if DebugMode {
 			fmt.Fprintf(os.Stderr, "Skipping file %s in .dupver\n", fileName)
 		}
 

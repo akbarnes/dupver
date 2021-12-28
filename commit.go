@@ -69,8 +69,9 @@ func CommitSnapshot(message string, filters []string, poly chunker.Pol, maxPackB
 			return nil
 		}
 
-		modTime := props.ModTime().Format("2006-01-02T15-04-05")
-		file := SnapshotFile{ModTime: modTime, Size: props.Size()}
+		modTime := props.ModTime().UTC().Format("2006-01-02T15-04-05")
+		modLocalTime := props.ModTime().Format("2006-01-02T15-04-05")
+		file := SnapshotFile{ModTime: modTime, ModLocalTime: modLocalTime, Size: props.Size()}
 		file.ChunkIds = []string{}
 
 		// TODO: fix this. Currently not reading in filechunks from head

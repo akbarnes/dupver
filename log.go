@@ -13,7 +13,12 @@ func LogAllSnapshots() {
         if QuietMode {
             fmt.Println(snap.SnapshotId)
         } else { 
-            fmt.Printf("%d) Time: %s\n", i+1, snap.SnapshotTime)
+            if len(snap.SnapshotLocalTime) > 0 {
+                fmt.Printf("%d) Local Time: %s\n", i+1, snap.SnapshotLocalTime)
+            } else {
+                fmt.Printf("%d) Time: %s\n", i+1, snap.SnapshotTime)
+            }
+
             fmt.Printf("ID: %s\n", snap.SnapshotId[0:9])
 
             if len(snap.Message) > 0 {
@@ -55,7 +60,13 @@ func LogSingleSnapshot(commitId string) {
 		    fmt.Println(fileName)
         } else {
             fmt.Printf("%d) %s\n", i, fileName)
-            fmt.Printf("Modified: %s\n", fileProps.ModTime)
+       
+            if len(fileProps.ModLocalTime) > 0 {
+                fmt.Printf("Local Modified: %s\n", fileProps.ModLocalTime)
+            } else {
+                fmt.Printf("Modified: %s\n", fileProps.ModTime)
+            }
+
             fmt.Printf("Size: %0.3f MB\n\n", float64(fileProps.Size)/(1024.0*1024.0))
             i += 1
         }

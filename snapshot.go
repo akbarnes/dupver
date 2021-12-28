@@ -17,6 +17,7 @@ const PackIdLen int = 64
 type Snapshot struct {
 	Message      string
 	SnapshotTime string
+	SnapshotLocalTime string
 	SnapshotId   string // Is this needed?
 }
 
@@ -28,6 +29,7 @@ type Head struct {
 type SnapshotFile struct {
 	Size     int64
 	ModTime  string
+	ModLocalTime  string
 	ChunkIds []string
 }
 
@@ -38,19 +40,17 @@ type SnapshotFile struct {
 // packs := map[string]string{}
 
 func CreateSnapshot(message string) Snapshot {
-	t := time.Now()
+	t := time.Now().UTC()
+	tl := time.Now().Local()
 	ts := t.Format("2006-01-02T15-04-05")
+	tsl := tl.Format("2006-01-02T15-04-05")
 	sid := RandHexString(SnapshotIdLen)
-	snap := Snapshot{SnapshotTime: ts, Message: message, SnapshotId: sid}
+	snap := Snapshot{SnapshotTime: ts, SnapshotLocalTime: tsl, Message: message, SnapshotId: sid}
 	return snap
 }
 
 func AddFileChunkIds(files map[string]SnapshotFile, headFiles map[string]SnapshotFile, fileName string) {
 	files[fileName] = headFiles[fileName]
-
-	// for _, chunkId := range files.ChunkIds[fileName] {
-	// 	snap.ChunkPackIds[chunkId] = head.ChunkPackIds[chunkId]
-	// }
 }
 
 // TODO: return err instead of panic?

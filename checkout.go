@@ -11,12 +11,20 @@ import (
 )
 
 func CheckoutSnapshot(commitId string, outputFolder string, filter string) {
-    snap, err := MatchSnapshot(commitId)
+    var snap Snapshot
+    var err error
 
-    if err != nil {
-        fmt.Fprintf(os.Stderr, "No matching snapshot paths\n")
-        os.Exit(1)
+    if commitId == "last" { 
+        snap = ReadHead() 
+    } else {
+        snap, err = MatchSnapshot(commitId)
+
+        if err != nil {
+            fmt.Fprintf(os.Stderr, "No matching snapshot paths\n")
+            os.Exit(1)
+        }
     }
+
 
 	fmt.Fprintf(os.Stderr, "Checking out %s\n", snap.SnapshotId[0:9])
     snap.Checkout(outputFolder, filter)
@@ -105,13 +113,13 @@ func (snap Snapshot) Checkout(outputFolder string, filter string) {
 
         mtime, err := time.Parse("2006-01-02T15-04-05", fileProps.ModTime)
 
-        if err == nil { 
+        if err == nil {
             os.Chtimes(outPath, mtime, mtime)
-        } else { 
+        } else {
             fmt.Fprintf(os.Stderr, "Error parsing time %s for file %s, not setting", fileProps.ModTime, fileName)
         }
 
-        if VerboseMode { 
+        if VerboseMode {
 		    fmt.Printf("Restored %s to %s\n", fileName, outPath)
         } else {
             fmt.Println(fileName)

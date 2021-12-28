@@ -16,6 +16,8 @@ var OutputFolder string
 func AddOptionFlags(fs *flag.FlagSet) {
 	fs.BoolVar(&dupver.VerboseMode, "verbose", false, "verbose mode")
 	fs.BoolVar(&dupver.VerboseMode, "v", false, "verbose mode")
+	fs.BoolVar(&dupver.DebugMode, "debug", false, "debug mode")
+	fs.BoolVar(&dupver.DebugMode, "d", false, "debug mode")
 	fs.BoolVar(&dupver.QuietMode, "quiet", false, "quiet mode")
 	fs.BoolVar(&dupver.QuietMode, "q", false, "quiet mode")
 }
