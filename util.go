@@ -15,6 +15,10 @@ const HexChars = "0123456789abcdef"
 
 var seededRand *rand.Rand = rand.New(rand.NewSource(time.Now().UnixNano()))
 
+func IsWindows() bool {
+    return os.PathSeparator == '\\' && os.PathListSeparator == ';'
+}
+
 func ReadFilters() ([]string, error) {
 	filterPath := ".dupver_ignore"
 	var filters []string

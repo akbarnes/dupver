@@ -23,6 +23,8 @@ func AddOptionFlags(fs *flag.FlagSet) {
 }
 
 func main() {
+    prefs := ReadPrefs(true)
+
 	commitCmd := flag.NewFlagSet("commit", flag.ExitOnError)
 	statusCmd := flag.NewFlagSet("status", flag.ExitOnError)
 	diffCmd := flag.NewFlagSet("diff", flag.ExitOnError)
@@ -103,9 +105,9 @@ func main() {
 		diffCmd.Parse(os.Args[2:])
 
 		if diffCmd.NArg() >= 1 {
-			dupver.DiffToolSnapshotFile(diffCmd.Arg(0))
+			dupver.DiffToolSnapshotFile(diffCmd.Arg(0), prefs.DiffTool)
 		} else {
-			dupver.DiffToolSnapshot()
+			dupver.DiffToolSnapshot(prefs.DiffTool)
         }
 	} else if cmd == "log" {
 		dupver.AbortIfIncorrectRepoVersion()

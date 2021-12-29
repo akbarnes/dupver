@@ -14,8 +14,8 @@ func CheckoutSnapshot(commitId string, outputFolder string, filter string) {
     var snap Snapshot
     var err error
 
-    if commitId == "last" { 
-        snap = ReadHead() 
+    if commitId == "last" {
+        snap = ReadHead()
     } else {
         snap, err = MatchSnapshot(commitId)
 
@@ -30,34 +30,34 @@ func CheckoutSnapshot(commitId string, outputFolder string, filter string) {
     snap.Checkout(outputFolder, filter)
 }
 
-func DiffToolSnapshot() {
+func DiffToolSnapshot(diffTool string) {
     snap := ReadHead()
 	fmt.Fprintf(os.Stderr, "Comparing %s\n", snap.SnapshotId[0:9])
-    snap.DiffTool()
+    snap.DiffTool(diffTool)
 }
 
-func (snap Snapshot) DiffTool() {
+func (snap Snapshot) DiffTool(diffTool string) {
     home, err := os.UserHomeDir()
     Check(err)
     tempFolder := filepath.Join(home, ".dupver", "temp", RandHexString(24))
     snap.Checkout(tempFolder, "*")
-    cmd := exec.Command("kdiff3", tempFolder, ".")
+    cmd := exec.Command(diffTool, tempFolder, ".")
     cmd.Run()
 }
 
-func DiffToolSnapshotFile(fileName string) {
+func DiffToolSnapshotFile(fileName string, diffTool string) {
     snap := ReadHead()
 	fmt.Fprintf(os.Stderr, "Comparing %s/%s\n", snap.SnapshotId[0:9], fileName)
-    snap.DiffToolFile(fileName)
+    snap.DiffToolFile(fileName, diffTool)
 }
 
-func (snap Snapshot) DiffToolFile(fileName string) {
+func (snap Snapshot) DiffToolFile(fileName string, diffTool string) {
     home, err := os.UserHomeDir()
     Check(err)
     tempFolder := filepath.Join(home, ".dupver", "temp", RandHexString(24))
     snap.Checkout(tempFolder, fileName)
     tempFile := filepath.Join(tempFolder, fileName)
-    cmd := exec.Command("kdiff3", tempFile, fileName) 
+    cmd := exec.Command(diffTool, tempFile, fileName) 
     cmd.Run()
 }
 
