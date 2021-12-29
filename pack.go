@@ -18,7 +18,7 @@ func CreatePackFile(packId string) (*os.File, error) {
 	os.MkdirAll(packFolderPath, 0777)
 	packPath := filepath.Join(packFolderPath, packId+".zip")
 
-	if VerboseMode {
+	if DebugMode {
 		fmt.Fprintf(os.Stderr, "Creating pack: %s\n", packId[0:16])
 	}
 

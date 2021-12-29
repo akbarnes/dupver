@@ -2,7 +2,7 @@
 - [x] Add diff
 - [x] Print warnings/info to stderr
 - [ ] Add repack/prune
-- [ ] Add global preferences (for diff tool or editor)
+- [x] Add global preferences (for diff tool or editor)
 - [x] Fix timestamp issue on checkout - not storing milliseconds?
 
 # Maybe TODO:

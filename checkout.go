@@ -74,7 +74,7 @@ func (snap Snapshot) Checkout(outputFolder string, filter string) {
         }
 
         if !matched {
-            if VerboseMode {
+            if DebugMode {
                 fmt.Fprintf(os.Stderr, "Skipping file %s\n", fileName)
             }
 
@@ -104,7 +104,7 @@ func (snap Snapshot) Checkout(outputFolder string, filter string) {
 		for _, chunkId := range fileProps.ChunkIds {
 			packId := packs[chunkId]
 
-			if VerboseMode {
+			if DebugMode {
 				fmt.Fprintf(os.Stderr, "Extracting:\n  Pack %s\n  Chunk %s\n  to %s\n\n", packId, chunkId, outPath)
 			}
 

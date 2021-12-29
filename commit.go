@@ -15,20 +15,20 @@ import (
 func CommitSnapshot(message string, filters []string, poly chunker.Pol, maxPackBytes int64, compressionLevel uint16) {
 	buf := make([]byte, 8*1024*1024) // reuse this buffer
 
-	if VerboseMode {
+	if DebugMode {
 		fmt.Fprintf(os.Stderr, "Start reading head...\n")
 	}
 
 	headFiles := ReadHead().ReadFilesList()
 
-	if VerboseMode {
+	if DebugMode {
 		fmt.Fprintf(os.Stderr, "Done reading head\n")
 		fmt.Fprintf(os.Stderr, "Start reading trees...\n")
 	}
 
 	existingPacks := ReadTrees()
 
-	if VerboseMode {
+	if DebugMode {
 		fmt.Fprintf(os.Stderr, "Done reading trees\n")
 	}
 
@@ -76,7 +76,7 @@ func CommitSnapshot(message string, filters []string, poly chunker.Pol, maxPackB
 
 		// TODO: fix this. Currently not reading in filechunks from head
 		if headFile, ok := headFiles[fileName]; ok && modTime == headFile.ModTime {
-			if VerboseMode {
+			if DebugMode {
 				fmt.Fprintf(os.Stderr, "Skipping %s\n", fileName)
 			}
 
@@ -128,14 +128,14 @@ func CommitSnapshot(message string, filters []string, poly chunker.Pol, maxPackB
 				file.ChunkIds = append(file.ChunkIds, chunkId)
 
 				if _, ok := existingPacks[chunkId]; ok {
-					if VerboseMode {
+					if DebugMode {
 						fmt.Fprintf(os.Stderr, "Skipping Chunk ID %s already in pack %s\n", chunkId[0:16], existingPacks[chunkId][0:16])
 					}
 
 					continue
 				}
 
-				if VerboseMode {
+				if DebugMode {
 					fmt.Fprintf(os.Stderr, "Chunk %s: chunk size %d kB, pack %s\n", chunkId[0:16], chunk.Length/1024, packId[0:16])
 				}
 

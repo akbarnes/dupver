@@ -126,7 +126,7 @@ func (snap Snapshot) ReadFilesList() map[string]SnapshotFile {
 func ReadSnapshot(snapId string) Snapshot {
 	snapshotPath := filepath.Join(".dupver", "snapshots", snapId+".json")
 
-	if VerboseMode {
+	if DebugMode {
 		fmt.Fprintf(os.Stderr, "Reading %s\n", snapshotPath)
 	}
 

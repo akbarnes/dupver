@@ -22,8 +22,18 @@ func AddOptionFlags(fs *flag.FlagSet) {
 	fs.BoolVar(&dupver.QuietMode, "q", false, "quiet mode")
 }
 
+func PostProcessOptionFlags() {
+    if dupver.DebugMode {
+        dupver.VerboseMode = true
+    }
+}
+
 func main() {
-    prefs := ReadPrefs(true)
+    prefs, err := dupver.ReadPrefs(true)
+
+    if err != nil {
+        fmt.Fprintf(os.Stderr, "Error writing default prefs\n")
+    }
 
 	commitCmd := flag.NewFlagSet("commit", flag.ExitOnError)
 	statusCmd := flag.NewFlagSet("status", flag.ExitOnError)
@@ -48,6 +58,7 @@ func main() {
 		message := ""
 		AddOptionFlags(commitCmd)
 		commitCmd.Parse(os.Args[2:])
+        PostProcessOptionFlags()
 		filters, err := dupver.ReadFilters()
 
 		if err != nil {
@@ -81,6 +92,7 @@ func main() {
 
 		AddOptionFlags(statusCmd)
 		statusCmd.Parse(os.Args[2:])
+        PostProcessOptionFlags()
 		filters, err := dupver.ReadFilters()
 
 		if err != nil {
@@ -103,6 +115,7 @@ func main() {
 
 		AddOptionFlags(diffCmd)
 		diffCmd.Parse(os.Args[2:])
+        PostProcessOptionFlags()
 
 		if diffCmd.NArg() >= 1 {
 			dupver.DiffToolSnapshotFile(diffCmd.Arg(0), prefs.DiffTool)
@@ -113,6 +126,7 @@ func main() {
 		dupver.AbortIfIncorrectRepoVersion()
 		AddOptionFlags(logCmd)
 		logCmd.Parse(os.Args[2:])
+        PostProcessOptionFlags()
 
 		if logCmd.NArg() >= 1 {
 			dupver.LogSingleSnapshot(logCmd.Arg(0))
@@ -125,6 +139,7 @@ func main() {
 		checkoutCmd.StringVar(&OutputFolder, "out", "", "output folder")
 		checkoutCmd.StringVar(&OutputFolder, "o", "", "output folder")
 		checkoutCmd.Parse(os.Args[2:])
+        PostProcessOptionFlags()
 
         checkoutFilter := "*"
 

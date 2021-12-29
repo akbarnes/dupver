@@ -61,7 +61,7 @@ func (cfg RepoConfig) Write() {
 }
 
 func (cfg RepoConfig) CorrectRepoVersion() bool {
-	return cfg.RepoMajorVersion == RepoMajorversion
+	return cfg.RepoMajorVersion == RepoMajorVersion
 }
 
 func AbortIfIncorrectRepoVersion() {
