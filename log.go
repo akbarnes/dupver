@@ -12,7 +12,7 @@ func LogAllSnapshots() {
 	for i, snap := range ReadAllSnapshots() {
         if QuietMode {
             fmt.Println(snap.SnapshotId)
-        } else { 
+        } else {
             if len(snap.SnapshotLocalTime) > 0 {
                 fmt.Printf("%d) Local Time: %s\n", i+1, snap.SnapshotLocalTime)
             } else {

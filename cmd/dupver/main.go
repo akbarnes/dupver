@@ -40,6 +40,7 @@ func main() {
 	diffCmd := flag.NewFlagSet("diff", flag.ExitOnError)
 	logCmd := flag.NewFlagSet("log", flag.ExitOnError)
 	checkoutCmd := flag.NewFlagSet("checkout", flag.ExitOnError)
+	repackCmd := flag.NewFlagSet("repack", flag.ExitOnError)
 
 	flag.Parse()
 
@@ -148,6 +149,12 @@ func main() {
         }
 
 		dupver.CheckoutSnapshot(checkoutCmd.Arg(0), OutputFolder, checkoutFilter)
+	} else if cmd == "repack" {
+		dupver.AbortIfIncorrectRepoVersion()
+		AddOptionFlags(repackCmd)
+		repackCmd.Parse(os.Args[2:])
+        PostProcessOptionFlags()
+        dupver.Repack()
 	} else if cmd == "version" || cmd == "ver" {
 		fmt.Printf("%d.%d.%d\n", dupver.DupverMajorversion, dupver.MinorVersion, dupver.PatchVersion)
 	} else {
