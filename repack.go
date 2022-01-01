@@ -76,7 +76,7 @@ func Repack() {
 			}
 
 		    packs[chunkId] = packId
-		    WriteChunkToPack(zipWriter, chunkId, chunk, compressionLevel)
+		    RepackChunkToPack(zipWriter, chunkId, existingPackId, compressionLevel)
 		    packBytesRemaining -= int64(chunk.Length)
 
 			if packBytesRemaining <= 0 {
@@ -107,7 +107,7 @@ func Repack() {
     return
 }
 
-func RepackChunkFromPack(outFile *os.File, chunkId string, packId string) error {
+func RepackChunk(zipWriter *zip.Writer, chunkId string, packId string, compressionLevel uint16) error {
 	packFolderPath := path.Join(".dupver", "packs", packId[0:2])
 	packPath := path.Join(packFolderPath, packId+".zip")
 	packFile, err := zip.OpenReader(packPath)
@@ -120,10 +120,26 @@ func RepackChunkFromPack(outFile *os.File, chunkId string, packId string) error 
 	}
 
 	defer packFile.Close()
-	return ExtractChunkFromZipFile(outFile, packFile, chunkId)
+
+	var header zip.FileHeader
+	header.Name = chunkId
+	header.Method = compressionLevel
+
+	writer, err := zipWriter.CreateHeader(&header)
+
+	if err != nil {
+		if VerboseMode {
+			fmt.Fprintf(os.Stderr, "Error creating zip header\n")
+		}
+
+		return err
+	}
+
+
+	return RepackChunkFromZipFile(outFile, packFile, chunkId, compressionLevel)
 }
 
-func RepackChunkFromZipFile(outFile *os.File, packFile *zip.ReadCloser, chunkId string) error {
+func RepackChunkFromZipFile(outFile *os.File, packFile *zip.ReadCloser, chunkId string, compressionLevel uint16) error {
 	for _, f := range packFile.File {
 
 		if f.Name == chunkId {
@@ -154,68 +170,4 @@ func RepackChunkFromZipFile(outFile *os.File, packFile *zip.ReadCloser, chunkId 
 
 	return nil
 }
-//func (snap Snapshot) Checkout(outputFolder string, filter string) {
-//	os.MkdirAll(outputFolder, 0777)
-//	snapFiles := snap.ReadFilesList()
-//	packs := ReadTrees()
-//
-//	for fileName, fileProps := range snapFiles {
-//        matched, err := doublestar.PathMatch(filter, fileName)
-//
-//        if err != nil && VerboseMode {
-//            fmt.Fprintf(os.Stderr, "Error matching %s\n", filter)
-//        }
-//
-//        if !matched {
-//            if DebugMode {
-//                fmt.Fprintf(os.Stderr, "Skipping file %s\n", fileName)
-//            }
-//
-//            continue
-//        }
-//
-//		fileDir := filepath.Dir(fileName)
-//		outDir := outputFolder
-//
-//		if fileDir != "." {
-//			outDir = filepath.Join(outputFolder, fileDir)
-//			fmt.Fprintf(os.Stderr, "Creating folder %s\n", outDir)
-//			os.MkdirAll(outDir, 0777)
-//		}
-//
-//		outPath := filepath.Join(outputFolder, fileName)
-//		outFile, err := os.Create(outPath)
-//
-//		if err != nil {
-//			// fmt.Fprintln(os.Stderr, "Error creating %s, skipping\n", outPath)
-//			fmt.Fprintf(os.Stderr, "Error creating %s, skipping\n", outPath)
-//			continue
-//		}
-//
-//		defer outFile.Close()
-//
-//		for _, chunkId := range fileProps.ChunkIds {
-//			packId := packs[chunkId]
-//
-//			if DebugMode {
-//				fmt.Fprintf(os.Stderr, "Extracting:\n  Pack %s\n  Chunk %s\n  to %s\n\n", packId, chunkId, outPath)
-//			}
-//
-//			ExtractChunkFromPack(outFile, chunkId, packId)
-//		}
-//
-//        mtime, err := time.Parse("2006-01-02T15-04-05", fileProps.ModTime)
-//
-//        if err == nil {
-//            os.Chtimes(outPath, mtime, mtime)
-//        } else {
-//            fmt.Fprintf(os.Stderr, "Error parsing time %s for file %s, not setting", fileProps.ModTime, fileName)
-//        }
-//
-//        if VerboseMode {
-//		    fmt.Printf("Restored %s to %s\n", fileName, outPath)
-//        } else {
-//            fmt.Println(fileName)
-//        }
-//	}
-//}
+
