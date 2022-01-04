@@ -22,8 +22,10 @@ func LogAllSnapshots() {
             fmt.Printf("ID: %s\n", snap.SnapshotId[0:9])
 
             if len(snap.Message) > 0 {
-                fmt.Printf("Message: %s\n\n", snap.Message)
+                fmt.Printf("Message: %s\n", snap.Message)
             }
+
+            fmt.Printf("\n")
         }
 	}
 }

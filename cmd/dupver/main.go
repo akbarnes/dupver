@@ -84,7 +84,7 @@ func main() {
 		dupver.CommitSnapshot(message, filters, p, cfg.PackSize, cfg.CompressionLevel)
 	} else if cmd == "status" || cmd == "st" {
 		dupver.AbortIfIncorrectRepoVersion()
-		_, err := dupver.ReadRepoConfig(false)
+		_, err := dupver.ReadRepoConfig(true)
 
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Can't read repo configuration, exiting")
@@ -150,11 +150,18 @@ func main() {
 
 		dupver.CheckoutSnapshot(checkoutCmd.Arg(0), OutputFolder, checkoutFilter)
 	} else if cmd == "repack" {
+		cfg, err := dupver.ReadRepoConfig(false)
+
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Can't read repo configuration, exiting")
+			os.Exit(1)
+		}
+
 		dupver.AbortIfIncorrectRepoVersion()
 		AddOptionFlags(repackCmd)
 		repackCmd.Parse(os.Args[2:])
         PostProcessOptionFlags()
-        dupver.Repack()
+        dupver.Repack(cfg.PackSize, cfg.CompressionLevel)
 	} else if cmd == "version" || cmd == "ver" {
 		fmt.Printf("%d.%d.%d\n", dupver.DupverMajorversion, dupver.MinorVersion, dupver.PatchVersion)
 	} else {

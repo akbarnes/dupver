@@ -138,10 +138,6 @@ func RepackChunk(zipWriter *zip.Writer, chunkId string, packId string, compressi
 		return 0, err
 	}
 
-	return ReZip(writer, packFile, chunkId, compressionLevel)
-}
-
-func ReZip(outFile *io.Writer, packFile *zip.ReadCloser, chunkId string, compressionLevel uint16) (uint64, error) {
 	for _, f := range packFile.File {
 		if f.Name != chunkId {
             continue
@@ -158,7 +154,7 @@ func ReZip(outFile *io.Writer, packFile *zip.ReadCloser, chunkId string, compres
             return 0, err
         }
 
-        _, err = io.Copy(outFile, chunkFile)
+        _, err = io.Copy(writer, chunkFile)
 
         if err != nil {
             if VerboseMode {
