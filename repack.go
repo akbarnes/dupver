@@ -3,10 +3,13 @@ package dupver
 import (
 	"fmt"
 	"os"
+    "io"
+    "errors"
 	"path/filepath"
+    "archive/zip"
 )
 
-func Repack() {
+func Repack(maxPackBytes int64, compressionLevel uint16) {
     // List all the snapshots
     snaps := ReadAllSnapshots()
 
@@ -28,8 +31,8 @@ func Repack() {
         return
     }
 
-	existingPacks := ReadTrees()
-	packs := map[string]string{}
+	oldPacks := ReadTrees()
+	newPacks := map[string]string{}
 
     // Rename the old tree folder and create a new tree folder
     oldTreesPath := filepath.Join(".dupver", "trees")
@@ -44,6 +47,7 @@ func Repack() {
         return
     }
 
+    // TODO: move this ito a function
 	packId := RandHexString(PackIdLen)
 	packFile, err := CreatePackFile(packId)
 
@@ -58,65 +62,64 @@ func Repack() {
     for _, snap := range snaps {
 	    snapFiles := snap.ReadFilesList()
 
-		outPath := filepath.Join(outputFolder, fileName)
-		outFile, err := os.Create(outPath)
+        // for each file in snapshot
+	    for fileName, fileProps := range snapFiles {
+            for _, chunkId := range fileProps.ChunkIds {
+                oldPackId := oldPacks[chunkId]
 
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error creating %s, skipping\n", outPath)
-			continue
-		}
+                if DebugMode {
+                    fmt.Fprintf(os.Stderr, "Extracting:\n  File: %s, Pack %s\n  Chunk %s\n  to %s\n\n", fileName, oldPackId, chunkId, packId)
+                }
 
-		defer outFile.Close()
+                if chunkSize, err := RepackChunk(zipWriter, chunkId, oldPackId, compressionLevel); err == nil {
+                    packBytesRemaining -= int64(chunkSize)
+                } else {
+                    panic(fmt.Sprintf("Error repacking chunk %v", err))
+                }
 
-		for _, chunkId := range fileProps.ChunkIds {
-			existingPackId := existingPacks[chunkId]
+                newPacks[chunkId] = packId
 
-			if DebugMode {
-				fmt.Fprintf(os.Stderr, "Extracting:\n  Pack %s\n  Chunk %s\n  to %s\n\n", existingPackId, chunkId, packId)
-			}
+                if packBytesRemaining <= 0 {
+                    if err := zipWriter.Close(); err != nil {
+                        // TODO: Should I return an error instead of quitting here? Is there anythig to do?
+                        panic(fmt.Sprintf("Error closing zipwriter for pack %s\n", packId))
+                    }
 
-		    packs[chunkId] = packId
-		    RepackChunkToPack(zipWriter, chunkId, existingPackId, compressionLevel)
-		    packBytesRemaining -= int64(chunk.Length)
+                    if err := packFile.Close(); err != nil {
+                        // TODO: Should I return an error instead of quitting here? Is there anythig to do?
+                        panic(fmt.Sprintf("Error closing file for pack %s\n", packId))
+                    }
 
-			if packBytesRemaining <= 0 {
-				if err := zipWriter.Close(); err != nil {
-					// TODO: Should I return an error instead of quitting here? Is there anythig to do?
-					panic(fmt.Sprintf("Error closing zipwriter for pack %s\n", packId))
-				}
+                    // TODO: move this to a function
+                    packId = RandHexString(PackIdLen)
+                    packFile, err = CreatePackFile(packId)
 
-				if err := packFile.Close(); err != nil {
-					// TODO: Should I return an error instead of quitting here? Is there anythig to do?
-					panic(fmt.Sprintf("Error closing file for pack %s\n", packId))
-				}
+                    if err != nil {
+                        // TODO: Should I return an error instead of quitting here? Is there anythig to do?
+                        panic(fmt.Sprintf("Error creating pack file %s\n", packFile))
+                    }
 
-				packId = RandHexString(PackIdLen)
-				packFile, err = CreatePackFile(packId)
-
-				if err != nil {
-					// TODO: Should I return an error instead of quitting here? Is there anythig to do?
-					panic(fmt.Sprintf("Error creating pack file %s\n", packFile))
-				}
-
-				zipWriter = zip.NewWriter(packFile)
-				packBytesRemaining = maxPackBytes
-			}
+                    zipWriter = zip.NewWriter(packFile)
+                    packBytesRemaining = maxPackBytes
+                }
+            }
         }
     }
 
+	snaps[len(snaps)-1].WriteTree(newPacks)
     return
 }
 
-func RepackChunk(zipWriter *zip.Writer, chunkId string, packId string, compressionLevel uint16) error {
-	packFolderPath := path.Join(".dupver", "packs", packId[0:2])
-	packPath := path.Join(packFolderPath, packId+".zip")
+func RepackChunk(zipWriter *zip.Writer, chunkId string, packId string, compressionLevel uint16) (uint64, error) {
+	packFolderPath := filepath.Join(".dupver", "packs", packId[0:2])
+	packPath := filepath.Join(packFolderPath, packId+".zip")
 	packFile, err := zip.OpenReader(packPath)
 
 	if err != nil {
 		if VerboseMode {
 			fmt.Fprintf(os.Stderr, "Error extracting pack %s[%s]\n", packId, chunkId)
 		}
-		return err
+		return 0, err
 	}
 
 	defer packFile.Close()
@@ -132,42 +135,45 @@ func RepackChunk(zipWriter *zip.Writer, chunkId string, packId string, compressi
 			fmt.Fprintf(os.Stderr, "Error creating zip header\n")
 		}
 
-		return err
+		return 0, err
 	}
 
-
-	return RepackChunkFromZipFile(outFile, packFile, chunkId, compressionLevel)
+	return ReZip(writer, packFile, chunkId, compressionLevel)
 }
 
-func RepackChunkFromZipFile(outFile *os.File, packFile *zip.ReadCloser, chunkId string, compressionLevel uint16) error {
+func ReZip(outFile *io.Writer, packFile *zip.ReadCloser, chunkId string, compressionLevel uint16) (uint64, error) {
 	for _, f := range packFile.File {
+		if f.Name != chunkId {
+            continue
+        }
 
-		if f.Name == chunkId {
-			// fmt.Fprintf(os.Stderr, "Contents of %s:\n", f.Name)
-			chunkFile, err := f.Open()
+        // fmt.Fprintf(os.Stderr, "Contents of %s:\n", f.Name)
+        chunkFile, err := f.Open()
 
-			if err != nil {
-				if VerboseMode {
-					fmt.Fprintf(os.Stderr, "Error opening chunk %s\n", chunkId)
-				}
+        if err != nil {
+            if VerboseMode {
+                fmt.Fprintf(os.Stderr, "Error opening chunk %s\n", chunkId)
+            }
 
-				return err
-			}
+            return 0, err
+        }
 
-			_, err = io.Copy(outFile, chunkFile)
+        _, err = io.Copy(outFile, chunkFile)
 
-			if err != nil {
-				if VerboseMode {
-					fmt.Fprintf(os.Stderr, "Error reading chunk %s\n", chunkId)
-				}
+        if err != nil {
+            if VerboseMode {
+                fmt.Fprintf(os.Stderr, "Error reading chunk %s\n", chunkId)
+            }
 
-				return err
-			}
+            return 0, err
+        }
 
-			chunkFile.Close()
-		}
+        chunkFile.Close()
+        // TODO: use compressed size rather than uncompressed size
+        // return f.CompressedSize64, nil
+        return f.UncompressedSize64, nil
 	}
 
-	return nil
+	return 0, errors.New(fmt.Sprintf("Chunk %s not found in pack", chunkId))
 }
 

@@ -1,12 +1,13 @@
 package dupver
 
 import (
-	"archive/zip"
 	"fmt"
 	"io"
 	"os"
 	"path"
+    "errors"
 	"path/filepath"
+	"archive/zip"
 
 	"github.com/restic/chunker"
 )
@@ -104,8 +105,9 @@ func ExtractChunkFromZipFile(outFile *os.File, packFile *zip.ReadCloser, chunkId
 			}
 
 			chunkFile.Close()
+            return nil
 		}
 	}
 
-	return nil
+	return errors.New(fmt.Sprintf("Couldn't find chunk %s in pack", chunkId))
 }
