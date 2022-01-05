@@ -9,7 +9,149 @@ import (
     "archive/zip"
 )
 
-func Repack(maxPackBytes int64, compressionLevel uint16) {
+func Compact(maxPackBytes int64, compressionLevel uint16) error {
+    // List all of the tree folders
+	treesGlob := filepath.Join(".dupver", "trees*")
+	treePaths, err := filepath.Glob(treesGlob)
+
+    if err != nil {
+        // fmt.Fprintf(os.Stderr, "Error listing trees folders, aborting\n")
+        return errors.New("Error listing trees folders")
+    }
+
+    if len(treePaths) == 0 {
+        fmt.Fprint(os.Stderr, "No trees, aborting\n")
+    }
+
+	packs := ReadTrees()
+	//newPacks := map[string]string{}
+
+    packIds := map[string]bool{}
+
+    for _, packId := range packs {
+        packIds[packId] = true
+    }
+
+    // Rename the old tree folder and create a new tree folder
+    oldTreesPath := filepath.Join(".dupver", "trees")
+    newTreesPath := filepath.Join(".dupver", fmt.Sprintf("trees%d", len(treePaths) - 1))
+
+    if DebugMode {
+        fmt.Fprintf(os.Stderr, "%s -> %s\n", oldTreesPath, newTreesPath)
+    }
+
+    if err := os.Rename(oldTreesPath, newTreesPath); err != nil { 
+        //fmt.Fprintf(os.Stderr, "Error renaming trees folder, aborting\n")
+        return errors.New("Error renaming trees folder")
+    }
+
+    // List all of the packs folders
+	packsGlob := filepath.Join(".dupver", "packs*")
+	packPaths, err := filepath.Glob(packsGlob)
+
+    if err != nil {
+        // fmt.Fprintf(os.Stderr, "Error listing pack folders, aborting\n")
+        return errors.New("Error listing pack folders")
+    }
+
+    // Rename the old tree folder and create a new tree folder
+    oldPacksFolder := filepath.Join(".dupver", "packs")
+    newPacksFolder := filepath.Join(".dupver", fmt.Sprintf("packs%d", len(packPaths) - 1))
+
+    if DebugMode {
+        fmt.Fprintf(os.Stderr, "%s -> %s\n", oldPacksFolder, newPacksFolder)
+    }
+
+    if err := os.Rename(oldPacksFolder, newPacksFolder); err != nil { 
+        // fmt.Fprintf(os.Stderr, "Error renaming packs folder, aborting\n")
+        return errors.New("Error renaming packs folder")
+    }
+
+    bigPacks = [string]{}
+    smallPacks = [string]{}
+
+    for packId, _ := range packIds {
+        fmt.Fprintf(os.Stderr, "Pack: %s\n", packId)
+        packFile := filepath.Join(newPacksFolder, packId[0:2], packId+".zip")
+		props, err := os.Stat(packFile)
+
+        if props.Size >= maxPackBytes {
+            bigPacks = append(bigPacks, packId)
+        } else  {
+            smallPacks = append(smallPacks, packId)
+        }
+    }
+
+    for _, packId := range bigPacks {
+        oldPackFile := filepath.Join(newPacksFolder, packId[0:2], packId+".zip")
+        newPackFile := filepath.Join(".dupver", "packs", packId[0:2], packId+".zip")
+
+        if DebugMode {
+            fmt.Fprintf(os.Stderr, "old: %s\nnew: %s\n\n", oldPackFile, newPackFile)
+        }
+
+        // copy the pack
+        source, err := os.Open(oldPackFile)
+
+        if err != nil {
+            panic(err)
+        }
+
+        defer source.Close()
+        dest, err := os.Create(newPackFile)
+
+        if err != nil {
+            panic(err)
+        }
+
+        defer dest.Close()
+        _, err := io.Copy(dest, source)
+
+
+        if err != nil {
+            panic(err)
+        }
+    }
+
+    // TODO: move this ito a function
+	packId := RandHexString(PackIdLen)
+	packFile, err := CreatePackFile(packId)
+
+	if err != nil {
+		panic(fmt.Sprintf("Error creating pack file %s\n", packFile))
+	}
+
+	zipWriter := zip.NewWriter(packFile)
+	var packBytesRemaining int64 = maxPackBytes
+
+    for _, packId := range smallPackIds {
+        fmt.Fprintf(os.Stderr, "Pack: %s\n", packId)
+        oldPackPath := filepath.Join(newPacksFolder, packId[0:2], packId+".zip")
+	    oldPackFile, err := zip.OpenReader(oldPackPath)
+
+        if err != nil {
+            panic(err)
+        }
+
+	    defer oldPackFile.Close()
+
+        for _, f := range packFile.File {
+            chunkId := f.Name
+        }
+    }
+
+
+    // For all packs greater or equal to packsize, copy  and update new tree
+    // Create new pack
+    // For all packs less than packsize
+    //    add to new pack and update new tree 
+    //    if new pack greater or equal to packsize, create a new pack
+    // Write trees
+
+    return nil 
+}
+
+func Repack(maxPackBytes int64, compressionLevel uint16) error {
     // List all the snapshots
     snaps := ReadAllSnapshots()
 
@@ -19,7 +161,7 @@ func Repack(maxPackBytes int64, compressionLevel uint16) {
             fmt.Fprintf(os.Stderr, "No snapshots, aborting\n")
         }
 
-        return
+        return nil
     }
 
     // List all of the tree folders
@@ -27,8 +169,8 @@ func Repack(maxPackBytes int64, compressionLevel uint16) {
 	treePaths, err := filepath.Glob(treesGlob)
 
     if err != nil {
-        fmt.Fprintf(os.Stderr, "Error listing trees folders, aborting\n")
-        return
+        // fmt.Fprintf(os.Stderr, "Error listing trees folders, aborting\n")
+        return errors.New("Error listing trees folders")
     }
 
 	oldPacks := ReadTrees()
@@ -43,8 +185,30 @@ func Repack(maxPackBytes int64, compressionLevel uint16) {
     }
 
     if err := os.Rename(oldTreesPath, newTreesPath); err != nil { 
-        fmt.Fprintf(os.Stderr, "Error renaming trees folder, aborting\n")
-        return
+        // fmt.Fprintf(os.Stderr, "Error renaming trees folder, aborting\n")
+        return errors.New("Error renaming trees folder")
+    }
+
+    // List all of the packs folders
+	packsGlob := filepath.Join(".dupver", "packs*")
+	packPaths, err := filepath.Glob(packsGlob)
+
+    if err != nil {
+        // fmt.Fprintf(os.Stderr, "Error listing pack folders, aborting\n")
+        return errors.New("Error listing pack folders")
+    }
+
+    // Rename the old tree folder and create a new tree folder
+    oldPacksPath := filepath.Join(".dupver", "packs")
+    newPacksPath := filepath.Join(".dupver", fmt.Sprintf("packs%d", len(packPaths) - 1))
+
+    if DebugMode {
+        fmt.Fprintf(os.Stderr, "%s -> %s\n", oldPacksPath, newPacksPath)
+    }
+
+    if err := os.Rename(oldPacksPath, newPacksPath); err != nil { 
+        // fmt.Fprintf(os.Stderr, "Error renaming packs folder, aborting\n")
+        return errors.New("Error renaming packs folder, aborting")
     }
 
     // TODO: move this ito a function
@@ -71,7 +235,7 @@ func Repack(maxPackBytes int64, compressionLevel uint16) {
                     fmt.Fprintf(os.Stderr, "Extracting:\n  File: %s, Pack %s\n  Chunk %s\n  to %s\n\n", fileName, oldPackId, chunkId, packId)
                 }
 
-                if chunkSize, err := RepackChunk(zipWriter, chunkId, oldPackId, compressionLevel); err == nil {
+                if chunkSize, err := RepackChunk(zipWriter, chunkId, oldPackId, newPacksPath, compressionLevel); err == nil {
                     packBytesRemaining -= int64(chunkSize)
                 } else {
                     panic(fmt.Sprintf("Error repacking chunk %v", err))
@@ -106,12 +270,21 @@ func Repack(maxPackBytes int64, compressionLevel uint16) {
         }
     }
 
+	if err := zipWriter.Close(); err != nil {
+		panic(fmt.Sprintf("Error closing zipwriter for pack %s\n", packId))
+	}
+
+	if err := packFile.Close(); err != nil {
+		panic(fmt.Sprintf("Error closing file for pack %s\n", packId))
+	}
+
+
 	snaps[len(snaps)-1].WriteTree(newPacks)
-    return
+    return nil
 }
 
-func RepackChunk(zipWriter *zip.Writer, chunkId string, packId string, compressionLevel uint16) (uint64, error) {
-	packFolderPath := filepath.Join(".dupver", "packs", packId[0:2])
+func RepackChunk(zipWriter *zip.Writer, chunkId string, packId string, oldPacksPath string, compressionLevel uint16) (uint64, error) {
+	packFolderPath := filepath.Join(oldPacksPath, packId[0:2])
 	packPath := filepath.Join(packFolderPath, packId+".zip")
 	packFile, err := zip.OpenReader(packPath)
 

@@ -41,6 +41,7 @@ func main() {
 	logCmd := flag.NewFlagSet("log", flag.ExitOnError)
 	checkoutCmd := flag.NewFlagSet("checkout", flag.ExitOnError)
 	repackCmd := flag.NewFlagSet("repack", flag.ExitOnError)
+	compactCmd := flag.NewFlagSet("compact", flag.ExitOnError)
 
 	flag.Parse()
 
@@ -162,6 +163,20 @@ func main() {
 		repackCmd.Parse(os.Args[2:])
         PostProcessOptionFlags()
         dupver.Repack(cfg.PackSize, cfg.CompressionLevel)
+	} else if cmd == "compact" {
+		cfg, err := dupver.ReadRepoConfig(false)
+
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Can't read repo configuration, exiting")
+			os.Exit(1)
+		}
+
+		dupver.AbortIfIncorrectRepoVersion()
+		AddOptionFlags(compactCmd)
+		compactCmd.Parse(os.Args[2:])
+        PostProcessOptionFlags()
+        dupver.Compact(cfg.PackSize, cfg.CompressionLevel)
+
 	} else if cmd == "version" || cmd == "ver" {
 		fmt.Printf("%d.%d.%d\n", dupver.DupverMajorversion, dupver.MinorVersion, dupver.PatchVersion)
 	} else {

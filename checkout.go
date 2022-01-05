@@ -76,7 +76,9 @@ func (snap Snapshot) Checkout(outputFolder string, filter string) {
 				fmt.Fprintf(os.Stderr, "Extracting:\n  Pack %s\n  Chunk %s\n  to %s\n\n", packId, chunkId, outPath)
 			}
 
-			ExtractChunkFromPack(outFile, chunkId, packId)
+			if err := ExtractChunkFromPack(outFile, chunkId, packId); err != nil {
+                fmt.Fprintf(os.Stderr, "Error extracting:\n  chunk: %s\n  pack: %s\n\n", chunkId, packId)
+            }
 		}
 
         mtime, err := time.Parse("2006-01-02T15-04-05", fileProps.ModTime)

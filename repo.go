@@ -115,5 +115,9 @@ func ReadRepoConfig(writeIfMissing bool) (RepoConfig, error) {
 		panic(fmt.Sprintf("Invalid repo version %d.%d, expecting %d.x\n", cfg.RepoMajorVersion, cfg.RepoMinorVersion, RepoMajorVersion))
 	}
 
+    if cfg.PackSize == 0 {
+        fmt.Fprintf(os.Stderr, "Warning: Repo PackSize = 0, consider setting to 524288000\n")
+    }
+
 	return cfg, nil
 }
