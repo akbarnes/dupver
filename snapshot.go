@@ -75,7 +75,7 @@ func (snap Snapshot) Write() {
 	f.Close()
 }
 
-func (snap Snapshot) WriteFiles(files [SnapshotFile]) {
+func (snap Snapshot) WriteFiles(files []SnapshotFile) {
 	filesFolder := filepath.Join(".dupver", "files")
 
 	if err := os.MkdirAll(filesFolder, 0777); err != nil {
@@ -95,24 +95,24 @@ func (snap Snapshot) WriteFiles(files [SnapshotFile]) {
 	f.Close()
 }
 
-func (snap Snapshot) ReadFilesHash() [string]SnapshotFile {
+func (snap Snapshot) ReadFilesHash() map[string]SnapshotFile {
 	if snap.SnapshotId == "" {
 		return map[string]SnapshotFile{}
 	}
 
-    files := snap.ReadFileList()
-    fileHash := [string]SnapshotFile{}
+    files := snap.ReadFilesList()
+    fileHash := map[string]SnapshotFile{}
 
-    for _, fileProps := files {
+    for _, fileProps := range files {
         fileHash[fileProps.Name] = fileProps
     }
 
-    return fileHas
+    return fileHash
 }
 
-func (snap Snapshot) ReadFilesList() [SnapshotFile] {
+func (snap Snapshot) ReadFilesList() []SnapshotFile {
 	if snap.SnapshotId == "" {
-		return [SnapshotFile]{}
+		return []SnapshotFile{}
 	}
 
 	filesFolder := filepath.Join(".dupver", "files")
@@ -129,7 +129,7 @@ func (snap Snapshot) ReadFilesList() [SnapshotFile] {
 	}
 
 	myDecoder := json.NewDecoder(f)
-	files := [SnapShotFile]{}
+	files := []SnapshotFile{}
 
 	if err := myDecoder.Decode(&files); err != nil {
 		panic(fmt.Sprintf("Error: could not decode snapshot files %s\n", snapFile))

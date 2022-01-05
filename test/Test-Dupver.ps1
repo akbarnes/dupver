@@ -42,22 +42,6 @@ Write-Host ''
 Write-Host "Checking repo configuration..."
 $cfg = Get-Content .dupver/repo_config.json | ConvertFrom-Json
 
-If ($cfg.RepoMajorVersion -ne 1) {
-    Throw "Repo major version in repo configuration isn't equal to 1"
-} 
-
-If ($cfg.RepoMinorVersion -ne 0) {
-    Throw "Repo minor version in repo configuration isn't equal to 0"
-} 
-
-If ($cfg.DupverMajorVersion -ne 1) {
-    Throw "Dupver major version in repo configuration isn't equal to 1"
-} 
-
-If ($cfg.DupverMinorVersion -ne 0) {
-    Throw "Dupver minor version in repo configuration isn't equal to 0"
-} 
-
 If ($cfg.CompressionLevel -ne 0) {
     Throw "Dupver compression level in repo configuration isn't equal to 0"
 } 

@@ -33,7 +33,7 @@ func CommitSnapshot(message string, filters []string, poly chunker.Pol, maxPackB
 	}
 
 	snap := CreateSnapshot(message)
-	files := [SnapshotFile]{}
+	files := []SnapshotFile{}
 	packs := map[string]string{}
 
 	dupverDir := filepath.Join(".dupver")

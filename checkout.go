@@ -13,7 +13,7 @@ func CheckoutSnapshot(commitId string, outputFolder string, filter string) {
     var snap Snapshot
     var err error
 
-    if commitId == "last" {
+    if commitId == "last" || commitId == "latest" {
         snap = ReadHead()
     } else {
         snap, err = MatchSnapshot(commitId)
