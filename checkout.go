@@ -31,7 +31,7 @@ func CheckoutSnapshot(commitId string, outputFolder string, filter string) {
 
 func (snap Snapshot) Checkout(outputFolder string, filter string) {
 	os.MkdirAll(outputFolder, 0777)
-	snapFiles := snap.ReadFilesList()
+	snapFiles := snap.ReadFilesHash()
 	packs := ReadTrees()
 
 	for fileName, fileProps := range snapFiles {

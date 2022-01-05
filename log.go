@@ -53,7 +53,7 @@ func LogSingleSnapshot(commitId string) {
     }
 
 
-	snapFiles := snap.ReadFilesList()
+	snapFiles := snap.ReadFilesHash()
 
     i := 1
 

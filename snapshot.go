@@ -27,6 +27,7 @@ type Head struct {
 }
 
 type SnapshotFile struct {
+    Name     string
 	Size     int64
 	ModTime  string
 	ModLocalTime  string
@@ -74,7 +75,7 @@ func (snap Snapshot) Write() {
 	f.Close()
 }
 
-func (snap Snapshot) WriteFiles(files map[string]SnapshotFile) {
+func (snap Snapshot) WriteFiles(files [SnapshotFile]) {
 	filesFolder := filepath.Join(".dupver", "files")
 
 	if err := os.MkdirAll(filesFolder, 0777); err != nil {
@@ -94,9 +95,24 @@ func (snap Snapshot) WriteFiles(files map[string]SnapshotFile) {
 	f.Close()
 }
 
-func (snap Snapshot) ReadFilesList() map[string]SnapshotFile {
+func (snap Snapshot) ReadFilesHash() [string]SnapshotFile {
 	if snap.SnapshotId == "" {
 		return map[string]SnapshotFile{}
+	}
+
+    files := snap.ReadFileList()
+    fileHash := [string]SnapshotFile{}
+
+    for _, fileProps := files {
+        fileHash[fileProps.Name] = fileProps
+    }
+
+    return fileHas
+}
+
+func (snap Snapshot) ReadFilesList() [SnapshotFile] {
+	if snap.SnapshotId == "" {
+		return [SnapshotFile]{}
 	}
 
 	filesFolder := filepath.Join(".dupver", "files")
@@ -113,7 +129,7 @@ func (snap Snapshot) ReadFilesList() map[string]SnapshotFile {
 	}
 
 	myDecoder := json.NewDecoder(f)
-	files := map[string]SnapshotFile{}
+	files := [SnapShotFile]{}
 
 	if err := myDecoder.Decode(&files); err != nil {
 		panic(fmt.Sprintf("Error: could not decode snapshot files %s\n", snapFile))
@@ -122,6 +138,7 @@ func (snap Snapshot) ReadFilesList() map[string]SnapshotFile {
 	f.Close()
 	return files
 }
+
 
 func ReadSnapshot(snapId string) Snapshot {
 	snapshotPath := filepath.Join(".dupver", "snapshots", snapId+".json")

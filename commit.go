@@ -19,7 +19,7 @@ func CommitSnapshot(message string, filters []string, poly chunker.Pol, maxPackB
 		fmt.Fprintf(os.Stderr, "Start reading head...\n")
 	}
 
-	headFiles := ReadHead().ReadFilesList()
+	headFiles := ReadHead().ReadFilesHash()
 
 	if DebugMode {
 		fmt.Fprintf(os.Stderr, "Done reading head\n")
@@ -33,7 +33,7 @@ func CommitSnapshot(message string, filters []string, poly chunker.Pol, maxPackB
 	}
 
 	snap := CreateSnapshot(message)
-	files := map[string]SnapshotFile{}
+	files := [SnapshotFile]{}
 	packs := map[string]string{}
 
 	dupverDir := filepath.Join(".dupver")
@@ -71,7 +71,7 @@ func CommitSnapshot(message string, filters []string, poly chunker.Pol, maxPackB
 
 		modTime := props.ModTime().UTC().Format("2006-01-02T15-04-05")
 		modLocalTime := props.ModTime().Format("2006-01-02T15-04-05")
-		file := SnapshotFile{ModTime: modTime, ModLocalTime: modLocalTime, Size: props.Size()}
+		file := SnapshotFile{Name: fileName, ModTime: modTime, ModLocalTime: modLocalTime, Size: props.Size()}
 		file.ChunkIds = []string{}
 
 		// TODO: fix this. Currently not reading in filechunks from head
@@ -80,7 +80,7 @@ func CommitSnapshot(message string, filters []string, poly chunker.Pol, maxPackB
 				fmt.Fprintf(os.Stderr, "Skipping %s\n", fileName)
 			}
 
-			files[fileName] = headFiles[fileName]
+			files = append(files, headFiles[fileName])
 			// snap.AddFileChunkIds(head, fileName)
 			return nil
 		}
@@ -172,7 +172,7 @@ func CommitSnapshot(message string, filters []string, poly chunker.Pol, maxPackB
 		}
 
         if readOk {
-		    files[fileName] = file
+		    files = append(files, file)
         }
 
 		return nil
