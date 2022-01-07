@@ -3,12 +3,9 @@ package main
 import (
 	"flag"
 	"fmt"
-	"math/rand"
 	"os"
-	//"strconv"
 
 	"github.com/akbarnes/dupver"
-	"github.com/restic/chunker"
 )
 
 var OutputFolder string
@@ -20,6 +17,8 @@ func AddOptionFlags(fs *flag.FlagSet) {
 	fs.BoolVar(&dupver.DebugMode, "d", false, "debug mode")
 	fs.BoolVar(&dupver.QuietMode, "quiet", false, "quiet mode")
 	fs.BoolVar(&dupver.QuietMode, "q", false, "quiet mode")
+	fs.BoolVar(&dupver.RandomPoly, "random-poly", false, "generate random polynomial on initialization")
+	fs.BoolVar(&dupver.RandomPoly, "r", false, "generate random polynomial on initialization")
 }
 
 func PostProcessOptionFlags() {
@@ -72,25 +71,9 @@ func main() {
 			message = commitCmd.Arg(0)
 		}
 
-		// TODO: need to use fixed poly
-		rand.Seed(1)
-		// p, _ := chunker.RandomPolynomial()
-		const p chunker.Pol = 0x3abc9bff07d9e5
-
-		if dupver.VerboseMode {
-			fmt.Fprintf(os.Stderr, "Random polynomial: %v\n", p)
-		}
-
-		dupver.CommitSnapshot(message, filters, p, cfg.PackSize, cfg.CompressionLevel)
+		dupver.CommitSnapshot(message, filters, cfg.ChunkerPoly, cfg.PackSize, cfg.CompressionLevel)
 	} else if cmd == "status" || cmd == "st" {
 		dupver.AbortIfIncorrectRepoVersion()
-		_, err := dupver.ReadRepoConfig(true)
-
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Can't read repo configuration, exiting")
-			os.Exit(1)
-		}
-
 		AddOptionFlags(statusCmd)
 		statusCmd.Parse(os.Args[2:])
         PostProcessOptionFlags()
@@ -107,13 +90,6 @@ func main() {
 		}
 	} else if cmd == "diff" {
 		dupver.AbortIfIncorrectRepoVersion()
-		_, err := dupver.ReadRepoConfig(false)
-
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Can't read repo configuration, exiting")
-			os.Exit(1)
-		}
-
 		AddOptionFlags(diffCmd)
 		diffCmd.Parse(os.Args[2:])
         PostProcessOptionFlags()

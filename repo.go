@@ -5,7 +5,11 @@ import (
 	"errors"
 	"fmt"
 	"os"
+    "time"
+    "math/rand"
 	"path/filepath"
+
+	"github.com/restic/chunker"
 )
 
 type RepoConfigMissingError struct {
@@ -25,7 +29,7 @@ type RepoConfig struct {
 	DupverMinorVersion int64
 	CompressionLevel   uint16
     PackSize           int64
-	ChunkerPoly        string
+	ChunkerPoly        chunker.Pol
 }
 
 func CreateDefaultRepoConfig() RepoConfig {
@@ -36,7 +40,24 @@ func CreateDefaultRepoConfig() RepoConfig {
 	cfg.RepoMinorVersion = RepoMinorVersion
     cfg.PackSize = PackSize
 	cfg.CompressionLevel = 0
-	cfg.ChunkerPoly = "0x3abc9bff07d9e5"
+	cfg.ChunkerPoly = 0x3abc9bff07d9e5
+
+    if RandomPoly {
+        rand.Seed(time.Now().UnixNano())
+
+        p, err := chunker.RandomPolynomial()
+
+        if err == nil {
+            cfg.ChunkerPoly = p
+        } else {
+            fmt.Fprintf(os.Stderr, "Error generating random polynomial, using default of 0x%x\n", cfg.ChunkerPoly)
+        }
+    }
+
+    if VerboseMode {
+        fmt.Fprintf(os.Stderr, "Generated random polynomial of 0x%x\n", cfg.ChunkerPoly)
+    }
+
 	return cfg
 }
 
@@ -117,6 +138,10 @@ func ReadRepoConfig(writeIfMissing bool) (RepoConfig, error) {
 
     if cfg.PackSize == 0 {
         fmt.Fprintf(os.Stderr, "Warning: Repo PackSize = 0, consider setting to 524288000\n")
+    }
+
+    if VerboseMode || DebugMode {
+        fmt.Fprintf(os.Stderr, "Read random polynomial of 0x%x\n", cfg.ChunkerPoly)
     }
 
 	return cfg, nil
