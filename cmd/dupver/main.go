@@ -34,6 +34,7 @@ func main() {
         fmt.Fprintf(os.Stderr, "Error writing default prefs\n")
     }
 
+	initCmd := flag.NewFlagSet("init", flag.ExitOnError)
 	commitCmd := flag.NewFlagSet("commit", flag.ExitOnError)
 	statusCmd := flag.NewFlagSet("status", flag.ExitOnError)
 	diffCmd := flag.NewFlagSet("diff", flag.ExitOnError)
@@ -51,14 +52,16 @@ func main() {
 	cmd := os.Args[1]
 
 	if cmd == "init" {
+		AddOptionFlags(initCmd)
+		initCmd.Parse(os.Args[2:])
+        PostProcessOptionFlags()
 		dupver.ReadRepoConfig(true)
 	} else if cmd == "commit" || cmd == "ci" {
-		cfg, err := dupver.ReadRepoConfig(true)
-
 		message := ""
 		AddOptionFlags(commitCmd)
 		commitCmd.Parse(os.Args[2:])
         PostProcessOptionFlags()
+		cfg, err := dupver.ReadRepoConfig(true)
 		filters, err := dupver.ReadFilters()
 
 		if err != nil {

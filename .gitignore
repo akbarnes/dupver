@@ -17,3 +17,5 @@
 
 # Temp files for ext editors
 *.swp
+
+/test/*

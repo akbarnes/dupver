@@ -50,12 +50,12 @@ func CreateDefaultRepoConfig() RepoConfig {
         if err == nil {
             cfg.ChunkerPoly = p
         } else {
-            fmt.Fprintf(os.Stderr, "Error generating random polynomial, using default of 0x%x\n", cfg.ChunkerPoly)
+            fmt.Fprintf(os.Stderr, "Error generating random polynomial, using default of %v\n", cfg.ChunkerPoly)
         }
     }
 
     if VerboseMode {
-        fmt.Fprintf(os.Stderr, "Generated random polynomial of 0x%x\n", cfg.ChunkerPoly)
+        fmt.Fprintf(os.Stderr, "Generated random polynomial of %v\n", cfg.ChunkerPoly)
     }
 
 	return cfg
@@ -113,7 +113,7 @@ func ReadRepoConfig(writeIfMissing bool) (RepoConfig, error) {
 	if errors.Is(err, os.ErrNotExist) {
 		if writeIfMissing {
 			if VerboseMode {
-				fmt.Fprintf(os.Stderr, "Repo configuration not present, writing default")
+				fmt.Fprintf(os.Stderr, "Repo configuration not present, writing default\n")
 			}
 
 			cfg = CreateDefaultRepoConfig()
@@ -141,7 +141,7 @@ func ReadRepoConfig(writeIfMissing bool) (RepoConfig, error) {
     }
 
     if VerboseMode || DebugMode {
-        fmt.Fprintf(os.Stderr, "Read random polynomial of 0x%x\n", cfg.ChunkerPoly)
+        fmt.Fprintf(os.Stderr, "Read random polynomial of %v\n", cfg.ChunkerPoly)
     }
 
 	return cfg, nil

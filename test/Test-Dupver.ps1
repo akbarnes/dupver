@@ -28,7 +28,7 @@ cd ..
 If (Test-Path $RepoPath) {
     Remove-Item -Force -Recurse $RepoPath/*
 } Else {
-    New-Item -Path $RepoPath
+    New-Item -Path $RepoPath -Itemtype directory -Force
 }
 
 #Write-Host ''
@@ -50,7 +50,7 @@ If ($cfg.PackSize -ne (500 * 1024 * 1024)) {
     Throw "Dupver pack size isn't equal to 500 MB"
 } 
 
-$poly0 = "0x3abc9bff07d9e5"
+$poly0 = "3abc9bff07d9e5"
 If ($cfg.ChunkerPoly -ne "$poly0") {
     $poly = $cfg.ChunkerPoly
     Throw "Dupver chunker polynomial of $poly in repo configuration isn't equal to $poly0"
@@ -64,19 +64,20 @@ del .dupver -Recurse -Force
 copy ../data/uiuc-150bus.* .
 
 Write-Host "Commiting files:"
-dupver commit
+dupver commit "First commit"
 Write-Host ''
 
 Write-Host "Dupver log output:"
 dupver log
 Write-Host ''
 
-#$SnapshotIds = dupver log -q 
-$SnapshotFiles = Get-ChildItem .dupver/snapshots/*.json
-#$SnapshotId = $SnapshotIds[0].Substring(0, 8)
-$SnapshotId = $SnapshotFiles[0].BaseName.Substring(0, 8)
+$SnapshotId = (dupver log -q).Substring(0, 8)
 Write-Host "Dupver log output for first snapshot ${SnapshotId}:"
 dupver log "$SnapshotId"
+
+If (Test-Path "../test-repo-second-commit") {
+    Remove-Item -Recurse -Force "../test-repo-second-commit" 
+}
 
 Write-Host "Checkout out files"
 dupver checkout -out "../test-repo-first-commit" "$SnapshotId"
@@ -133,5 +134,33 @@ Foreach ($File in $NewFiles) {
 }
 
 Write-Host "Done"
+Write-Host ''
+
+Write-Host "Checking that repack works correctly..."
+dupver commit "Second commit"
+dupver repack
+
+Write-Host "Checkout out files after repack"
+
+If (Test-Path "../test-repo-second-commit") {
+    Remove-Item -Recurse -Force "../test-repo-second-commit" 
+}
+
+dupver checkout -out "../test-repo-second-commit" last
+cd ..
+
+Write-Host "Checking that files have been restored correctly"
+$RepoFiles = Get-ChildItem -Recurse test-repo
+
+Foreach ($File in $RepoFiles) {
+   $FileName = $File.Name
+   $OriginalFile = Get-Content -Raw "test-repo/$FileName"
+   $RestoredFile = Get-Content -Raw "test-repo-second-commit/$FileName"
+    
+   If ($OriginalFile -ne $RestoredFile) {
+        Throw "Binary content for file $FileName doesn't match"
+   }
+}
+
+Write-Host "Done"
 Write-Host "Passed unit tests"
-cd ..	
