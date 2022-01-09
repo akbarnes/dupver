@@ -142,7 +142,7 @@ func main() {
         PostProcessOptionFlags()
         dupver.Repack(cfg.PackSize, cfg.CompressionLevel)
 	} else if cmd == "version" || cmd == "ver" {
-		fmt.Printf("%d.%d.%d\n", dupver.DupverMajorversion, dupver.MinorVersion, dupver.PatchVersion)
+		fmt.Printf("%d.%d.%d\n", dupver.MajorVersion, dupver.MinorVersion, dupver.PatchVersion)
 	} else {
         fmt.Fprintf(os.Stderr, "Unknown subcommand\n")
 		os.Exit(1)
