@@ -1,3 +1,11 @@
+cd ..
+go test
+cd test
+
+If (!$?) {
+    Throw "Unit tests failed"
+}
+
 $RepoPath = "test-repo"
 
 If (-not (Test-Path data)) {

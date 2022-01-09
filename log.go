@@ -62,7 +62,7 @@ func LogSingleSnapshot(commitId string) {
 		    fmt.Println(fileName)
         } else {
             fmt.Printf("%d) %s\n", i, fileName)
-       
+
             if len(fileProps.ModLocalTime) > 0 {
                 fmt.Printf("Local Modified: %s\n", fileProps.ModLocalTime)
             } else {

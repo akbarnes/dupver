@@ -9,7 +9,7 @@ func TestReadFilters(test *testing.T) {
         test.Errorf("Error reading filters from file")
     }
 
-    if len(filters) != 2 {
+    if len(filters) != 2 + 1 {
         test.Errorf("Filter length of %d != 2", len(filters))
     }
 

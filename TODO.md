@@ -5,6 +5,11 @@
 - [x] Add global preferences (for diff tool or editor)
 - [x] Fix timestamp issue on checkout - not storing milliseconds?
 - [ ] Add test for partial checkouts
+- [ ] Add unit test for snapshot creation
+- [ ] Add unit test for file hash
+- [ ] Add unit test for default prefs creation
+- [ ] Add unit test for correct prefs version
+- [ ] Add unit test for correct repo version
 
 # Maybe TODO:
 - [ ] Re-add WorkDirPath to work well with Xojo
