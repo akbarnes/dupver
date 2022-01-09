@@ -1,7 +1,7 @@
 package dupver
 
 const (
-	MajorVersion = 2
+	MajorVersion       = 2
 	MinorVersion       = 0
 	PatchVersion       = 0
 	RepoMajorVersion   = 2
