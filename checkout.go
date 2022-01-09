@@ -54,7 +54,7 @@ func (snap Snapshot) Checkout(outputFolder string, filter string) {
 
 		if fileDir != "." {
 			outDir = filepath.Join(outputFolder, fileDir)
-            fileInfo, err := os.Stat("temp.txt")
+            fileInfo, err := os.Stat(outDir)
 
             if os.IsNotExist(err) || !fileInfo.IsDir() {
                 fmt.Fprintf(os.Stderr, "Creating folder %s\n", outDir)
