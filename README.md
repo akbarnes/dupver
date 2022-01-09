@@ -3,7 +3,7 @@
 # Dupver
 Dupver is a minimalist deduplicating version control system in Go based on 
 the Restic chunking library. It is most similar to the binary
-version control system [Boar](https://bitbucket.org/mats_ekberg/boar/wiki/Home), 
+version control system [Boar](https://github.com/mekberg/boar).
 though it borrows design conventions from the deduplicating backup
 applications Duplicacy, Restic and Borg.
 Dupver does not track files, rather it stores commits as snapshots more like

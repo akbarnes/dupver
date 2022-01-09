@@ -3,8 +3,8 @@
 ## Binary VCS
 
 ## Boar 
-https://bitbucket.org/mats_ekberg/boar/wiki/Home
-An earlier binary VCS written in Python. This also uses as central repository. It has a simple and well-documented repository format, though only performs file-level deduplication. Block-level deduplication is available, but Linux-only. 
+https://github.com/mekberg/boar
+An earlier binary VCS written in Python. This also uses as central repository. It has a simple and well-documented repository format, though only performs file-level deduplication. Block-level deduplication is available, but Linux-only. Currently in the process of being ported to Python 3. 
 
 ## Dud
 https://github.com/kevin-hanselman/dud
