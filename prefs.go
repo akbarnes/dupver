@@ -29,7 +29,7 @@ type Prefs struct {
 
 func CreateDefaultPrefs() Prefs {
     p := Prefs{Editor: "vi", DiffTool: "kdiff3"}
-	p.DupverMajorVersion = DupverMajorversion
+	p.DupverMajorVersion = MajorVersion
 	p.DupverMinorVersion = MinorVersion
 	p.PrefsMajorVersion = PrefsMajorVersion
 	p.PrefsMinorVersion = PrefsMinorVersion

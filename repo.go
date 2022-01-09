@@ -34,7 +34,7 @@ type RepoConfig struct {
 
 func CreateDefaultRepoConfig() RepoConfig {
 	cfg := RepoConfig{}
-	cfg.DupverMajorVersion = DupverMajorversion
+	cfg.DupverMajorVersion = MajorVersion
 	cfg.DupverMinorVersion = MinorVersion
 	cfg.RepoMajorVersion = RepoMajorVersion
 	cfg.RepoMinorVersion = RepoMinorVersion

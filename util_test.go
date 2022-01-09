@@ -23,22 +23,6 @@ func TestReadFilters(test *testing.T) {
 
 }
 
-type os.FileInfo struct {
-    IsDirectory bool
-}
-
-func (tfi TestFileInfo) IsDir() bool {
-    return tfi.IsDirectory
-}
-
-func TestExcludedFile(test *testing.T) {
-    filters := []string{"*.swp", "output.log"}
-
-    if ExcludedFile("notes.txt", os.FileInfo{}, filters) {
-        test.Errorf("File notes.txt should not be excluded")
-    }
-}
-
 func TestRandHexString(test *testing.T) {
     n := 32
     s := RandHexString(n)
