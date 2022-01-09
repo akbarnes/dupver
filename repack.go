@@ -74,7 +74,7 @@ func Repack(maxPackBytes int64, compressionLevel uint16) error {
 	packFile, err := CreatePackFile(packId)
 
 	if err != nil {
-		panic(fmt.Sprintf("Error creating pack file %s\n", packFile))
+		panic(fmt.Sprintf("Error creating pack file %s\n", packId))
 	}
 
 	zipWriter := zip.NewWriter(packFile)
@@ -118,7 +118,7 @@ func Repack(maxPackBytes int64, compressionLevel uint16) error {
 
                     if err != nil {
                         // TODO: Should I return an error instead of quitting here? Is there anythig to do?
-                        panic(fmt.Sprintf("Error creating pack file %s\n", packFile))
+                        panic(fmt.Sprintf("Error creating pack file %s\n", packId))
                     }
 
                     zipWriter = zip.NewWriter(packFile)

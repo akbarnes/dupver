@@ -46,7 +46,7 @@ func CommitSnapshot(message string, filters []string, poly chunker.Pol, maxPackB
 	packFile, err := CreatePackFile(packId)
 
 	if err != nil {
-		panic(fmt.Sprintf("Error creating pack file %s\n", packFile))
+		panic(fmt.Sprintf("Error creating pack file %s\n", packId))
 	}
 
 	zipWriter := zip.NewWriter(packFile)
@@ -163,7 +163,7 @@ func CommitSnapshot(message string, filters []string, poly chunker.Pol, maxPackB
 
 				if err != nil {
 					// TODO: Should I return an error instead of quitting here? Is there anythig to do?
-					panic(fmt.Sprintf("Error creating pack file %s\n", packFile))
+					panic(fmt.Sprintf("Error creating pack file %s\n", packId))
 				}
 
 				zipWriter = zip.NewWriter(packFile)
