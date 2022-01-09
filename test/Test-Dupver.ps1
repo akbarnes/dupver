@@ -1,14 +1,16 @@
 cd ..
 go test
-cd test
 
 If (!$?) {
+    cd test
     Throw "Unit tests failed"
 }
 
+cd test
+
 $RepoPath = "test-repo"
 
-If (-not (Test-Path data)) {
+If (!(Test-Path data)) {
     New-Item -Path data -Itemtype directory -Force
 }
 
@@ -25,7 +27,7 @@ for ($i = 0; $i -lt $FileUrls.Length; $i++) {
     $FileUrl = $FileUrls[$i]
     $FileName = $FileNames[$i]
 
-    If (-not (Test-Path $FileName)) {
+    If (!(Test-Path $FileName)) {
         Invoke-Webrequest -Uri "$BaseUrl/$FileUrl" -Outfile $FileName
     }
 }
@@ -132,7 +134,7 @@ Foreach ($Line in $StatusOutput) {
 }
 
 Foreach ($File in $NewFiles) { 
-    If (-not ($FileStatus.ContainsKey($File))) {
+    If (!$FileStatus.ContainsKey($File)) {
         Thow "Status output doesn't contain $File"
     }
 

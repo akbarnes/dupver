@@ -3,13 +3,13 @@ package dupver
 import "testing"
 
 func TestReadFilters(test *testing.T) {
-   filters, err := ReadFilters() 
+   filters, err := ReadFilters()
 
     if err != nil {
         test.Errorf("Error reading filters from file")
     }
 
-    if len(filters) != 2 + 1 {
+    if len(filters) != 2 {
         test.Errorf("Filter length of %d != 2", len(filters))
     }
 
