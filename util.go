@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+    "strings"
 	"path/filepath"
 	"time"
     "bufio"
@@ -36,7 +37,13 @@ func ReadFilters() ([]string, error) {
 	scanner := bufio.NewScanner(f)
 
 	for scanner.Scan() {
-		filters = append(filters, scanner.Text())
+        line := strings.ReplaceAll(scanner.Text(), "\n", "")
+
+        if len(line) == 0 {
+            continue
+        }
+
+		filters = append(filters, line)
 	}
 
 	if err = scanner.Err(); err != nil {
