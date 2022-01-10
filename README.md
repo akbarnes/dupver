@@ -38,9 +38,20 @@ To list all the snapshots:
 dupver log
 ```
 
+This takes an optional "quiet" argument, which when enabled causes log to only print the snapshot ids in chronological order.
+``` bash
+dupver log -quiet
+dupver log -q
+```
+
 To list the files in a particular snapshot:
 ``` bash
 dupver log snapshot_id
+```
+This takes an optional "quiet" argument, which when enabled causes log to only print the relative file paths
+``` bash
+dupver log -quiet snapshot_id
+dupver log -q snapshot_id
 ```
 
 ## Checkout
@@ -50,4 +61,10 @@ dupver checkout snapshot_id
 dupver co snapshot_id
 dupver -out output_folder co snapshot_id
 dupver -o output_folder co snapshot_id
+```
+
+## Repack
+This consolidates small packs from multiple commits. It will also skip chunks that are not associated with a snapshot, allowing for deletion of snapshots.
+``` bash
+dupver repack
 ```
