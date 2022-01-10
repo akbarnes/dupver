@@ -63,6 +63,12 @@ dupver -out output_folder co snapshot_id
 dupver -o output_folder co snapshot_id
 ```
 
+To check out the last snapshot, there are the shortcuts
+``` bash
+dupver co latest
+duvper co last
+```
+
 ## Repack
 This consolidates small packs from multiple commits. It will also skip chunks that are not associated with a snapshot, allowing for deletion of snapshots.
 ``` bash
