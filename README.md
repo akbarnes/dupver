@@ -54,7 +54,7 @@ dupver log -quiet snapshot_id
 dupver log -q snapshot_id
 ```
 
-## Checkout
+### Checkout
 This takes an optional argument to specify an output folder. To checkout a snapshot:
 ``` bash
 dupver checkout snapshot_id
@@ -63,8 +63,33 @@ dupver -out output_folder co snapshot_id
 dupver -o output_folder co snapshot_id
 ```
 
-## Repack
+### Repack
 This consolidates small packs from multiple commits. It will also skip chunks that are not associated with a snapshot, allowing for deletion of snapshots.
 ``` bash
 dupver repack
 ```
+
+## Handling Archives
+I've been thinking about special handling for archives. In the meantime, a workaround is to add archive extensions to `.dupver_ignore`
+
+```
+**.zip
+**.docx
+**.xlsx
+**.pptx
+**.vsdx
+**.slx
+**.qgz
+```
+
+The archives can then be extracted to a folder, say `.dupver_archives` with a pre-processing script
+
+``` fish
+for f in **.zip; unzip -d .dupver_archive $f; end
+```
+
+``` PowerShell
+dir -Recurse *.zip | % { Expand-Archive $_.FullName -DestinationPath .dupver_archive }
+```
+
+These scripts are minimally tested and will probably clobber existing files if two archives contain files with the same relative paths. An open question is if traversing archives is fuctionality that should be added to dupver, or if it is better to use a pre-processing script and add some special handling (e.g. don't print out individual files in some archive types such as .docx on log). Pre-processing is quite suitable for archives-as-document-containers (which are typically less than 100 MB), though would add more external dependencies and could use up significant disk space for large archives.
