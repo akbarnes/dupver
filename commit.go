@@ -12,6 +12,19 @@ import (
 	"github.com/restic/chunker"
 )
 
+func CreateZipFile(packIdLen int) (string, *os.File, *zip.Writer) {
+	packId := RandHexString(packIdLen)
+	packFile, err := CreatePackFile(packId)
+
+	if err != nil {
+		panic(fmt.Sprintf("Error creating pack file %s\n", packId))
+	}
+
+	zipWriter := zip.NewWriter(packFile)
+    return packId, packFile, zipWriter
+}
+
+
 func CommitSnapshot(message string, filters []string, poly chunker.Pol, maxPackBytes int64, compressionLevel uint16) {
 	buf := make([]byte, 8*1024*1024) // reuse this buffer
 
@@ -42,15 +55,9 @@ func CommitSnapshot(message string, filters []string, poly chunker.Pol, maxPackB
 		panic(fmt.Sprintf("Error creating dupver folder %s\n", dupverDir))
 	}
 
-	packId := RandHexString(PackIdLen)
-	packFile, err := CreatePackFile(packId)
-
-	if err != nil {
-		panic(fmt.Sprintf("Error creating pack file %s\n", packId))
-	}
-
-	zipWriter := zip.NewWriter(packFile)
+    packId, packFile, zipWriter := CreateZipFile(PackIdLen) 
 	var packBytesRemaining int64 = maxPackBytes
+    committedFilesCount := 0
 
 	var VersionFile = func(fileName string, info os.FileInfo, err error) error {
 		fileName = strings.TrimSuffix(fileName, "\n")
@@ -86,6 +93,7 @@ func CommitSnapshot(message string, filters []string, poly chunker.Pol, maxPackB
 		}
 
 		in, err := os.Open(fileName)
+        committedFilesCount++
 
 		if err != nil {
 			if VerboseMode {
@@ -192,8 +200,12 @@ func CommitSnapshot(message string, filters []string, poly chunker.Pol, maxPackB
 		panic(fmt.Sprintf("Error closing file for pack %s\n", packId))
 	}
 
-	snap.Write()
-	snap.WriteFiles(files)
-	snap.WriteTree(packs)
-	snap.WriteHead()
+    if committedFilesCount > 0 || ForceMode {
+        snap.Write()
+        snap.WriteFiles(files)
+        snap.WriteTree(packs)
+        snap.WriteHead()
+    } else {
+        fmt.Fprintf(os.Stderr, "No modified files, skipping commit")
+    }
 }

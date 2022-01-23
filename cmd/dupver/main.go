@@ -17,6 +17,8 @@ func AddOptionFlags(fs *flag.FlagSet) {
 	fs.BoolVar(&dupver.DebugMode, "d", false, "debug mode")
 	fs.BoolVar(&dupver.QuietMode, "quiet", false, "quiet mode")
 	fs.BoolVar(&dupver.QuietMode, "q", false, "quiet mode")
+	fs.BoolVar(&dupver.ForceMode, "force", false, "force commit even with no changed files")
+	fs.BoolVar(&dupver.ForceMode, "f", false, "force commit even with no changed files")
 	fs.BoolVar(&dupver.RandomPoly, "random-poly", false, "generate random polynomial on initialization")
 	fs.BoolVar(&dupver.RandomPoly, "r", false, "generate random polynomial on initialization")
 }

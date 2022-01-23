@@ -10,6 +10,7 @@
 - [ ] Add unit test for default prefs creation
 - [ ] Add unit test for correct prefs version
 - [ ] Add unit test for correct repo version
+- [ ] Don't create new pack until new chunks are found
 
 # Maybe TODO:
 - [ ] Re-add WorkDirPath to work well with Xojo

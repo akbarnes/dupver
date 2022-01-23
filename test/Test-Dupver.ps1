@@ -122,7 +122,7 @@ $StatusOutput = dupver status
 
 If ($StatusOutput.Length -ne 2) { 
     $n = $StatusOutput.Length
-	Throw "Length of status $n not equal to two"
+	Throw "Length of status $n not equal to two for status $StatusOutput"
 }
 
 $FileStatus = @{}
