@@ -1,0 +1,100 @@
+checkout.go:12:1: exported function CheckoutSnapshot should have comment or be unexported
+checkout.go:12:23: func parameter commitId should be commitID
+checkout.go:32:1: exported method Snapshot.Checkout should have comment or be unexported
+checkout.go:72:10: range var chunkId should be chunkID
+checkout.go:73:4: var packId should be packID
+commit.go:15:1: exported function CommitSnapshot should have comment or be unexported
+commit.go:45:2: var packId should be packID
+commit.go:125:4: var chunkId should be chunkID
+diff.go:10:1: exported function DiffToolSnapshot should have comment or be unexported
+diff.go:16:1: exported method Snapshot.DiffTool should have comment or be unexported
+diff.go:25:1: exported function DiffToolSnapshotFile should have comment or be unexported
+diff.go:31:1: exported method Snapshot.DiffToolFile should have comment or be unexported
+dupver.go:4:2: exported const MajorVersion should have comment (or a comment on this block) or be unexported
+file.go:11:7: exported const NumChars should have comment or be unexported
+file.go:13:1: exported function HashFile should have comment or be unexported
+file.go:32:1: comment on exported function CopyFile should be of the form "CopyFile ..."
+log.go:11:1: exported function LogAllSnapshots should have comment or be unexported
+log.go:33:1: exported function MatchSnapshot should have comment or be unexported
+log.go:33:20: func parameter commitId should be commitID
+log.go:47:1: exported function LogSingleSnapshot should have comment or be unexported
+log.go:47:24: func parameter commitId should be commitID
+log.go:73:13: should replace i += 1 with i++
+options.go:3:5: exported var VerboseMode should have comment or be unexported
+options.go:4:5: exported var DebugMode should have comment or be unexported
+options.go:5:5: exported var QuietMode should have comment or be unexported
+options.go:6:5: exported var RandomPoly should have comment or be unexported
+options.go:7:5: exported var WorkingDirectory should have comment or be unexported
+pack.go:15:7: exported const PackSize should have comment or be unexported
+pack.go:17:1: exported function CreatePackFile should have comment or be unexported
+pack.go:17:21: func parameter packId should be packID
+pack.go:40:1: exported function WriteChunkToPack should have comment or be unexported
+pack.go:40:46: func parameter chunkId should be chunkID
+pack.go:66:1: exported function ExtractChunkFromPack should have comment or be unexported
+pack.go:66:45: func parameter chunkId should be chunkID
+pack.go:66:61: func parameter packId should be packID
+pack.go:82:1: exported function ExtractChunkFromZipFile should have comment or be unexported
+pack.go:82:74: func parameter chunkId should be chunkID
+pack.go:112:9: should replace errors.New(fmt.Sprintf(...)) with fmt.Errorf(...)
+prefs.go:11:6: exported type PrefsMissingError should have comment or be unexported
+prefs.go:19:1: comment on exported type Prefs should be of the form "Prefs ..." (with optional leading article)
+prefs.go:30:1: exported function CreateDefaultPrefs should have comment or be unexported
+prefs.go:66:1: exported method Prefs.CorrectPrefsVersion should have comment or be unexported
+prefs.go:70:1: exported function AbortIfIncorrectPrefsVersion should have comment or be unexported
+prefs.go:84:1: exported function ReadPrefs should have comment or be unexported
+prefs.go:111:10: if block ends with a return statement, so drop this else and outdent its block
+repack.go:12:1: exported function Repack should have comment or be unexported
+repack.go:73:2: var packId should be packID
+repack.go:89:20: range var chunkId should be chunkID
+repack.go:90:17: var oldPackId should be oldPackID
+repack.go:144:1: exported function RepackChunk should have comment or be unexported
+repack.go:144:41: func parameter chunkId should be chunkID
+repack.go:144:57: func parameter packId should be packID
+repack.go:204:12: should replace errors.New(fmt.Sprintf(...)) with fmt.Errorf(...)
+repo.go:15:6: exported type RepoConfigMissingError should have comment or be unexported
+repo.go:23:1: comment on exported type RepoConfig should be of the form "RepoConfig ..." (with optional leading article)
+repo.go:35:1: exported function CreateDefaultRepoConfig should have comment or be unexported
+repo.go:84:1: exported method RepoConfig.CorrectRepoVersion should have comment or be unexported
+repo.go:88:1: exported function AbortIfIncorrectRepoVersion should have comment or be unexported
+repo.go:102:1: exported function ReadRepoConfig should have comment or be unexported
+repo.go:122:10: if block ends with a return statement, so drop this else and outdent its block
+snapshot.go:12:7: const SnapshotIdLen should be SnapshotIDLen
+snapshot.go:12:7: exported const SnapshotIdLen should have comment or be unexported
+snapshot.go:13:7: const PackIdLen should be PackIDLen
+snapshot.go:13:7: exported const PackIdLen should have comment or be unexported
+snapshot.go:15:1: comment on exported type Snapshot should be of the form "Snapshot ..." (with optional leading article)
+snapshot.go:21:2: struct field SnapshotId should be SnapshotID
+snapshot.go:24:6: exported type Head should have comment or be unexported
+snapshot.go:26:2: struct field SnapshotId should be SnapshotID
+snapshot.go:29:6: exported type SnapshotFile should have comment or be unexported
+snapshot.go:43:1: exported function CreateSnapshot should have comment or be unexported
+snapshot.go:53:1: exported function AddFileChunkIds should have comment or be unexported
+snapshot.go:78:1: exported method Snapshot.WriteFiles should have comment or be unexported
+snapshot.go:98:1: exported method Snapshot.ReadFilesHash should have comment or be unexported
+snapshot.go:113:1: exported method Snapshot.ReadFilesList should have comment or be unexported
+snapshot.go:143:1: exported function ReadSnapshot should have comment or be unexported
+snapshot.go:143:19: func parameter snapId should be snapID
+snapshot.go:153:1: comment on exported function ReadSnapshotJson should be of the form "ReadSnapshotJson ..."
+snapshot.go:154:6: func ReadSnapshotJson should be ReadSnapshotJSON
+snapshot.go:173:1: exported method Snapshot.WriteHead should have comment or be unexported
+snapshot.go:189:1: comment on exported function ReadAllSnapshots should be of the form "ReadAllSnapshots ..."
+snapshot.go:207:1: comment on exported function ReadHead should be of the form "ReadHead ..."
+status.go:10:1: exported function DiffSnapshot should have comment or be unexported
+status.go:10:19: func parameter snapId should be snapID
+status.go:22:1: exported method Snapshot.Diff should have comment or be unexported
+status.go:26:16: should omit 2nd value from range; this loop is equivalent to `for fileName := range ...`
+tree.go:10:1: exported method Snapshot.WriteTree should have comment or be unexported
+tree.go:27:6: range var chunkId should be chunkID
+tree.go:27:15: range var packId should be packID
+tree.go:41:1: exported function ReadTrees should have comment or be unexported
+tree.go:60:7: range var packId should be packID
+tree.go:61:11: range var chunkId should be chunkID
+tree.go:70:1: comment on exported function ReadTree should be of the form "ReadTree ..."
+util.go:15:7: exported const HexChars should have comment or be unexported
+util.go:19:1: exported function IsWindows should have comment or be unexported
+util.go:23:1: exported function ReadFilters should have comment or be unexported
+util.go:31:10: if block ends with a return statement, so drop this else and outdent its block
+util.go:57:1: exported function ExcludedFile should have comment or be unexported
+util.go:99:1: comment on exported function RandHexString should be of the form "RandHexString ..."
+util.go:104:1: comment on exported function RandString should be of the form "RandString ..."
+util.go:115:1: exported function Check should have comment or be unexported
