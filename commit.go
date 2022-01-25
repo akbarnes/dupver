@@ -12,16 +12,19 @@ import (
 	"github.com/restic/chunker"
 )
 
-func CreateZipFile(packIdLen int) (string, *os.File, *zip.Writer) {
-	packId := RandHexString(packIdLen)
-	packFile, err := CreatePackFile(packId)
+// CreateZipFile creates a pack zip file with a random 
+// pack ID given a specified pack ID length.
+// It returns the pack id, file descriptor, and zip writer
+func CreateZipFile(packIDLen int) (string, *os.File, *zip.Writer) {
+	packID := RandHexString(packIDLen)
+	packFile, err := CreatePackFile(packID)
 
 	if err != nil {
-		panic(fmt.Sprintf("Error creating pack file %s\n", packId))
+		panic(fmt.Sprintf("Error creating pack file %s\n", packID))
 	}
 
 	zipWriter := zip.NewWriter(packFile)
-    return packId, packFile, zipWriter
+    return packID, packFile, zipWriter
 }
 
 
@@ -55,7 +58,7 @@ func CommitSnapshot(message string, filters []string, poly chunker.Pol, maxPackB
 		panic(fmt.Sprintf("Error creating dupver folder %s\n", dupverDir))
 	}
 
-    packId, packFile, zipWriter := CreateZipFile(PackIdLen) 
+    packID, packFile, zipWriter := CreateZipFile(PackIdLen) 
 	var packBytesRemaining int64 = maxPackBytes
     committedFilesCount := 0
 
@@ -130,48 +133,48 @@ func CommitSnapshot(message string, filters []string, poly chunker.Pol, maxPackB
                 break
 			}
 
-			chunkId := fmt.Sprintf("%064x", sha256.Sum256(chunk.Data))
+			chunkID := fmt.Sprintf("%064x", sha256.Sum256(chunk.Data))
 
 			if chunk.Length > 0 {
-				file.ChunkIds = append(file.ChunkIds, chunkId)
+				file.ChunkIds = append(file.ChunkIds, chunkID)
 
-				if _, ok := existingPacks[chunkId]; ok {
+				if _, ok := existingPacks[chunkID]; ok {
 					if DebugMode {
-						fmt.Fprintf(os.Stderr, "Skipping Chunk ID %s already in pack %s\n", chunkId[0:16], existingPacks[chunkId][0:16])
+						fmt.Fprintf(os.Stderr, "Skipping Chunk ID %s already in pack %s\n", chunkID[0:16], existingPacks[chunkID][0:16])
 					}
 
 					continue
 				}
 
 				if DebugMode {
-					fmt.Fprintf(os.Stderr, "Chunk %s: chunk size %d kB, pack %s\n", chunkId[0:16], chunk.Length/1024, packId[0:16])
+					fmt.Fprintf(os.Stderr, "Chunk %s: chunk size %d kB, pack %s\n", chunkID[0:16], chunk.Length/1024, packID[0:16])
 				}
 
-				packs[chunkId] = packId
-				existingPacks[chunkId] = packId
+				packs[chunkID] = packID
+				existingPacks[chunkID] = packID
 
 				// save zip data
-				WriteChunkToPack(zipWriter, chunkId, chunk, compressionLevel)
+				WriteChunkToPack(zipWriter, chunkID, chunk, compressionLevel)
 				packBytesRemaining -= int64(chunk.Length)
 			}
 
 			if packBytesRemaining <= 0 {
 				if err := zipWriter.Close(); err != nil {
 					// TODO: Should I return an error instead of quitting here? Is there anythig to do?
-					panic(fmt.Sprintf("Error closing zipwriter for pack %s\n", packId))
+					panic(fmt.Sprintf("Error closing zipwriter for pack %s\n", packID))
 				}
 
 				if err := packFile.Close(); err != nil {
 					// TODO: Should I return an error instead of quitting here? Is there anythig to do?
-					panic(fmt.Sprintf("Error closing file for pack %s\n", packId))
+					panic(fmt.Sprintf("Error closing file for pack %s\n", packID))
 				}
 
-				packId = RandHexString(PackIdLen)
-				packFile, err = CreatePackFile(packId)
+				packID = RandHexString(PackIdLen)
+				packFile, err = CreatePackFile(packID)
 
 				if err != nil {
 					// TODO: Should I return an error instead of quitting here? Is there anythig to do?
-					panic(fmt.Sprintf("Error creating pack file %s\n", packId))
+					panic(fmt.Sprintf("Error creating pack file %s\n", packID))
 				}
 
 				zipWriter = zip.NewWriter(packFile)
@@ -193,11 +196,11 @@ func CommitSnapshot(message string, filters []string, poly chunker.Pol, maxPackB
 	}
 
 	if err := zipWriter.Close(); err != nil {
-		panic(fmt.Sprintf("Error closing zipwriter for pack %s\n", packId))
+		panic(fmt.Sprintf("Error closing zipwriter for pack %s\n", packID))
 	}
 
 	if err := packFile.Close(); err != nil {
-		panic(fmt.Sprintf("Error closing file for pack %s\n", packId))
+		panic(fmt.Sprintf("Error closing file for pack %s\n", packID))
 	}
 
     if committedFilesCount > 0 || ForceMode {

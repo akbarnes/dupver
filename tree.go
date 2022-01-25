@@ -14,7 +14,7 @@ func (snap Snapshot) WriteTree(packs map[string]string) {
 		panic(fmt.Sprintf("Error creating trees folder %s\n", treesFolder))
 	}
 
-	treeFile := filepath.Join(treesFolder, snap.SnapshotId+".json")
+	treeFile := filepath.Join(treesFolder, snap.SnapshotID+".json")
 	f, err := os.Create(treeFile)
 
 	if err != nil {
@@ -24,11 +24,11 @@ func (snap Snapshot) WriteTree(packs map[string]string) {
 	tree := map[string][]string{}
 
 	// Remember that I'll only encounter each chunk id once
-	for chunkId, packId := range packs {
-		if _, ok := tree[packId]; ok {
-			tree[packId] = append(tree[packId], chunkId)
+	for chunkID, packID := range packs {
+		if _, ok := tree[packID]; ok {
+			tree[packID] = append(tree[packID], chunkID)
 		} else {
-			tree[packId] = []string{chunkId}
+			tree[packID] = []string{chunkID}
 		}
 	}
 
@@ -57,9 +57,9 @@ func ReadTrees() map[string]string {
 	for _, treePath := range treePaths {
 		tree := ReadTree(treePath)
 
-		for packId, chunkIds := range tree {
-			for _, chunkId := range chunkIds {
-				packs[chunkId] = packId
+		for packID, chunkIDs := range tree {
+			for _, chunkID := range chunkIDs {
+				packs[chunkID] = packID
 			}
 		}
 	}

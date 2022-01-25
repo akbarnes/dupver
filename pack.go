@@ -14,13 +14,13 @@ import (
 
 const PackSize int64 = 500 * 1024 * 1024
 
-func CreatePackFile(packId string) (*os.File, error) {
-	packFolderPath := filepath.Join(".dupver", "packs", packId[0:2])
+func CreatePackFile(packID string) (*os.File, error) {
+	packFolderPath := filepath.Join(".dupver", "packs", packID[0:2])
 	os.MkdirAll(packFolderPath, 0777)
-	packPath := filepath.Join(packFolderPath, packId+".zip")
+	packPath := filepath.Join(packFolderPath, packID+".zip")
 
 	if DebugMode {
-		fmt.Fprintf(os.Stderr, "Creating pack: %s\n", packId[0:16])
+		fmt.Fprintf(os.Stderr, "Creating pack: %s\n", packID[0:16])
 	}
 
 	// TODO: only create pack file if we need to save stuff - set to nil initially
@@ -37,9 +37,9 @@ func CreatePackFile(packId string) (*os.File, error) {
 	return packFile, nil
 }
 
-func WriteChunkToPack(zipWriter *zip.Writer, chunkId string, chunk chunker.Chunk, compressionLevel uint16) error {
+func WriteChunkToPack(zipWriter *zip.Writer, chunkID string, chunk chunker.Chunk, compressionLevel uint16) error {
 	var header zip.FileHeader
-	header.Name = chunkId
+	header.Name = chunkID
 	header.Method = compressionLevel
 
 	writer, err := zipWriter.CreateHeader(&header)
@@ -54,7 +54,7 @@ func WriteChunkToPack(zipWriter *zip.Writer, chunkId string, chunk chunker.Chunk
 
 	if _, err := writer.Write(chunk.Data); err != nil {
 		if VerboseMode {
-			fmt.Fprintf(os.Stderr, "Error writing chunk %s to zip file\n", chunkId)
+			fmt.Fprintf(os.Stderr, "Error writing chunk %s to zip file\n", chunkID)
 		}
 
 		return err
@@ -63,32 +63,32 @@ func WriteChunkToPack(zipWriter *zip.Writer, chunkId string, chunk chunker.Chunk
 	return nil
 }
 
-func ExtractChunkFromPack(outFile *os.File, chunkId string, packId string) error {
-	packFolderPath := path.Join(".dupver", "packs", packId[0:2])
-	packPath := path.Join(packFolderPath, packId+".zip")
+func ExtractChunkFromPack(outFile *os.File, chunkID string, packID string) error {
+	packFolderPath := path.Join(".dupver", "packs", packID[0:2])
+	packPath := path.Join(packFolderPath, packID+".zip")
 	packFile, err := zip.OpenReader(packPath)
 
 	if err != nil {
 		if VerboseMode {
-			fmt.Fprintf(os.Stderr, "Error extracting pack %s[%s]\n", packId, chunkId)
+			fmt.Fprintf(os.Stderr, "Error extracting pack %s[%s]\n", packID, chunkID)
 		}
 		return err
 	}
 
 	defer packFile.Close()
-	return ExtractChunkFromZipFile(outFile, packFile, chunkId)
+	return ExtractChunkFromZipFile(outFile, packFile, chunkID)
 }
 
-func ExtractChunkFromZipFile(outFile *os.File, packFile *zip.ReadCloser, chunkId string) error {
+func ExtractChunkFromZipFile(outFile *os.File, packFile *zip.ReadCloser, chunkID string) error {
 	for _, f := range packFile.File {
 
-		if f.Name == chunkId {
+		if f.Name == chunkID {
 			// fmt.Fprintf(os.Stderr, "Contents of %s:\n", f.Name)
 			chunkFile, err := f.Open()
 
 			if err != nil {
 				if VerboseMode {
-					fmt.Fprintf(os.Stderr, "Error opening chunk %s\n", chunkId)
+					fmt.Fprintf(os.Stderr, "Error opening chunk %s\n", chunkID)
 				}
 
 				return err
@@ -98,7 +98,7 @@ func ExtractChunkFromZipFile(outFile *os.File, packFile *zip.ReadCloser, chunkId
 
 			if err != nil {
 				if VerboseMode {
-					fmt.Fprintf(os.Stderr, "Error reading chunk %s\n", chunkId)
+					fmt.Fprintf(os.Stderr, "Error reading chunk %s\n", chunkID)
 				}
 
 				return err
@@ -109,5 +109,5 @@ func ExtractChunkFromZipFile(outFile *os.File, packFile *zip.ReadCloser, chunkId
 		}
 	}
 
-	return errors.New(fmt.Sprintf("Couldn't find chunk %s in pack", chunkId))
+	return errors.New(fmt.Sprintf("Couldn't find chunk %s in pack", chunkID))
 }

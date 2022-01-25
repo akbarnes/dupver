@@ -9,7 +9,7 @@ import (
 
 func DiffToolSnapshot(diffTool string) {
     snap := ReadHead()
-	fmt.Fprintf(os.Stderr, "Comparing %s\n", snap.SnapshotId[0:9])
+	fmt.Fprintf(os.Stderr, "Comparing %s\n", snap.SnapshotID[0:9])
     snap.DiffTool(diffTool)
 }
 
@@ -24,7 +24,7 @@ func (snap Snapshot) DiffTool(diffTool string) {
 
 func DiffToolSnapshotFile(fileName string, diffTool string) {
     snap := ReadHead()
-	fmt.Fprintf(os.Stderr, "Comparing %s/%s\n", snap.SnapshotId[0:9], fileName)
+	fmt.Fprintf(os.Stderr, "Comparing %s/%s\n", snap.SnapshotID[0:9], fileName)
     snap.DiffToolFile(fileName, diffTool)
 }
 

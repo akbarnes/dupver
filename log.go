@@ -11,7 +11,7 @@ import (
 func LogAllSnapshots() {
 	for i, snap := range ReadAllSnapshots() {
         if QuietMode {
-            fmt.Println(snap.SnapshotId)
+            fmt.Println(snap.SnapshotID)
         } else {
             if len(snap.SnapshotLocalTime) > 0 {
                 fmt.Printf("%d) Local Time: %s\n", i+1, snap.SnapshotLocalTime)
@@ -19,7 +19,7 @@ func LogAllSnapshots() {
                 fmt.Printf("%d) Time: %s\n", i+1, snap.SnapshotTime)
             }
 
-            fmt.Printf("ID: %s\n", snap.SnapshotId[0:9])
+            fmt.Printf("ID: %s\n", snap.SnapshotID[0:9])
 
             if len(snap.Message) > 0 {
                 fmt.Printf("Message: %s\n", snap.Message)
@@ -30,13 +30,13 @@ func LogAllSnapshots() {
 	}
 }
 
-func MatchSnapshot(commitId string) (Snapshot, error) {
+func MatchSnapshot(commitID string) (Snapshot, error) {
 	snapshotGlob := filepath.Join(".dupver", "snapshots", "*.json")
 	snapshotPaths, err := filepath.Glob(snapshotGlob)
 	Check(err)
 
     for _, snapshotPath := range snapshotPaths {
-        if strings.Contains(snapshotPath, commitId) {
+        if strings.Contains(snapshotPath, commitID) {
 	        return ReadSnapshotJson(snapshotPath), nil
         }
     }
@@ -44,8 +44,8 @@ func MatchSnapshot(commitId string) (Snapshot, error) {
     return Snapshot{}, errors.New("No matching snapshots")
 }
 
-func LogSingleSnapshot(commitId string) {
-    snap, err := MatchSnapshot(commitId)
+func LogSingleSnapshot(commitID string) {
+    snap, err := MatchSnapshot(commitID)
 
     if err != nil {
         fmt.Fprintf(os.Stderr, "No matching snapshot paths")

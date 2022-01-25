@@ -70,11 +70,11 @@ func Repack(maxPackBytes int64, compressionLevel uint16) error {
     }
 
     // TODO: move this ito a function
-	packId := RandHexString(PackIdLen)
-	packFile, err := CreatePackFile(packId)
+	packID := RandHexString(PackIdLen)
+	packFile, err := CreatePackFile(packID)
 
 	if err != nil {
-		panic(fmt.Sprintf("Error creating pack file %s\n", packId))
+		panic(fmt.Sprintf("Error creating pack file %s\n", packID))
 	}
 
 	zipWriter := zip.NewWriter(packFile)
@@ -86,39 +86,39 @@ func Repack(maxPackBytes int64, compressionLevel uint16) error {
 
         // for each file in snapshot
 	    for _, fileProps := range snapFiles {
-            for _, chunkId := range fileProps.ChunkIds {
-                oldPackId := oldPacks[chunkId]
+            for _, chunkID := range fileProps.ChunkIds {
+                oldPackId := oldPacks[chunkID]
 
                 if DebugMode {
-                    fmt.Fprintf(os.Stderr, "Extracting:\n  File: %s, Pack %s\n  Chunk %s\n  to %s\n\n", fileProps.Name, oldPackId, chunkId, packId)
+                    fmt.Fprintf(os.Stderr, "Extracting:\n  File: %s, Pack %s\n  Chunk %s\n  to %s\n\n", fileProps.Name, oldPackId, chunkID, packID)
                 }
 
-                if chunkSize, err := RepackChunk(zipWriter, chunkId, oldPackId, newPacksPath, compressionLevel); err == nil {
+                if chunkSize, err := RepackChunk(zipWriter, chunkID, oldPackId, newPacksPath, compressionLevel); err == nil {
                     packBytesRemaining -= int64(chunkSize)
                 } else {
                     panic(fmt.Sprintf("Error repacking chunk %v", err))
                 }
 
-                newPacks[chunkId] = packId
+                newPacks[chunkID] = packID
 
                 if packBytesRemaining <= 0 {
                     if err := zipWriter.Close(); err != nil {
                         // TODO: Should I return an error instead of quitting here? Is there anythig to do?
-                        panic(fmt.Sprintf("Error closing zipwriter for pack %s\n", packId))
+                        panic(fmt.Sprintf("Error closing zipwriter for pack %s\n", packID))
                     }
 
                     if err := packFile.Close(); err != nil {
                         // TODO: Should I return an error instead of quitting here? Is there anythig to do?
-                        panic(fmt.Sprintf("Error closing file for pack %s\n", packId))
+                        panic(fmt.Sprintf("Error closing file for pack %s\n", packID))
                     }
 
                     // TODO: move this to a function
-                    packId = RandHexString(PackIdLen)
-                    packFile, err = CreatePackFile(packId)
+                    packID = RandHexString(PackIdLen)
+                    packFile, err = CreatePackFile(packID)
 
                     if err != nil {
                         // TODO: Should I return an error instead of quitting here? Is there anythig to do?
-                        panic(fmt.Sprintf("Error creating pack file %s\n", packId))
+                        panic(fmt.Sprintf("Error creating pack file %s\n", packID))
                     }
 
                     zipWriter = zip.NewWriter(packFile)
@@ -129,11 +129,11 @@ func Repack(maxPackBytes int64, compressionLevel uint16) error {
     }
 
 	if err := zipWriter.Close(); err != nil {
-		panic(fmt.Sprintf("Error closing zipwriter for pack %s\n", packId))
+		panic(fmt.Sprintf("Error closing zipwriter for pack %s\n", packID))
 	}
 
 	if err := packFile.Close(); err != nil {
-		panic(fmt.Sprintf("Error closing file for pack %s\n", packId))
+		panic(fmt.Sprintf("Error closing file for pack %s\n", packID))
 	}
 
 
@@ -141,14 +141,14 @@ func Repack(maxPackBytes int64, compressionLevel uint16) error {
     return nil
 }
 
-func RepackChunk(zipWriter *zip.Writer, chunkId string, packId string, oldPacksPath string, compressionLevel uint16) (uint64, error) {
-	packFolderPath := filepath.Join(oldPacksPath, packId[0:2])
-	packPath := filepath.Join(packFolderPath, packId+".zip")
+func RepackChunk(zipWriter *zip.Writer, chunkID string, packID string, oldPacksPath string, compressionLevel uint16) (uint64, error) {
+	packFolderPath := filepath.Join(oldPacksPath, packID[0:2])
+	packPath := filepath.Join(packFolderPath, packID+".zip")
 	packFile, err := zip.OpenReader(packPath)
 
 	if err != nil {
 		if VerboseMode {
-			fmt.Fprintf(os.Stderr, "Error extracting pack %s[%s]\n", packId, chunkId)
+			fmt.Fprintf(os.Stderr, "Error extracting pack %s[%s]\n", packID, chunkID)
 		}
 		return 0, err
 	}
@@ -156,7 +156,7 @@ func RepackChunk(zipWriter *zip.Writer, chunkId string, packId string, oldPacksP
 	defer packFile.Close()
 
 	var header zip.FileHeader
-	header.Name = chunkId
+	header.Name = chunkID
 	header.Method = compressionLevel
 
 	writer, err := zipWriter.CreateHeader(&header)
@@ -170,7 +170,7 @@ func RepackChunk(zipWriter *zip.Writer, chunkId string, packId string, oldPacksP
 	}
 
 	for _, f := range packFile.File {
-		if f.Name != chunkId {
+		if f.Name != chunkID {
             continue
         }
 
@@ -179,7 +179,7 @@ func RepackChunk(zipWriter *zip.Writer, chunkId string, packId string, oldPacksP
 
         if err != nil {
             if VerboseMode {
-                fmt.Fprintf(os.Stderr, "Error opening chunk %s\n", chunkId)
+                fmt.Fprintf(os.Stderr, "Error opening chunk %s\n", chunkID)
             }
 
             return 0, err
@@ -189,7 +189,7 @@ func RepackChunk(zipWriter *zip.Writer, chunkId string, packId string, oldPacksP
 
         if err != nil {
             if VerboseMode {
-                fmt.Fprintf(os.Stderr, "Error reading chunk %s\n", chunkId)
+                fmt.Fprintf(os.Stderr, "Error reading chunk %s\n", chunkID)
             }
 
             return 0, err
@@ -201,6 +201,6 @@ func RepackChunk(zipWriter *zip.Writer, chunkId string, packId string, oldPacksP
         return f.UncompressedSize64, nil
 	}
 
-	return 0, errors.New(fmt.Sprintf("Chunk %s not found in pack", chunkId))
+	return 0, errors.New(fmt.Sprintf("Chunk %s not found in pack", chunkID))
 }
 

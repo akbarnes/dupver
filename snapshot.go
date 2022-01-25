@@ -9,7 +9,7 @@ import (
     "time"
 )
 
-const SnapshotIdLen int = 40
+const SnapshotIDLen int = 40
 const PackIdLen int = 64
 
 // TODO: change this to SerializedSnaphot
@@ -18,12 +18,12 @@ type Snapshot struct {
 	Message      string
 	SnapshotTime string
 	SnapshotLocalTime string
-	SnapshotId   string // Is this needed?
+	SnapshotID   string // Is this needed?
 }
 
 type Head struct {
 	SnapshotTime string
-	SnapshotId   string // Is this needed?
+	SnapshotID   string // Is this needed?
 }
 
 type SnapshotFile struct {
@@ -45,8 +45,8 @@ func CreateSnapshot(message string) Snapshot {
 	tl := time.Now().Local()
 	ts := t.Format("2006-01-02T15-04-05")
 	tsl := tl.Format("2006-01-02T15-04-05")
-	sid := RandHexString(SnapshotIdLen)
-	snap := Snapshot{SnapshotTime: ts, SnapshotLocalTime: tsl, Message: message, SnapshotId: sid}
+	sid := RandHexString(SnapshotIDLen)
+	snap := Snapshot{SnapshotTime: ts, SnapshotLocalTime: tsl, Message: message, SnapshotID: sid}
 	return snap
 }
 
@@ -62,7 +62,7 @@ func (snap Snapshot) Write() {
 		panic(fmt.Sprintf("Error creating snapshot folder %s\n", snapFolder))
 	}
 
-	snapFile := filepath.Join(snapFolder, snap.SnapshotId+".json")
+	snapFile := filepath.Join(snapFolder, snap.SnapshotID+".json")
 	f, err := os.Create(snapFile)
 
 	if err != nil {
@@ -82,7 +82,7 @@ func (snap Snapshot) WriteFiles(files []SnapshotFile) {
 		panic(fmt.Sprintf("Error creating files listing folder %s\n", filesFolder))
 	}
 
-	snapFile := filepath.Join(filesFolder, snap.SnapshotId+".json")
+	snapFile := filepath.Join(filesFolder, snap.SnapshotID+".json")
 	f, err := os.Create(snapFile)
 
 	if err != nil {
@@ -96,7 +96,7 @@ func (snap Snapshot) WriteFiles(files []SnapshotFile) {
 }
 
 func (snap Snapshot) ReadFilesHash() map[string]SnapshotFile {
-	if snap.SnapshotId == "" {
+	if snap.SnapshotID == "" {
 		return map[string]SnapshotFile{}
 	}
 
@@ -111,7 +111,7 @@ func (snap Snapshot) ReadFilesHash() map[string]SnapshotFile {
 }
 
 func (snap Snapshot) ReadFilesList() []SnapshotFile {
-	if snap.SnapshotId == "" {
+	if snap.SnapshotID == "" {
 		return []SnapshotFile{}
 	}
 
@@ -121,7 +121,7 @@ func (snap Snapshot) ReadFilesList() []SnapshotFile {
 		panic(fmt.Sprintf("Error creating files listing folder %s\n", filesFolder))
 	}
 
-	snapFile := filepath.Join(filesFolder, snap.SnapshotId+".json")
+	snapFile := filepath.Join(filesFolder, snap.SnapshotID+".json")
 	f, err := os.Open(snapFile)
 
 	if err != nil {
@@ -178,7 +178,7 @@ func (snap Snapshot) WriteHead() {
 		panic(fmt.Sprintf("Error: Could not create head file %s", headPath))
 	}
 
-	head := Head{SnapshotTime: snap.SnapshotTime, SnapshotId: snap.SnapshotId}
+	head := Head{SnapshotTime: snap.SnapshotTime, SnapshotID: snap.SnapshotID}
 
 	myEncoder := json.NewEncoder(f)
 	myEncoder.SetIndent("", "  ")
@@ -224,5 +224,5 @@ func ReadHead() Snapshot {
 
 	f.Close()
 
-	return ReadSnapshot(head.SnapshotId)
+	return ReadSnapshot(head.SnapshotID)
 }

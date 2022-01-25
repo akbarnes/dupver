@@ -9,14 +9,18 @@ import (
 	"github.com/bmatcuk/doublestar"
 )
 
-func CheckoutSnapshot(commitId string, outputFolder string, filter string) {
+// CheckoutSnapshot extracts a snapshot to the working directory
+// given its commit ID
+// It takes an optional output folder and pattern to match files
+// to support partial checkouts
+func CheckoutSnapshot(commitID string, outputFolder string, filter string) {
     var snap Snapshot
     var err error
 
-    if commitId == "last" || commitId == "latest" {
+    if commitID == "last" || commitID == "latest" {
         snap = ReadHead()
     } else {
-        snap, err = MatchSnapshot(commitId)
+        snap, err = MatchSnapshot(commitID)
 
         if err != nil {
             fmt.Fprintf(os.Stderr, "No matching snapshot paths\n")
@@ -25,10 +29,13 @@ func CheckoutSnapshot(commitId string, outputFolder string, filter string) {
     }
 
 
-	fmt.Fprintf(os.Stderr, "Checking out %s\n", snap.SnapshotId[0:9])
+	fmt.Fprintf(os.Stderr, "Checking out %s\n", snap.SnapshotID[0:9])
     snap.Checkout(outputFolder, filter)
 }
 
+// snapshot.Checkout extracts a snapshot to the working directory
+// It takes an optional output folder and pattern to match files
+// to support partial checkouts
 func (snap Snapshot) Checkout(outputFolder string, filter string) {
 	os.MkdirAll(outputFolder, 0777)
 	snapFiles := snap.ReadFilesHash()
@@ -74,15 +81,15 @@ func (snap Snapshot) Checkout(outputFolder string, filter string) {
 
 		defer outFile.Close()
 
-		for _, chunkId := range fileProps.ChunkIds {
-			packId := packs[chunkId]
+		for _, chunkID := range fileProps.ChunkIds {
+			packID := packs[chunkID]
 
 			if DebugMode {
-				fmt.Fprintf(os.Stderr, "Extracting:\n  Pack %s\n  Chunk %s\n  to %s\n\n", packId, chunkId, outPath)
+				fmt.Fprintf(os.Stderr, "Extracting:\n  Pack %s\n  Chunk %s\n  to %s\n\n", packID, chunkID, outPath)
 			}
 
-			if err := ExtractChunkFromPack(outFile, chunkId, packId); err != nil {
-                fmt.Fprintf(os.Stderr, "Error extracting:\n  chunk: %s\n  pack: %s\n\n", chunkId, packId)
+			if err := ExtractChunkFromPack(outFile, chunkID, packID); err != nil {
+                fmt.Fprintf(os.Stderr, "Error extracting:\n  chunk: %s\n  pack: %s\n\n", chunkID, packID)
             }
 		}
 
