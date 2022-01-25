@@ -54,8 +54,13 @@ func (snap Snapshot) Checkout(outputFolder string, filter string) {
 
 		if fileDir != "." {
 			outDir = filepath.Join(outputFolder, fileDir)
-			fmt.Fprintf(os.Stderr, "Creating folder %s\n", outDir)
-			os.MkdirAll(outDir, 0777)
+            fileInfo, err := os.Stat(outDir)
+
+            if os.IsNotExist(err) || !fileInfo.IsDir() {
+                fmt.Fprintf(os.Stderr, "Creating folder %s\n", outDir)
+                os.MkdirAll(outDir, 0777)
+            }
+
 		}
 
 		outPath := filepath.Join(outputFolder, fileName)
