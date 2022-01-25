@@ -1,6 +1,10 @@
-$ArchiveTypes = 'docx', 'xlsx', 'pptx', 'vsdx', 'slsx', 'qgz', 'zip'
+$ArchiveTypes = (Get-Content .dupver_archive_types)
 
 foreach ($ArchiveType in $ArchiveTypes) {
+    if ($ArchiveType.Length -eq 0) { 
+        continue
+    }
+
     $ArchiveFiles = Get-ChildItem "*.$ArchiveType" -Recurse
 
     foreach ($ArchiveFile in $ArchiveFiles) {
@@ -18,11 +22,12 @@ foreach ($ArchiveType in $ArchiveTypes) {
             $ArchivePath = $ArchivePath.Substring(2)
         }
 
-        if ($ArchivePath.StartsWith(".dupver") -or $ArchivePath.StartsWith(".dupver_archive") {
+        if ($ArchivePath.StartsWith(".dupver") -or $ArchivePath.StartsWith(".dupver_archive")) {
             continue
         }
 
-        $ExpandedPath = Join-Path -Path ".dupver_archives" -ChildPath $ArchivePath
+        $ArchiveFolder = $ArchivePath.Replace(".$ArchiveType","_$ArchiveType")
+        $ExpandedPath = Join-Path -Path ".dupver_archives" -ChildPath $ArchiveFolder
 
         if (Test-Path -Path $ExpandedPath) {
             del $ExpandedPath -Recurse
