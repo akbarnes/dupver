@@ -38,7 +38,7 @@ foreach ($ArchiveType in $ArchiveTypes) {
         $ExpandedPath = Join-Path -Path $ExpandedFolder -ChildPath $ArchiveFolder
         $ArchiveMap = @{}
         $ArchiveMap["ArchiveFile"] = $ArchivePath
-        $ArchiveMap["ExtractedFolder"] = Join-Path -Path "expanded" -ChildPath $ArchiveFolder 
+        $ArchiveMap["ExtractedFolder"] = $ArchiveFolder 
         $ArchiveMaps += $ArchiveMap
 
         if (Test-Path -Path $ExpandedPath) {
