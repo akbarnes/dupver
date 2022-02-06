@@ -25,10 +25,11 @@ type Prefs struct {
 	DupverMinorVersion int64
     Editor         string
 	DiffTool       string
+	ArchiveTool    string
 }
 
 func CreateDefaultPrefs() Prefs {
-    p := Prefs{Editor: "vi", DiffTool: "kdiff3"}
+    p := Prefs{Editor: "vi", DiffTool: "kdiff3", ArchiveTool: "7z"}
 	p.DupverMajorVersion = MajorVersion
 	p.DupverMinorVersion = MinorVersion
 	p.PrefsMajorVersion = PrefsMajorVersion

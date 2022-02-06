@@ -49,7 +49,8 @@ foreach ($ArchiveType in $ArchiveTypes) {
         New-Item -ItemType Container -Path $ExpandedPath
 
         Write-Host "Expanding: $ArchivePath"
-        Expand-Archive -Path $ArchiveFile -DestinationPath $ExpandedPath
+        # Expand-Archive -Path $ArchiveFile -DestinationPath $ExpandedPath
+        7z x -o"$ExpandedPath" "$ArchiveFile"
     }
 }
 

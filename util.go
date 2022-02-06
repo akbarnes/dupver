@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"time"
     "bufio"
+    "os/exec"
 
 	"github.com/bmatcuk/doublestar"
 )
@@ -22,7 +23,6 @@ func IsWindows() bool {
 
 func ReadFilters() ([]string, error) {
 	filterPath := ".dupver_ignore"
-	var filters []string
 	f, err := os.Open(filterPath)
 
 	if err != nil {
@@ -34,7 +34,28 @@ func ReadFilters() ([]string, error) {
 		}
 	}
 
+    return ReadFilterFile(f)
+}
+
+func ReadArchiveTypes() ([]string, error) {
+	filterPath := ".dupver_archive_types"
+	f, err := os.Open(filterPath)
+
+	if err != nil {
+		if os.IsNotExist(err) {
+			return []string{}, nil
+		} else {
+			err = fmt.Errorf("Archive type file %s exists but encountered error trying to open it: %w", filterPath, err)
+			return []string{}, err
+		}
+	}
+
+    return ReadFilterFile(f)
+}
+
+func ReadFilterFile(f *os.File) ([]string, error) {
 	scanner := bufio.NewScanner(f)
+	var filters []string
 
 	for scanner.Scan() {
         line := strings.ReplaceAll(scanner.Text(), "\n", "")
@@ -46,13 +67,13 @@ func ReadFilters() ([]string, error) {
 		filters = append(filters, line)
 	}
 
-	if err = scanner.Err(); err != nil {
-		err = fmt.Errorf("Encountered an error while attemping to read filters from %s: %w", filterPath, err)
+	if err := scanner.Err(); err != nil {
 		return []string{}, err
 	}
 
 	return filters, nil
 }
+
 
 func ExcludedFile(fileName string, info os.FileInfo, filters []string) bool {
 	// dupverDir := filepath.Join(WorkingDirectory, ".gover2")
@@ -94,6 +115,41 @@ func ExcludedFile(fileName string, info os.FileInfo, filters []string) bool {
 	}
 
 	return false
+}
+
+func ArchiveFile(fileName string, info os.FileInfo, archiveTypes []string) bool {
+	if info.IsDir() {
+		return false
+	}
+
+	for _, ext := range archiveTypes {
+		if strings.HasSuffix(fileName, ext) {
+			if VerboseMode {
+				fmt.Fprintf(os.Stderr, "Preprocessing archive file %s which matches with type %s\n", fileName, ext)
+			}
+
+			return true
+		}
+	}
+
+	return false
+}
+
+// Currently only 7-zip is supported
+func PreprocessArchive(fileName string, archiveTool string) (string, error) {
+    home, err := os.UserHomeDir()
+    Check(err)
+    // Note that 7z will create folder structure as needed
+    archiveBaseName := RandHexString(24)
+    extractFolder := filepath.Join(home, ".dupver", "temp", archiveBaseName)
+    extractCmd := exec.Command(archiveTool, "x", "-o"+extractFolder, fileName)
+    extractCmd.Run()
+
+    extractGlob := filepath.Join(extractFolder, "*")
+    archiveFile := filepath.Join(home, ".dupver", "temp", archiveBaseName+".zip")
+    compressCmd := exec.Command(archiveTool, "a", "-mm=Copy", archiveFile, extractGlob)
+    compressCmd.Run()
+    return archiveFile, nil
 }
 
 // Return a random string of specified length with hexadecimal characters

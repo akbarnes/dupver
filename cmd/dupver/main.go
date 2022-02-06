@@ -67,8 +67,14 @@ func main() {
 		filters, err := dupver.ReadFilters()
 
 		if err != nil {
-			// TODO: write to stderr
 			fmt.Fprintf(os.Stderr, "Couldn't read filters file\n")
+			os.Exit(1)
+		}
+
+		archiveTypes, err := dupver.ReadArchiveTypes()
+
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Couldn't read archive types file\n")
 			os.Exit(1)
 		}
 
@@ -76,7 +82,7 @@ func main() {
 			message = commitCmd.Arg(0)
 		}
 
-		dupver.CommitSnapshot(message, filters, cfg.ChunkerPoly, cfg.PackSize, cfg.CompressionLevel)
+		dupver.CommitSnapshot(message, filters, archiveTypes, prefs.ArchiveTool, cfg.ChunkerPoly, cfg.PackSize, cfg.CompressionLevel)
 	} else if cmd == "status" || cmd == "st" {
 		dupver.AbortIfIncorrectRepoVersion()
 		AddOptionFlags(statusCmd)

@@ -28,7 +28,7 @@ func CreateZipFile(packIDLen int) (string, *os.File, *zip.Writer) {
 }
 
 
-func CommitSnapshot(message string, filters []string, poly chunker.Pol, maxPackBytes int64, compressionLevel uint16) {
+func CommitSnapshot(message string, filters []string, archiveTypes []string, archiveTool string, poly chunker.Pol, maxPackBytes int64, compressionLevel uint16) {
 	buf := make([]byte, 8*1024*1024) // reuse this buffer
 
 	if DebugMode {
@@ -58,7 +58,7 @@ func CommitSnapshot(message string, filters []string, poly chunker.Pol, maxPackB
 		panic(fmt.Sprintf("Error creating dupver folder %s\n", dupverDir))
 	}
 
-    packID, packFile, zipWriter := CreateZipFile(PackIdLen) 
+    packID, packFile, zipWriter := CreateZipFile(PackIdLen)
 	var packBytesRemaining int64 = maxPackBytes
     committedFilesCount := 0
 
@@ -81,7 +81,7 @@ func CommitSnapshot(message string, filters []string, poly chunker.Pol, maxPackB
 
 		modTime := props.ModTime().UTC().Format("2006-01-02T15-04-05")
 		modLocalTime := props.ModTime().Format("2006-01-02T15-04-05")
-		file := SnapshotFile{Name: fileName, ModTime: modTime, ModLocalTime: modLocalTime, Size: props.Size()}
+		file := SnapshotFile{Name: fileName, ModTime: modTime, ModLocalTime: modLocalTime, Size: props.Size(), IsArchive: false}
 		file.ChunkIds = []string{}
 
 		// TODO: fix this. Currently not reading in filechunks from head
@@ -95,12 +95,30 @@ func CommitSnapshot(message string, filters []string, poly chunker.Pol, maxPackB
 			return nil
 		}
 
-		in, err := os.Open(fileName)
+        archiveFileName := fileName
+
+        if ArchiveFile(fileName, info, archiveTypes) {
+            // 7z x -oTempFolder fileName
+            // 7z a TempFile.7z TempFolder + FileSep + *
+            archiveFileName, err = PreprocessArchive(fileName, archiveTool)
+
+            if err != nil {
+                if !QuietMode {
+                    fmt.Fprintf(os.Stderr, "Error preprocessing archive %s, skipping\n", fileName)
+                }
+
+                return nil
+            }
+
+            file.IsArchive = true
+        }
+
+		in, err := os.Open(archiveFileName)
         committedFilesCount++
 
 		if err != nil {
-			if VerboseMode {
-				fmt.Fprintf(os.Stderr, "Can't open file %s for reading, skipping\n", fileName)
+			if !QuietMode {
+				fmt.Fprintf(os.Stderr, "Can't open file %s for reading, skipping\n", archiveFileName)
 			}
 
 			return nil

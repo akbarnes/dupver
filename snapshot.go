@@ -32,6 +32,7 @@ type SnapshotFile struct {
 	ModTime  string
 	ModLocalTime  string
 	ChunkIds []string
+    IsArchive bool
 }
 
 // Snapshot Files
