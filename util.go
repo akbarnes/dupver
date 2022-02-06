@@ -138,17 +138,29 @@ func ArchiveFile(fileName string, info os.FileInfo, archiveTypes []string) bool 
 // Currently only 7-zip is supported
 func PreprocessArchive(fileName string, archiveTool string) (string, error) {
     home, err := os.UserHomeDir()
-    Check(err)
+
+    if err != nil {
+        return "", err
+    }
+
     // Note that 7z will create folder structure as needed
     archiveBaseName := RandHexString(24)
     extractFolder := filepath.Join(home, ".dupver", "temp", archiveBaseName)
     extractCmd := exec.Command(archiveTool, "x", "-o"+extractFolder, fileName)
-    extractCmd.Run()
+
+    // TODO: add error wrapping
+    if err = extractCmd.Run(); err != nil {
+        return "", err
+    }
 
     extractGlob := filepath.Join(extractFolder, "*")
     archiveFile := filepath.Join(home, ".dupver", "temp", archiveBaseName+".zip")
     compressCmd := exec.Command(archiveTool, "a", "-mm=Copy", archiveFile, extractGlob)
-    compressCmd.Run()
+
+    if err = compressCmd.Run(); err != nil {
+        return archiveFile, err
+    }
+
     return archiveFile, nil
 }
 

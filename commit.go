@@ -104,7 +104,7 @@ func CommitSnapshot(message string, filters []string, archiveTypes []string, arc
 
             if err != nil {
                 if !QuietMode {
-                    fmt.Fprintf(os.Stderr, "Error preprocessing archive %s, skipping\n", fileName)
+                    fmt.Fprintf(os.Stderr, "Error preprocessing archive %s, skipping: %v\n", fileName, err)
                 }
 
                 return nil
