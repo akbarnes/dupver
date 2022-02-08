@@ -7,32 +7,32 @@ import (
 	"path/filepath"
 )
 
-func DiffToolSnapshot(diffTool string) {
+func DiffToolSnapshot(diffTool string, archiveTool string) {
     snap := ReadHead()
 	fmt.Fprintf(os.Stderr, "Comparing %s\n", snap.SnapshotID[0:9])
-    snap.DiffTool(diffTool)
+    snap.DiffTool(diffTool, archiveTool)
 }
 
-func (snap Snapshot) DiffTool(diffTool string) {
+func (snap Snapshot) DiffTool(diffTool string, archiveTool string) {
     home, err := os.UserHomeDir()
     Check(err)
     tempFolder := filepath.Join(home, ".dupver", "temp", RandHexString(24))
-    snap.Checkout(tempFolder, "*")
+    snap.Checkout(tempFolder, "*", archiveTool)
     cmd := exec.Command(diffTool, tempFolder, ".")
     cmd.Run()
 }
 
-func DiffToolSnapshotFile(fileName string, diffTool string) {
+func DiffToolSnapshotFile(fileName string, diffTool string, archiveTool string) {
     snap := ReadHead()
 	fmt.Fprintf(os.Stderr, "Comparing %s/%s\n", snap.SnapshotID[0:9], fileName)
-    snap.DiffToolFile(fileName, diffTool)
+    snap.DiffToolFile(fileName, diffTool, archiveTool)
 }
 
-func (snap Snapshot) DiffToolFile(fileName string, diffTool string) {
+func (snap Snapshot) DiffToolFile(fileName string, diffTool string, archiveTool string) {
     home, err := os.UserHomeDir()
     Check(err)
     tempFolder := filepath.Join(home, ".dupver", "temp", RandHexString(24))
-    snap.Checkout(tempFolder, fileName)
+    snap.Checkout(tempFolder, fileName, archiveTool)
     tempFile := filepath.Join(tempFolder, fileName)
     cmd := exec.Command(diffTool, tempFile, fileName) 
     cmd.Run()

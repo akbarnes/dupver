@@ -106,9 +106,9 @@ func main() {
         PostProcessOptionFlags()
 
 		if diffCmd.NArg() >= 1 {
-			dupver.DiffToolSnapshotFile(diffCmd.Arg(0), prefs.DiffTool)
+			dupver.DiffToolSnapshotFile(diffCmd.Arg(0), prefs.DiffTool, prefs.ArchiveTool)
 		} else {
-			dupver.DiffToolSnapshot(prefs.DiffTool)
+			dupver.DiffToolSnapshot(prefs.DiffTool, prefs.ArchiveTool)
         }
 	} else if cmd == "log" {
 		dupver.AbortIfIncorrectRepoVersion()
@@ -135,7 +135,7 @@ func main() {
             checkoutFilter = checkoutCmd.Arg(1)
         }
 
-		dupver.CheckoutSnapshot(checkoutCmd.Arg(0), OutputFolder, checkoutFilter)
+		dupver.CheckoutSnapshot(checkoutCmd.Arg(0), OutputFolder, checkoutFilter, prefs.ArchiveTool)
 	} else if cmd == "repack" {
 		cfg, err := dupver.ReadRepoConfig(false)
 

@@ -13,7 +13,7 @@ import (
 // given its commit ID
 // It takes an optional output folder and pattern to match files
 // to support partial checkouts
-func CheckoutSnapshot(commitID string, outputFolder string, filter string) {
+func CheckoutSnapshot(commitID string, outputFolder string, filter string, archiveTool string) {
     var snap Snapshot
     var err error
 
@@ -30,13 +30,13 @@ func CheckoutSnapshot(commitID string, outputFolder string, filter string) {
 
 
 	fmt.Fprintf(os.Stderr, "Checking out %s\n", snap.SnapshotID[0:9])
-    snap.Checkout(outputFolder, filter)
+    snap.Checkout(outputFolder, filter, archiveTool)
 }
 
 // snapshot.Checkout extracts a snapshot to the working directory
 // It takes an optional output folder and pattern to match files
 // to support partial checkouts
-func (snap Snapshot) Checkout(outputFolder string, filter string) {
+func (snap Snapshot) Checkout(outputFolder string, filter string, archiveTool string) {
 	os.MkdirAll(outputFolder, 0777)
 	snapFiles := snap.ReadFilesHash()
 	packs := ReadTrees()
@@ -71,10 +71,22 @@ func (snap Snapshot) Checkout(outputFolder string, filter string) {
 		}
 
 		outPath := filepath.Join(outputFolder, fileName)
-		outFile, err := os.Create(outPath)
+        archivePath := outPath
+        archiveBaseName := ""
+
+        if fileProps.IsArchive {
+            archiveBaseName = GenArchiveBaseName()
+            archivePath, err = GenTempArchivePath(archiveBaseName)
+
+            if err != nil {
+                fmt.Fprintf(os.Stderr, "Error creating output archive path, skipping: %v\n", err)
+                continue
+            }
+        }
+
+		outFile, err := os.Create(archivePath)
 
 		if err != nil {
-			// fmt.Fprintln(os.Stderr, "Error creating %s, skipping\n", outPath)
 			fmt.Fprintf(os.Stderr, "Error creating %s, skipping\n", outPath)
 			continue
 		}
@@ -92,6 +104,13 @@ func (snap Snapshot) Checkout(outputFolder string, filter string) {
                 fmt.Fprintf(os.Stderr, "Error extracting:\n  chunk: %s\n  pack: %s\n\n", chunkID, packID)
             }
 		}
+
+        if fileProps.IsArchive {
+            if err := PostprocessArchive(archiveBaseName, outPath, archiveTool); err != nil {
+                fmt.Fprintf(os.Stderr, "Error postprocessing %s to %s\n: %v\n", archivePath, outPath, err)
+                continue
+            }
+        }
 
         mtime, err := time.Parse("2006-01-02T15-04-05", fileProps.ModTime)
 

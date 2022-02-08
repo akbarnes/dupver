@@ -135,6 +135,20 @@ func ArchiveFile(fileName string, info os.FileInfo, archiveTypes []string) bool 
 	return false
 }
 
+func GenArchiveBaseName() string {
+    return RandHexString(24)
+}
+
+func GenTempArchivePath(archiveBaseName string) (string, error) {
+    home, err := os.UserHomeDir()
+
+    if err != nil {
+        return "", err
+    }
+
+   return filepath.Join(home, ".dupver", "temp", archiveBaseName+".zip"), nil
+}
+
 // Currently only 7-zip is supported
 func PreprocessArchive(fileName string, archiveTool string) (string, error) {
     home, err := os.UserHomeDir()
@@ -144,7 +158,7 @@ func PreprocessArchive(fileName string, archiveTool string) (string, error) {
     }
 
     // Note that 7z will create folder structure as needed
-    archiveBaseName := RandHexString(24)
+    archiveBaseName := GenArchiveBaseName()
     extractFolder := filepath.Join(home, ".dupver", "temp", archiveBaseName)
     extractCmd := exec.Command(archiveTool, "x", "-o"+extractFolder, fileName)
 
@@ -162,6 +176,33 @@ func PreprocessArchive(fileName string, archiveTool string) (string, error) {
     }
 
     return archiveFile, nil
+}
+
+func PostprocessArchive(archiveBaseName string, outputFile string, archiveTool string) error {
+    home, err := os.UserHomeDir()
+
+    if err != nil {
+        return err
+    }
+
+    // Note that 7z will create folder structure as needed
+    archiveFile := filepath.Join(home, ".dupver", "temp", archiveBaseName+".zip")
+    extractFolder := filepath.Join(home, ".dupver", "temp", archiveBaseName)
+    extractCmd := exec.Command(archiveTool, "x", "-o"+extractFolder, archiveFile)
+
+    // TODO: add error wrapping
+    if err = extractCmd.Run(); err != nil {
+        return fmt.Errorf("Error extracting %s to %s: %w", archiveFile, extractFolder, err)
+    }
+
+    extractGlob := filepath.Join(extractFolder, "*")
+    compressCmd := exec.Command(archiveTool, "a", outputFile, extractGlob)
+
+    if err = compressCmd.Run(); err != nil {
+        return fmt.Errorf("Error compressing %s to %s: %w", extractFolder, outputFile, err)
+    }
+
+    return nil
 }
 
 // Return a random string of specified length with hexadecimal characters
