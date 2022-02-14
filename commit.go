@@ -127,10 +127,14 @@ func CommitSnapshot(message string, filters []string, archiveTypes []string, arc
 		defer in.Close()
 		myChunker := chunker.New(in, chunker.Pol(poly))
 
-		if VerboseMode {
-			fmt.Fprintf(os.Stderr, "\nChunking %s\n", fileName)
-		} else {
+		if QuietMode {
 			fmt.Println(fileName)
+		} else {
+            if file.IsArchive {
+			    fmt.Fprintf(os.Stderr, "Chunking archive file %s\n", fileName)
+            } else {
+			    fmt.Fprintf(os.Stderr, "Chunking regular file %s\n", fileName)
+            }
 		}
 
 		readingFile := true
