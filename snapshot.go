@@ -105,6 +105,8 @@ func (snap Snapshot) ReadFilesHash() map[string]SnapshotFile {
     fileHash := map[string]SnapshotFile{}
 
     for _, fileProps := range files {
+        //fileName := strings.Replace(fileProps.Name, "\\", "/", -1)
+        //fileHash[fileName] = fileProps
         fileHash[fileProps.Name] = fileProps
     }
 

@@ -64,6 +64,7 @@ func CommitSnapshot(message string, filters []string, archiveTypes []string, arc
 
 	var VersionFile = func(fileName string, info os.FileInfo, err error) error {
 		fileName = strings.TrimSuffix(fileName, "\n")
+        fileName = strings.Replace(fileName, "\\", "/", -1)
 
 		if ExcludedFile(fileName, info, filters) {
 			return nil

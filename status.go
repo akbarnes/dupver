@@ -33,6 +33,7 @@ func (snap Snapshot) Diff(filters []string) {
 
 	var DiffFile = func(fileName string, info os.FileInfo, err error) error {
 		fileName = strings.TrimSuffix(fileName, "\n")
+        fileName = strings.Replace(fileName, "\\", "/", -1)
 
 		if ExcludedFile(fileName, info, filters) {
 			return nil
