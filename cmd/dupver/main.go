@@ -129,7 +129,7 @@ func main() {
 		checkoutCmd.Parse(os.Args[2:])
         PostProcessOptionFlags()
 
-        checkoutFilter := "*"
+        checkoutFilter := "**"
 
         if checkoutCmd.NArg() >= 2 {
             checkoutFilter = checkoutCmd.Arg(1)
