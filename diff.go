@@ -34,7 +34,7 @@ func (snap Snapshot) DiffToolFile(fileName string, diffTool string, archiveTool 
     tempFolder := filepath.Join(home, ".dupver", "temp", RandHexString(24))
     snap.Checkout(tempFolder, fileName, archiveTool)
     tempFile := filepath.Join(tempFolder, fileName)
-    cmd := exec.Command(diffTool, tempFile, fileName) 
+    cmd := exec.Command(diffTool, tempFile, fileName)
     cmd.Run()
 }
 

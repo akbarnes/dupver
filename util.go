@@ -21,6 +21,10 @@ func IsWindows() bool {
     return os.PathSeparator == '\\' && os.PathListSeparator == ';'
 }
 
+func ToForwardSlashes(path string) string {
+    return strings.ReplaceAll(path, "\\", "/")
+}
+
 func ReadFilters() ([]string, error) {
 	filterPath := ".dupver_ignore"
 	f, err := os.Open(filterPath)
@@ -58,13 +62,13 @@ func ReadFilterFile(f *os.File) ([]string, error) {
 	var filters []string
 
 	for scanner.Scan() {
-        line := strings.ReplaceAll(scanner.Text(), "\n", "")
+        line := strings.TrimSuffix(scanner.Text(), "\n")
 
         if len(line) == 0 {
             continue
         }
 
-		filters = append(filters, line)
+		filters = append(filters, ToForwardSlashes(line))
 	}
 
 	if err := scanner.Err(); err != nil {
