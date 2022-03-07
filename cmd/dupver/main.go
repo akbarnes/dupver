@@ -44,6 +44,56 @@ func main() {
 	checkoutCmd := flag.NewFlagSet("checkout", flag.ExitOnError)
 	repackCmd := flag.NewFlagSet("repack", flag.ExitOnError)
 
+    outFile := flag.CommandLine.Output()
+
+    initCmd.Usage = func() {
+        fmt.Fprintf(outFile, "Usage of init:\n")
+        fmt.Fprintf(outFile, "dupver init\n")
+        initCmd.PrintDefaults()
+    }
+
+    commitCmd.Usage = func() {
+        fmt.Fprintf(outFile, "Usage of commit:\n")
+        fmt.Fprintf(outFile, "dupver {commit|ci} [MESSAGE]\n")
+        commitCmd.PrintDefaults()
+    }
+
+    statusCmd.Usage = func() {
+        fmt.Fprintf(outFile, "Usage of status:\n")
+        fmt.Fprintf(outFile, "dupver {status|st} [COMMIT ID]\n")
+        statusCmd.PrintDefaults()
+    }
+
+    diffCmd.Usage = func() {
+        fmt.Fprintf(outFile, "Usage of diff:\n")
+        fmt.Fprintf(outFile, "dupver diff [COMMIT ID]\n")
+        diffCmd.PrintDefaults()
+    }
+
+    logCmd.Usage = func() {
+        fmt.Fprintf(outFile, "Usage of log:\n")
+        fmt.Fprintf(outFile, "dupver log [COMMIT ID]\n")
+        logCmd.PrintDefaults()
+    }
+
+    checkoutCmd.Usage = func() {
+        fmt.Fprintf(outFile, "Usage of checkout:\n")
+        fmt.Fprintf(outFile, "dupver {checkout|co} [FILTER]\n")
+        checkoutCmd.PrintDefaults()
+    }
+
+    repackCmd.Usage = func() {
+        fmt.Fprintf(outFile, "Usage of repack:\n")
+        fmt.Fprintf(outFile, "dupver repack\n")
+        repackCmd.PrintDefaults()
+    }
+
+
+    //versionCmd.Usage = func() {
+    //    fmt.Fprintf(outFile, "Usage of version:\n")
+    //    fmt.Fprintf(outFile, "dupver version\n")
+    //}
+
 	flag.Parse()
 
 	if len(os.Args) < 2 {
@@ -129,7 +179,7 @@ func main() {
 		checkoutCmd.Parse(os.Args[2:])
         PostProcessOptionFlags()
 
-        checkoutFilter := "*"
+        checkoutFilter := "**"
 
         if checkoutCmd.NArg() >= 2 {
             checkoutFilter = checkoutCmd.Arg(1)

@@ -132,9 +132,9 @@ func CommitSnapshot(message string, filters []string, archiveTypes []string, arc
 			fmt.Println(fileName)
 		} else {
             if file.IsArchive {
-			    fmt.Fprintf(os.Stderr, "Chunking archive file %s\n", fileName)
+			    fmt.Fprintf(os.Stderr, "Archive %s\n", fileName)
             } else {
-			    fmt.Fprintf(os.Stderr, "Chunking regular file %s\n", fileName)
+			    fmt.Fprintf(os.Stderr, "Regular %s\n", fileName)
             }
 		}
 
