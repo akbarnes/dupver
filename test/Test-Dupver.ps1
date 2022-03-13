@@ -97,13 +97,21 @@ Write-Host "Checking that files have been restored correctly..."
 $RepoFiles = Get-ChildItem -Recurse test-repo
 
 Foreach ($File in $RepoFiles) {
-   $FileName = $File.Name
-   $OriginalFile = Get-Content -Raw "test-repo/$FileName"
-   $RestoredFile = Get-Content -Raw "test-repo-first-commit/$FileName"
+    if (Test-Path -PathType Container -Path $File) { 
+        continue
+    }
+
+    if ($File.FullName.Contains(".dupver")) {
+        continue
+    }
     
-   If ($OriginalFile -ne $RestoredFile) {
-        Throw "Binary content for file $FileName doesn't match"
-   }
+    $FileName = $File.Name
+    $OriginalFile = Get-Content -Raw "test-repo/$FileName"
+    $RestoredFile = Get-Content -Raw "test-repo-first-commit/$FileName"
+     
+    If ($OriginalFile -ne $RestoredFile) {
+         Throw "Binary content for file $FileName doesn't match"
+    }
 }
 
 Write-Host "Done"

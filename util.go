@@ -82,7 +82,7 @@ func ReadFilterFile(f *os.File) ([]string, error) {
 func ExcludedFile(fileName string, info os.FileInfo, filters []string) bool {
 	// dupverDir := filepath.Join(WorkingDirectory, ".gover2")
 	dupverDir := ".dupver"
-	dupverPattern := filepath.Join(dupverDir, "**")
+	dupverPattern := ToForwardSlashes(filepath.Join(dupverDir, "**"))
 
 	if info.IsDir() {
 		return true
