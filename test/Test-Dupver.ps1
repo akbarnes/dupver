@@ -172,6 +172,14 @@ Write-Host "Checking that files have been restored correctly"
 $RepoFiles = Get-ChildItem -Recurse test-repo
 
 Foreach ($File in $RepoFiles) {
+    if (Test-Path -PathType Container -Path $File) { 
+        continue
+    }
+
+    if ($File.FullName.Contains(".dupver")) {
+        continue
+    }
+ 
    $FileName = $File.Name
    $OriginalFile = Get-Content -Raw "test-repo/$FileName"
    $RestoredFile = Get-Content -Raw "test-repo-second-commit/$FileName"
