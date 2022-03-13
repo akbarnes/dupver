@@ -83,12 +83,13 @@ func ExcludedFile(fileName string, info os.FileInfo, filters []string) bool {
 	// dupverDir := filepath.Join(WorkingDirectory, ".gover2")
 	dupverDir := ".dupver"
 	dupverPattern := ToForwardSlashes(filepath.Join(dupverDir, "**"))
+    //cfmt.Printf("file: %s\npattern: %s\n\n", fileName, dupverPattern)
 
 	if info.IsDir() {
 		return true
 	}
 
-	matched, err := doublestar.PathMatch(dupverPattern, fileName)
+	matched, err := doublestar.Match(dupverPattern, fileName)
 
 	if err != nil && VerboseMode {
 		fmt.Fprintf(os.Stderr, "Error matching %s\n", dupverDir)
@@ -103,7 +104,7 @@ func ExcludedFile(fileName string, info os.FileInfo, filters []string) bool {
 	}
 
 	for _, pattern := range filters {
-		matched, err := doublestar.PathMatch(pattern, fileName)
+		matched, err := doublestar.Match(pattern, fileName)
 
 		if err != nil && VerboseMode {
 			fmt.Fprintf(os.Stderr, "Error matching %s\n", dupverDir)

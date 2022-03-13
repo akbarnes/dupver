@@ -43,7 +43,8 @@ func (snap Snapshot) Checkout(outputFolder string, filter string, archiveTool st
 	packs := ReadTrees()
 
 	for fileName, fileProps := range snapFiles {
-        matched, err := doublestar.PathMatch(filter, fileName)
+        fileName = ToForwardSlashes(fileName)
+        matched, err := doublestar.Match(filter, fileName)
 
         if err != nil && VerboseMode {
             fmt.Fprintf(os.Stderr, "Error matching %s\n", filter)
