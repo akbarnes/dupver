@@ -1,5 +1,6 @@
 cd ..
 go test
+go get github.com/akbarnes/dupver/cmd/dupver
 
 If (!$?) {
     cd test
