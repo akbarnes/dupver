@@ -105,7 +105,7 @@ func ExcludedFile(fileName string, info os.FileInfo, filters []string) bool {
 	for _, pattern := range filters {
 		matched, err := doublestar.Match(pattern, fileName)
 
-        fmt.Printf("file: %s\npattern: %s\n\n", fileName, pattern)
+        //fmt.Printf("file: %s\npattern: %s\n\n", fileName, pattern)
 		if err != nil && VerboseMode {
 			fmt.Fprintf(os.Stderr, "Error matching %s\n", dupverDir)
 		}
