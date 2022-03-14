@@ -36,6 +36,12 @@ func CommitSnapshot(message string, filters []string, archiveTypes []string, arc
 	}
 
 	headFiles := ReadHead().ReadFilesHash()
+	status := make(map[string]string)
+
+	for fileName, _ := range headFiles {
+		status[fileName] = "-"
+	}
+
 
 	if DebugMode {
 		fmt.Fprintf(os.Stderr, "Done reading head\n")
@@ -60,7 +66,6 @@ func CommitSnapshot(message string, filters []string, archiveTypes []string, arc
 
     packID, packFile, zipWriter := CreateZipFile(PackIdLen)
 	var packBytesRemaining int64 = maxPackBytes
-    committedFilesCount := 0
 
 	var VersionFile = func(fileName string, info os.FileInfo, err error) error {
 		fileName = ToForwardSlashes(strings.TrimSuffix(fileName, "\n"))
@@ -85,15 +90,21 @@ func CommitSnapshot(message string, filters []string, archiveTypes []string, arc
 		file.ChunkIds = []string{}
 
 		// TODO: fix this. Currently not reading in filechunks from head
-		if headFile, ok := headFiles[fileName]; ok && modTime == headFile.ModTime {
-			if DebugMode {
-				fmt.Fprintf(os.Stderr, "Skipping %s\n", fileName)
-			}
+		if headFile, ok := headFiles[fileName]; ok {
+            if  modTime == headFile.ModTime {
+                if DebugMode {
+                    fmt.Fprintf(os.Stderr, "Skipping %s\n", fileName)
+                }
 
-			files = append(files, headFiles[fileName])
-			// snap.AddFileChunkIds(head, fileName)
-			return nil
-		}
+				status[fileName] = "="
+                files = append(files, headFiles[fileName])
+                return nil
+            } else {
+				status[fileName] = "M"
+            }
+		} else {
+			status[fileName] = "+"
+        }
 
         archiveFileName := fileName
 
@@ -225,12 +236,20 @@ func CommitSnapshot(message string, filters []string, archiveTypes []string, arc
 		panic(fmt.Sprintf("Error closing file for pack %s\n", packID))
 	}
 
-    if committedFilesCount > 0 || ForceMode {
+    changeCount := 0
+
+    for _, fileStatus := range status {
+        if fileStatus != "=" {
+            changeCount++
+        }
+    }
+
+    if changeCount > 0 || ForceMode {
         snap.Write()
         snap.WriteFiles(files)
         snap.WriteTree(packs)
         snap.WriteHead()
     } else {
-        fmt.Fprintf(os.Stderr, "No modified files, skipping commit")
+        fmt.Fprintf(os.Stderr, "No modified files, skipping commit\n")
     }
 }
