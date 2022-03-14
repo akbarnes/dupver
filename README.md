@@ -18,7 +18,12 @@ in terms of technical implementation and use case.
 
 ## Installation
 
-To build:
+Binary [releases](github://github.com/akbarnes/dupver/releases) are provided. 
+Copy the executable into your path and set permissions appropriately. Otherwise
+follow the instructions below to build from source. This assumes that Go 1.17
+is present on your system.
+
+### Building
 
 ``` bash
 go mod init dupver
@@ -26,7 +31,54 @@ go mod tidy
 go get github.com/akbarnes/dupver
 ```
 
+### Configuration
+
+When `dupver` is run for the first time, it will create a default preferences
+file in `$HOME/.dupver.json` 
+
+`` json
+{
+  "PrefsMajorVersion": 2,
+  "PrefsMinorVersion": 0,
+  "DupverMajorVersion": 4,
+  "DupverMinorVersion": 0,
+  "Editor": "vi",
+  "DiffTool": "kdiff3",
+  "ArchiveTool": "7z"
+}
+```
+
+At present only the `DiffTool` entry can be modified. The `Editor` entry is
+reserved for future usage and currently only `7z` is supported as an archive
+handler. If `7z` is not in your path `ArchiveTool` can be modified to specify
+an absolute path to the `7z` executable.  
+
+Ignored files are specified with `.dupver_ignore` within the repository. Both
+single- and double-star globs are supported, where single-stars match any 
+character other than path separators and double-stars match any character
+*incuding* path separators.
+
+``` fish
+.git/**
+*.log
+```
+
 ## Usage
+
+### Initialization
+
+To initialize the repository
+
+``` bash
+dupver init [--random-poly|-r]
+```
+
+This is not required as calling `dupver commit` within an unitialized 
+repository will initialize the repository with default parameters prior
+to making the initial comit. By default, dupver will initialize the 
+repository with a known good polynomical (used to determine 
+when chunk boundaries occur). However, previding the `--random-poly`
+flag will generate a random polynomial.
 
 ### Commit
 
