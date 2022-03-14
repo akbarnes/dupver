@@ -36,7 +36,7 @@ go get github.com/akbarnes/dupver
 When `dupver` is run for the first time, it will create a default preferences
 file in `$HOME/.dupver.json` 
 
-`` json
+``` json
 {
   "PrefsMajorVersion": 2,
   "PrefsMinorVersion": 0,
