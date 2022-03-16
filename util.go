@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"time"
     "bufio"
+    "log"
+    "io"
     "os/exec"
 
 	"github.com/bmatcuk/doublestar"
@@ -201,8 +203,21 @@ func PostprocessArchive(archiveBaseName string, outputFile string, archiveTool s
     extractCmd := exec.Command(archiveTool, "x", "-o"+extractFolder, archiveFile)
 
     // TODO: add error wrapping
-    if err = extractCmd.Run(); err != nil {
-        return fmt.Errorf("Error extracting %s to %s: %w", archiveFile, extractFolder, err)
+//    if err = extractCmd.Run(); err != nil {
+//        return fmt.Errorf("Error extracting %s to %s: %w", archiveFile, extractFolder, err)
+//    }
+    stderr, err := extractCmd.StderrPipe()
+
+    if err := extractCmd.Start(); err != nil {
+
+        log.Fatal(err)
+    }
+
+    slurp, _ := io.ReadAll(stderr)
+    fmt.Printf("%s\n", slurp)
+
+    if err := extractCmd.Wait(); err != nil {
+        log.Fatal(err)
     }
 
     extractGlob := filepath.Join(extractFolder, "*")
