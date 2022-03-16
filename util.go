@@ -214,7 +214,6 @@ func PostprocessArchive(archiveBaseName string, outputFile string, archiveTool s
     }
 
     slurp, _ := io.ReadAll(stderr)
-    fmt.Printf("%s\n", slurp)
 
     if err := extractCmd.Wait(); err != nil {
         log.Fatal(err)
@@ -224,7 +223,7 @@ func PostprocessArchive(archiveBaseName string, outputFile string, archiveTool s
     compressCmd := exec.Command(archiveTool, "a", outputFile, extractGlob)
 
     if err = compressCmd.Run(); err != nil {
-        return fmt.Errorf("Error compressing %s to %s: %w", extractFolder, outputFile, err)
+        return fmt.Errorf("Error compressing %s to %s: %w\n%s", extractFolder, outputFile, err, slurp)
     }
 
     return nil
