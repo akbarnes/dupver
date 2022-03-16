@@ -125,7 +125,6 @@ func CommitSnapshot(message string, filters []string, archiveTypes []string, arc
         }
 
 		in, err := os.Open(archiveFileName)
-        committedFilesCount++
 
 		if err != nil {
 			if !QuietMode {

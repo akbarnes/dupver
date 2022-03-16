@@ -25,6 +25,11 @@ func ToForwardSlashes(path string) string {
     return strings.ReplaceAll(path, "\\", "/")
 }
 
+func ToNativeSeparators(path string) string {
+    return strings.ReplaceAll(path, "/", string(os.PathSeparator))
+}
+
+
 func ReadFilters() ([]string, error) {
 	filterPath := ".dupver_ignore"
 	f, err := os.Open(filterPath)

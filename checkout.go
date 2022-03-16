@@ -3,7 +3,6 @@ package dupver
 import (
 	"fmt"
 	"os"
-    "strings"
     "time"
 	"path/filepath"
 
@@ -58,10 +57,9 @@ func (snap Snapshot) Checkout(outputFolder string, filter string, archiveTool st
             continue
         }
 
-        nativeSeparator := fmt.Sprintf("%v", os.PathSeparator)
-        nativeFileName := strings.Replace(fileName, "/", nativeSeparator, -1)
+        nativeFileName := ToNativeSeparators(fileName)
 		fileDir := filepath.Dir(nativeFileName)
-		outDir := outputFolder
+		outDir := ToNativeSeparators(outputFolder)
 
 		if fileDir != "." {
 			outDir = filepath.Join(outputFolder, fileDir)
