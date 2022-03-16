@@ -93,7 +93,6 @@ func (snap Snapshot) Checkout(outputFolder string, filter string, archiveTool st
 			continue
 		}
 
-		defer outFile.Close()
 
 		for _, chunkID := range fileProps.ChunkIds {
 			packID := packs[chunkID]
@@ -106,6 +105,8 @@ func (snap Snapshot) Checkout(outputFolder string, filter string, archiveTool st
                 fmt.Fprintf(os.Stderr, "Error extracting:\n  chunk: %s\n  pack: %s\n\n", chunkID, packID)
             }
 		}
+
+		outFile.Close()
 
         if fileProps.IsArchive {
             if err := PostprocessArchive(archiveBaseName, outPath, archiveTool); err != nil {
