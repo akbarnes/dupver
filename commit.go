@@ -20,7 +20,7 @@ func CreateZipFile(packIDLen int) (string, *os.File, *zip.Writer) {
 	packFile, err := CreatePackFile(packID)
 
 	if err != nil {
-		panic(fmt.Sprintf("Error creating pack file %s\n", packID))
+		panic(fmt.Errorf("Error creating pack file %s: %w\n", packID, err))
 	}
 
 	zipWriter := zip.NewWriter(packFile)
@@ -61,7 +61,7 @@ func CommitSnapshot(message string, filters []string, archiveTypes []string, arc
 	dupverDir := filepath.Join(".dupver")
 
 	if err := os.MkdirAll(dupverDir, 0777); err != nil {
-		panic(fmt.Sprintf("Error creating dupver folder %s\n", dupverDir))
+		panic(fmt.Errorf("Error creating dupver folder %s:\n", dupverDir, err))
 	}
 
     packID, packFile, zipWriter := CreateZipFile(PackIdLen)
@@ -115,7 +115,7 @@ func CommitSnapshot(message string, filters []string, archiveTypes []string, arc
 
             if err != nil {
                 if !QuietMode {
-                    fmt.Fprintf(os.Stderr, "Error preprocessing archive %s, skipping: %v\n", fileName, err)
+                    fmt.Errorf("Error preprocessing archive %s, skipping: %v\n", fileName, err)
                 }
 
                 return nil

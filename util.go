@@ -155,7 +155,7 @@ func GenTempArchivePath(archiveBaseName string) (string, error) {
     home, err := os.UserHomeDir()
 
     if err != nil {
-        return "", err
+        return "", fmt.Errorf("Cannot create temporary archive path, unable to determine home folder: %w", err)
     }
 
    return filepath.Join(home, ".dupver", "temp", archiveBaseName+".zip"), nil
@@ -166,7 +166,7 @@ func PreprocessArchive(fileName string, archiveTool string) (string, error) {
     home, err := os.UserHomeDir()
 
     if err != nil {
-        return "", err
+        return "", fmt.Errorf("Cannot create preprocess archive, unable to determine home folder: %w", err)
     }
 
     // Note that 7z will create folder structure as needed
@@ -174,9 +174,8 @@ func PreprocessArchive(fileName string, archiveTool string) (string, error) {
     extractFolder := filepath.Join(home, ".dupver", "temp", archiveBaseName)
     extractCmd := exec.Command(archiveTool, "x", "-o"+extractFolder, fileName)
 
-    // TODO: add error wrapping
     if err = extractCmd.Run(); err != nil {
-        return "", err
+        return "", fmt.Errorf("Could not extract archive: %w\n", err)
     }
 
     extractGlob := filepath.Join(extractFolder, "*")
@@ -184,7 +183,7 @@ func PreprocessArchive(fileName string, archiveTool string) (string, error) {
     compressCmd := exec.Command(archiveTool, "a", "-mm=Copy", archiveFile, extractGlob)
 
     if err = compressCmd.Run(); err != nil {
-        return archiveFile, err
+        return "", fmt.Errorf("Could not re-compress extracted archive: %w\n", err)
     }
 
     return archiveFile, nil
