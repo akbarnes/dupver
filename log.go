@@ -45,13 +45,19 @@ func MatchSnapshot(commitID string) (Snapshot, error) {
 }
 
 func LogSingleSnapshot(commitID string) {
-    snap, err := MatchSnapshot(commitID)
+    var snap Snapshot
+    var err error
 
-    if err != nil {
-        fmt.Fprintf(os.Stderr, "No matching snapshot paths")
-        os.Exit(1)
+    if commitID == "last" || commitID == "latest" {
+        snap = ReadHead()
+    } else {
+        snap, err = MatchSnapshot(commitID)
+
+        if err != nil {
+            fmt.Fprintf(os.Stderr, "No matching snapshot paths\n")
+            os.Exit(1)
+        }
     }
-
 
 	snapFiles := snap.ReadFilesHash()
 
