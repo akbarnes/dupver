@@ -27,11 +27,7 @@ func CreatePackFile(packID string) (*os.File, error) {
 	packFile, err := os.Create(packPath)
 
 	if err != nil {
-		if VerboseMode {
-			fmt.Fprintf(os.Stderr, "Error creating pack file %s", packPath)
-		}
-
-		return nil, err
+		fmt.Errorf("Error creating pack file %s: %w", packPath, err)
 	}
 
 	return packFile, nil
@@ -45,19 +41,11 @@ func WriteChunkToPack(zipWriter *zip.Writer, chunkID string, chunk chunker.Chunk
 	writer, err := zipWriter.CreateHeader(&header)
 
 	if err != nil {
-		if VerboseMode {
-			fmt.Fprintf(os.Stderr, "Error creating zip header\n")
-		}
-
-		return err
+	    return fmt.Errorf("Error creating zip header: %w", err)
 	}
 
 	if _, err := writer.Write(chunk.Data); err != nil {
-		if VerboseMode {
-			fmt.Fprintf(os.Stderr, "Error writing chunk %s to zip file\n", chunkID)
-		}
-
-		return err
+	    fmt.Errorf("Error writing chunk %s to zip file: %w", chunkID, err)
 	}
 
 	return nil
@@ -69,10 +57,7 @@ func ExtractChunkFromPack(outFile *os.File, chunkID string, packID string) error
 	packFile, err := zip.OpenReader(packPath)
 
 	if err != nil {
-		if VerboseMode {
-			fmt.Fprintf(os.Stderr, "Error extracting pack %s[%s]\n", packID, chunkID)
-		}
-		return err
+	    return fmt.Errorf("Error extracting pack %s[%s]: %w", packID, chunkID, err)
 	}
 
 	defer packFile.Close()
@@ -87,21 +72,13 @@ func ExtractChunkFromZipFile(outFile *os.File, packFile *zip.ReadCloser, chunkID
 			chunkFile, err := f.Open()
 
 			if err != nil {
-				if VerboseMode {
-					fmt.Fprintf(os.Stderr, "Error opening chunk %s\n", chunkID)
-				}
-
-				return err
+			    return fmt.Errorf("Error opening chunk %s: %w", chunkID, err)
 			}
 
 			_, err = io.Copy(outFile, chunkFile)
 
 			if err != nil {
-				if VerboseMode {
-					fmt.Fprintf(os.Stderr, "Error reading chunk %s\n", chunkID)
-				}
-
-				return err
+				return fmt.Errorf("Error reading chunk %s: %w", chunkID, err)
 			}
 
 			chunkFile.Close()
