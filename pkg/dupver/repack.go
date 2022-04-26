@@ -147,7 +147,10 @@ func RepackChunk(zipWriter *zip.Writer, chunkID string, packID string, oldPacksP
 	packFile, err := zip.OpenReader(packPath)
 
 	if err != nil {
-		return 0, fmt.Errorf("Error extracting pack %s[%s]: %w", packID, chunkID, err)
+		if VerboseMode {
+			fmt.Fprintf(os.Stderr, "Error extracting pack %s[%s]\n", packID, chunkID)
+		}
+		return 0, err
 	}
 
 	defer packFile.Close()
@@ -159,7 +162,11 @@ func RepackChunk(zipWriter *zip.Writer, chunkID string, packID string, oldPacksP
 	writer, err := zipWriter.CreateHeader(&header)
 
 	if err != nil {
-		return 0, fmt.Errorf("Error creating zip header: %w", err)
+		if VerboseMode {
+			fmt.Fprintf(os.Stderr, "Error creating zip header\n")
+		}
+
+		return 0, err
 	}
 
 	for _, f := range packFile.File {
@@ -171,13 +178,21 @@ func RepackChunk(zipWriter *zip.Writer, chunkID string, packID string, oldPacksP
         chunkFile, err := f.Open()
 
         if err != nil {
-            return 0, fmt.Errorf("Error opening chunk %s: %w", chunkID, err)
+            if VerboseMode {
+                fmt.Fprintf(os.Stderr, "Error opening chunk %s\n", chunkID)
+            }
+
+            return 0, err
         }
 
         _, err = io.Copy(writer, chunkFile)
 
         if err != nil {
-            return 0, fmt.Errorf("Error reading chunk %s: %w", chunkID, err)
+            if VerboseMode {
+                fmt.Fprintf(os.Stderr, "Error reading chunk %s\n", chunkID)
+            }
+
+            return 0, err
         }
 
         chunkFile.Close()

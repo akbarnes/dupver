@@ -120,7 +120,7 @@ func ReadRepoConfig(writeIfMissing bool) (RepoConfig, error) {
 			cfg.Write()
 			return cfg, nil
 		} else {
-			return RepoConfig{}, errors.New("Repo config not present and write default option not enabled")
+			return RepoConfig{}, err
 		}
 	} else if err != nil {
 		return RepoConfig{}, errors.New("Cannot open repo config")

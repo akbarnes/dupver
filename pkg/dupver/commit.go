@@ -61,7 +61,7 @@ func CommitSnapshot(message string, filters []string, archiveTypes []string, arc
 	dupverDir := filepath.Join(".dupver")
 
 	if err := os.MkdirAll(dupverDir, 0777); err != nil {
-		panic(fmt.Errorf("Error creating dupver folder %s: %w", dupverDir, err))
+		panic(fmt.Errorf("Error creating dupver folder %s:\n", dupverDir, err))
 	}
 
     packID, packFile, zipWriter := CreateZipFile(PackIdLen)

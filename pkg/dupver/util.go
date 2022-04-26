@@ -193,7 +193,7 @@ func PostprocessArchive(archiveBaseName string, outputFile string, archiveTool s
     home, err := os.UserHomeDir()
 
     if err != nil {
-        return fmt.Errorf("Error proprocessing archive, cannot get home folder: %w", err)
+        return err
     }
 
     // Note that 7z will create folder structure as needed
