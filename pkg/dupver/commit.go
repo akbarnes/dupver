@@ -38,7 +38,7 @@ func CommitSnapshot(message string, filters []string, archiveTypes []string, arc
 	headFiles := ReadHead().ReadFilesHash()
 	status := make(map[string]string)
 
-	for fileName, _ := range headFiles {
+	for fileName := range headFiles {
 		status[fileName] = "-"
 	}
 
