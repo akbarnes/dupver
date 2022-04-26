@@ -76,7 +76,7 @@ func LogSingleSnapshot(commitID string) {
             }
 
             fmt.Printf("Size: %0.3f MB\n\n", float64(fileProps.Size)/(1024.0*1024.0))
-            i += 1
+            i++
         }
 	}
 }
