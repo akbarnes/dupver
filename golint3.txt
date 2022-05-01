@@ -12,7 +12,6 @@ file.go:32:1: comment on exported function CopyFile should be of the form "CopyF
 log.go:11:1: exported function LogAllSnapshots should have comment or be unexported
 log.go:33:1: exported function MatchSnapshot should have comment or be unexported
 log.go:47:1: exported function LogSingleSnapshot should have comment or be unexported
-log.go:73:13: should replace i += 1 with i++
 options.go:3:5: exported var VerboseMode should have comment or be unexported
 options.go:4:5: exported var DebugMode should have comment or be unexported
 options.go:5:5: exported var QuietMode should have comment or be unexported

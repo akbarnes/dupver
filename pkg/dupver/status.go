@@ -23,7 +23,7 @@ func (snap Snapshot) Diff(filters []string) {
 	status := make(map[string]string)
 	snapFiles := snap.ReadFilesHash()
 
-	for fileName, _ := range snapFiles {
+	for fileName := range snapFiles {
 		status[fileName] = "-"
 	}
 

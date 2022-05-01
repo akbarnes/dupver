@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/akbarnes/dupver"
+	"github.com/akbarnes/dupver/pkg/dupver"
 )
 
 var OutputFolder string
