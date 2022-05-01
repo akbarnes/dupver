@@ -20,7 +20,7 @@ func CreateZipFile(packIDLen int) (string, *os.File, *zip.Writer) {
 	packFile, err := CreatePackFile(packID)
 
 	if err != nil {
-		panic(fmt.Errorf("Error creating pack file %s: %w\n", packID, err))
+		panic(fmt.Errorf("unable to create pack file %s: %w", packID, err))
 	}
 
 	zipWriter := zip.NewWriter(packFile)
@@ -28,6 +28,8 @@ func CreateZipFile(packIDLen int) (string, *os.File, *zip.Writer) {
 }
 
 
+// CommitSnapshot creates a snapshot in the current working directory
+// with an optional message string
 func CommitSnapshot(message string, filters []string, archiveTypes []string, archiveTool string, poly chunker.Pol, maxPackBytes int64, compressionLevel uint16) {
 	buf := make([]byte, 8*1024*1024) // reuse this buffer
 
@@ -99,9 +101,9 @@ func CommitSnapshot(message string, filters []string, archiveTypes []string, arc
 				status[fileName] = "="
                 files = append(files, headFiles[fileName])
                 return nil
-            } else {
-				status[fileName] = "M"
             }
+
+		    status[fileName] = "M"
 		} else {
 			status[fileName] = "+"
         }
@@ -115,7 +117,7 @@ func CommitSnapshot(message string, filters []string, archiveTypes []string, arc
 
             if err != nil {
                 if !QuietMode {
-                    fmt.Errorf("Error preprocessing archive %s, skipping: %v\n", fileName, err)
+                    fmt.Errorf("unable to proprocess archive %s, skipping: %v", fileName, err)
                 }
 
                 return nil

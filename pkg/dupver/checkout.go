@@ -33,7 +33,7 @@ func CheckoutSnapshot(commitID string, outputFolder string, filter string, archi
     snap.Checkout(outputFolder, filter, archiveTool)
 }
 
-// snapshot.Checkout extracts a snapshot to the working directory
+// Checkout extracts a snapshot to the working directory
 // It takes an optional output folder and pattern to match files
 // to support partial checkouts
 func (snap Snapshot) Checkout(outputFolder string, filter string, archiveTool string) {

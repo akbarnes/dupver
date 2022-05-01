@@ -8,8 +8,10 @@ import (
 	"os"
 )
 
+// NumChars is number of characters to store for file hashes
 const NumChars = 40
 
+// HashFile returns a string of NumChars length containing the SHA256 hash of a file
 func HashFile(FileName string, NumChars int) (string, error) {
 	var data []byte
 	var err error
@@ -29,7 +31,7 @@ func HashFile(FileName string, NumChars int) (string, error) {
 	return sum[0:NumChars], nil
 }
 
-// Copy the source file to a destination file. Any existing file
+// CopyFile copies the source file to a destination file. Any existing file
 // will be overwritten and will not copy file attributes.
 func CopyFile(src, dst string) error {
 	in, err := os.Open(src)
