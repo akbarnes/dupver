@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"sort"
     "time"
+    "os/user"
 )
 
 const SnapshotIDLen int = 40
@@ -16,6 +17,7 @@ const PackIdLen int = 64
 // and use Time type for SnapshotTime?
 type Snapshot struct {
 	Message      string
+    Username     string
 	SnapshotTime string
 	SnapshotLocalTime string
 	SnapshotID   string // Is this needed?
@@ -47,7 +49,16 @@ func CreateSnapshot(message string) Snapshot {
 	ts := t.Format("2006-01-02T15-04-05")
 	tsl := tl.Format("2006-01-02T15-04-05")
 	sid := RandHexString(SnapshotIDLen)
-	snap := Snapshot{SnapshotTime: ts, SnapshotLocalTime: tsl, Message: message, SnapshotID: sid}
+    username := ""
+    usr, err := user.Current()
+
+    if err == nil {
+        username = usr.Username
+    } else {
+        fmt.Println("Warning: couldn't get current user, leaving blank")
+    }
+
+	snap := Snapshot{SnapshotTime: ts, SnapshotLocalTime: tsl, Message: message, Username: username, SnapshotID: sid}
 	return snap
 }
 
