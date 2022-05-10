@@ -19,7 +19,7 @@ func HashFile(FileName string, NumChars int) (string, error) {
 	data, err = ioutil.ReadFile(FileName)
 
 	if err != nil {
-		return "", fmt.Errorf("Error hashing file, unable to read content: %w", err)
+		return "", err
 	}
 
 	sum := fmt.Sprintf("%x", sha256.Sum256(data))
@@ -36,19 +36,19 @@ func HashFile(FileName string, NumChars int) (string, error) {
 func CopyFile(src, dst string) error {
 	in, err := os.Open(src)
 	if err != nil {
-		return fmt.Errorf("Error copying file, cannot open source file: %w", err)
+		return err
 	}
 	defer in.Close()
 
 	out, err := os.Create(dst)
 	if err != nil {
-		return fmt.Errorf("Error copying file, cannot open destination file: %w", err)
+		return err
 	}
 	defer out.Close()
 
 	_, err = io.Copy(out, in)
 	if err != nil {
-		return fmt.Errorf("Error copying file: %w", err)
+		return err
 	}
 	return out.Close()
 }

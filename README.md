@@ -182,4 +182,4 @@ Usage of `gzip` with `--rsyncable`:
 gzip [--keep|k] --rsyncable <raw_file_or_folder>
 ```
 
-(Warning! This deletes the original file! Use `--keep` to preserve it.)
+(**Warning!** This deletes the original file! Use `--keep` to preserve it.)
