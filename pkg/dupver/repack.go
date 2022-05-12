@@ -23,7 +23,7 @@ func Repack(maxPackBytes int64, compressionLevel uint16) error {
     }
 
     // List all of the tree folders
-	treesGlob := filepath.Join(".dupver", "trees*")
+	treesGlob := filepath.Join(WorkingDirectory, ".dupver", "trees*")
 	treePaths, err := filepath.Glob(treesGlob)
 
     if err != nil {
@@ -35,8 +35,8 @@ func Repack(maxPackBytes int64, compressionLevel uint16) error {
 	newPacks := map[string]string{}
 
     // Rename the old tree folder and create a new tree folder
-    oldTreesPath := filepath.Join(".dupver", "trees")
-    newTreesPath := filepath.Join(".dupver", fmt.Sprintf("trees%d", len(treePaths) - 1))
+    oldTreesPath := filepath.Join(WorkingDirectory, ".dupver", "trees")
+    newTreesPath := filepath.Join(WorkingDirectory, ".dupver", fmt.Sprintf("trees%d", len(treePaths) - 1))
 
     if DebugMode {
         fmt.Fprintf(os.Stderr, "%s -> %s\n", oldTreesPath, newTreesPath)
@@ -48,7 +48,7 @@ func Repack(maxPackBytes int64, compressionLevel uint16) error {
     }
 
     // List all of the packs folders
-	packsGlob := filepath.Join(".dupver", "packs*")
+	packsGlob := filepath.Join(WorkingDirectory, ".dupver", "packs*")
 	packPaths, err := filepath.Glob(packsGlob)
 
     if err != nil {
@@ -57,8 +57,8 @@ func Repack(maxPackBytes int64, compressionLevel uint16) error {
     }
 
     // Rename the old tree folder and create a new tree folder
-    oldPacksPath := filepath.Join(".dupver", "packs")
-    newPacksPath := filepath.Join(".dupver", fmt.Sprintf("packs%d", len(packPaths) - 1))
+    oldPacksPath := filepath.Join(WorkingDirectory, ".dupver", "packs")
+    newPacksPath := filepath.Join(WorkingDirectory, ".dupver", fmt.Sprintf("packs%d", len(packPaths) - 1))
 
     if DebugMode {
         fmt.Fprintf(os.Stderr, "%s -> %s\n", oldPacksPath, newPacksPath)

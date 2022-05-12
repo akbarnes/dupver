@@ -8,7 +8,7 @@ import (
 )
 
 func (snap Snapshot) WriteTree(packs map[string]string) {
-	treesFolder := filepath.Join(".dupver", "trees")
+	treesFolder := filepath.Join(WorkingDirectory, ".dupver", "trees")
 
 	if err := os.MkdirAll(treesFolder, 0777); err != nil {
 		panic(fmt.Sprintf("Error creating trees folder %s\n", treesFolder))
@@ -39,7 +39,7 @@ func (snap Snapshot) WriteTree(packs map[string]string) {
 }
 
 func ReadTrees() map[string]string {
-	treesFolder := filepath.Join(".dupver", "trees")
+	treesFolder := filepath.Join(WorkingDirectory, ".dupver", "trees")
 
 	if err := os.MkdirAll(treesFolder, 0777); err != nil {
 		panic(fmt.Sprintf("Error creating trees folder %s\n", treesFolder))

@@ -15,7 +15,7 @@ import (
 const PackSize int64 = 500 * 1024 * 1024
 
 func CreatePackFile(packID string) (*os.File, error) {
-	packFolderPath := filepath.Join(".dupver", "packs", packID[0:2])
+	packFolderPath := filepath.Join(WorkingDirectory, ".dupver", "packs", packID[0:2])
 	os.MkdirAll(packFolderPath, 0777)
 	packPath := filepath.Join(packFolderPath, packID+".zip")
 
@@ -64,7 +64,7 @@ func WriteChunkToPack(zipWriter *zip.Writer, chunkID string, chunk chunker.Chunk
 }
 
 func ExtractChunkFromPack(outFile *os.File, chunkID string, packID string) error {
-	packFolderPath := path.Join(".dupver", "packs", packID[0:2])
+	packFolderPath := path.Join(WorkingDirectory, ".dupver", "packs", packID[0:2])
 	packPath := path.Join(packFolderPath, packID+".zip")
 	packFile, err := zip.OpenReader(packPath)
 

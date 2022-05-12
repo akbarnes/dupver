@@ -33,7 +33,7 @@ func ToNativeSeparators(path string) string {
 
 
 func ReadFilters() ([]string, error) {
-	filterPath := ".dupver_ignore"
+	filterPath := filepath.Join(WorkingDirectory, ".dupver_ignore")
 	f, err := os.Open(filterPath)
 
 	if err != nil {
@@ -49,7 +49,7 @@ func ReadFilters() ([]string, error) {
 }
 
 func ReadArchiveTypes() ([]string, error) {
-	filterPath := ".dupver_archive_types"
+	filterPath := filepath.Join(WorkingDirectory, ".dupver_archive_types")
 	f, err := os.Open(filterPath)
 
 	if err != nil {
@@ -88,7 +88,7 @@ func ReadFilterFile(f *os.File) ([]string, error) {
 
 func ExcludedFile(fileName string, info os.FileInfo, filters []string) bool {
 	// dupverDir := filepath.Join(WorkingDirectory, ".gover2")
-	dupverDir := ".dupver"
+	dupverDir := filepath.Join(WorkingDirectory, ".dupver")
 	dupverPattern := ToForwardSlashes(filepath.Join(dupverDir, "**"))
 
 	if info.IsDir() {

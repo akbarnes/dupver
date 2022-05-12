@@ -1,3 +1,5 @@
 #!/bin/sh
 #cd cmd/gover
-go get github.com/akbarnes/dupver/cmd/dupver
+#go get github.com/akbarnes/dupver/cmd/dupver
+go build -o dupver cmd/dupver/main.go
+mv -f dupver $HOME/go/bin

@@ -35,7 +35,7 @@ func LogAllSnapshots() {
 }
 
 func MatchSnapshot(commitID string) (Snapshot, error) {
-	snapshotGlob := filepath.Join(".dupver", "snapshots", "*.json")
+	snapshotGlob := filepath.Join(WorkingDirectory, ".dupver", "snapshots", "*.json")
 	snapshotPaths, err := filepath.Glob(snapshotGlob)
 	Check(err)
 

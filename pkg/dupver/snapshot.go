@@ -68,7 +68,7 @@ func AddFileChunkIds(files map[string]SnapshotFile, headFiles map[string]Snapsho
 
 // TODO: return err instead of panic?
 func (snap Snapshot) Write() {
-	snapFolder := filepath.Join(".dupver", "snapshots")
+	snapFolder := filepath.Join(WorkingDirectory, ".dupver", "snapshots")
 
 	if err := os.MkdirAll(snapFolder, 0777); err != nil {
 		panic(fmt.Sprintf("Error creating snapshot folder %s\n", snapFolder))
@@ -88,7 +88,7 @@ func (snap Snapshot) Write() {
 }
 
 func (snap Snapshot) WriteFiles(files []SnapshotFile) {
-	filesFolder := filepath.Join(".dupver", "files")
+	filesFolder := filepath.Join(WorkingDirectory, ".dupver", "files")
 
 	if err := os.MkdirAll(filesFolder, 0777); err != nil {
 		panic(fmt.Sprintf("Error creating files listing folder %s\n", filesFolder))
@@ -129,7 +129,7 @@ func (snap Snapshot) ReadFilesList() []SnapshotFile {
 		return []SnapshotFile{}
 	}
 
-	filesFolder := filepath.Join(".dupver", "files")
+	filesFolder := filepath.Join(WorkingDirectory, ".dupver", "files")
 
 	if err := os.MkdirAll(filesFolder, 0777); err != nil {
 		panic(fmt.Sprintf("Error creating files listing folder %s\n", filesFolder))
@@ -155,7 +155,7 @@ func (snap Snapshot) ReadFilesList() []SnapshotFile {
 
 
 func ReadSnapshot(snapId string) Snapshot {
-	snapshotPath := filepath.Join(".dupver", "snapshots", snapId+".json")
+	snapshotPath := filepath.Join(WorkingDirectory, ".dupver", "snapshots", snapId+".json")
 
 	if DebugMode {
 		fmt.Fprintf(os.Stderr, "Reading %s\n", snapshotPath)
@@ -185,7 +185,7 @@ func ReadSnapshotJson(snapshotPath string) Snapshot {
 }
 
 func (snap Snapshot) WriteHead() {
-	headPath := filepath.Join(".dupver", "head.json")
+	headPath := filepath.Join(WorkingDirectory, ".dupver", "head.json")
 	f, err := os.Create(headPath)
 
 	if err != nil {
@@ -202,7 +202,7 @@ func (snap Snapshot) WriteHead() {
 
 // Read all snapshots and sort by date
 func ReadAllSnapshots() []Snapshot {
-	snapshotGlob := filepath.Join(".dupver", "snapshots", "*.json")
+	snapshotGlob := filepath.Join(WorkingDirectory, ".dupver", "snapshots", "*.json")
 	snapshotPaths, err := filepath.Glob(snapshotGlob)
 	Check(err)
 	snaps := []Snapshot{}
@@ -220,7 +220,7 @@ func ReadAllSnapshots() []Snapshot {
 
 // Read the head snapshot and files list
 func ReadHead() Snapshot {
-	headPath := filepath.Join(".dupver", "head.json")
+	headPath := filepath.Join(WorkingDirectory, ".dupver", "head.json")
 	f, err := os.Open(headPath)
 
 	if err != nil {

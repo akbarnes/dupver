@@ -21,6 +21,8 @@ func AddOptionFlags(fs *flag.FlagSet) {
 	fs.BoolVar(&dupver.ForceMode, "f", false, "force commit even with no changed files")
 	fs.BoolVar(&dupver.RandomPoly, "random-poly", false, "generate random polynomial on initialization")
 	fs.BoolVar(&dupver.RandomPoly, "r", false, "generate random polynomial on initialization")
+	fs.StringVar(&dupver.WorkingDirectory, "path", ".", "specify path to working directory")
+	fs.StringVar(&dupver.WorkingDirectory, "p", ".", "specify path to working directory")
 }
 
 func PostProcessOptionFlags() {

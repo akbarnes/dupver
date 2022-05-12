@@ -62,13 +62,13 @@ func CreateDefaultRepoConfig() RepoConfig {
 }
 
 func (cfg RepoConfig) Write() {
-	dupverDir := filepath.Join(".dupver")
+	dupverDir := filepath.Join(WorkingDirectory, ".dupver")
 
 	if err := os.MkdirAll(dupverDir, 0777); err != nil {
 		panic(fmt.Sprintf("Error creating dupver folder %s\n", dupverDir))
 	}
 
-	cfgPath := filepath.Join(".dupver", "repo_config.json")
+	cfgPath := filepath.Join(WorkingDirectory, ".dupver", "repo_config.json")
 	f, err := os.Create(cfgPath)
 
 	if err != nil {
@@ -100,7 +100,7 @@ func AbortIfIncorrectRepoVersion() {
 }
 
 func ReadRepoConfig(writeIfMissing bool) (RepoConfig, error) {
-	cfgPath := filepath.Join(".dupver", "repo_config.json")
+	cfgPath := filepath.Join(WorkingDirectory, ".dupver", "repo_config.json")
 
 	if VerboseMode {
 		fmt.Fprintf(os.Stderr, "Reading %s\n", cfgPath)
