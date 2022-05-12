@@ -89,7 +89,7 @@ func AbortIfIncorrectRepoVersion() {
 	cfg, err := ReadRepoConfig(false)
 
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Can't read repo configuration, exiting\n")
+		fmt.Fprintf(os.Stderr, "Can't read repo configuration, exiting: %v\n", err)
 		os.Exit(1)
 	}
 
@@ -123,7 +123,7 @@ func ReadRepoConfig(writeIfMissing bool) (RepoConfig, error) {
 			return RepoConfig{}, err
 		}
 	} else if err != nil {
-		return RepoConfig{}, errors.New("Cannot open repo config")
+		return RepoConfig{}, errors.New("Cannot open repo config: " + cfgPath)
 	}
 
 	myDecoder := json.NewDecoder(f)

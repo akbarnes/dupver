@@ -136,9 +136,9 @@ func main() {
 
 		dupver.CommitSnapshot(message, filters, archiveTypes, prefs.ArchiveTool, cfg.ChunkerPoly, cfg.PackSize, cfg.CompressionLevel)
 	} else if cmd == "status" || cmd == "st" {
-		dupver.AbortIfIncorrectRepoVersion()
 		AddOptionFlags(statusCmd)
 		statusCmd.Parse(os.Args[2:])
+		dupver.AbortIfIncorrectRepoVersion()
         PostProcessOptionFlags()
 		filters, err := dupver.ReadFilters()
 
@@ -152,9 +152,9 @@ func main() {
 			dupver.DiffSnapshot("", filters)
 		}
 	} else if cmd == "diff" {
-		dupver.AbortIfIncorrectRepoVersion()
 		AddOptionFlags(diffCmd)
 		diffCmd.Parse(os.Args[2:])
+		dupver.AbortIfIncorrectRepoVersion()
         PostProcessOptionFlags()
 
 		if diffCmd.NArg() >= 1 {
@@ -163,9 +163,9 @@ func main() {
 			dupver.DiffToolSnapshot(prefs.DiffTool, prefs.ArchiveTool)
         }
 	} else if cmd == "log" {
-		dupver.AbortIfIncorrectRepoVersion()
 		AddOptionFlags(logCmd)
 		logCmd.Parse(os.Args[2:])
+		dupver.AbortIfIncorrectRepoVersion()
         PostProcessOptionFlags()
 
 		if logCmd.NArg() >= 1 {
@@ -174,8 +174,8 @@ func main() {
 			dupver.LogAllSnapshots()
 		}
 	} else if cmd == "checkout" || cmd == "co" {
-		dupver.AbortIfIncorrectRepoVersion()
 		AddOptionFlags(checkoutCmd)
+		dupver.AbortIfIncorrectRepoVersion()
 		checkoutCmd.StringVar(&OutputFolder, "out", "", "output folder")
 		checkoutCmd.StringVar(&OutputFolder, "o", "", "output folder")
 		checkoutCmd.Parse(os.Args[2:])
@@ -196,9 +196,9 @@ func main() {
 			os.Exit(1)
 		}
 
-		dupver.AbortIfIncorrectRepoVersion()
 		AddOptionFlags(repackCmd)
 		repackCmd.Parse(os.Args[2:])
+		dupver.AbortIfIncorrectRepoVersion()
         PostProcessOptionFlags()
         dupver.Repack(cfg.PackSize, cfg.CompressionLevel)
 	} else if cmd == "version" || cmd == "ver" {

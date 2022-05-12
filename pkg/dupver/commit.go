@@ -7,7 +7,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"strings"
+    "strings"
 
 	"github.com/restic/chunker"
 )
@@ -70,7 +70,8 @@ func CommitSnapshot(message string, filters []string, archiveTypes []string, arc
 	var packBytesRemaining int64 = maxPackBytes
 
 	var VersionFile = func(fileName string, info os.FileInfo, err error) error {
-		fileName = ToForwardSlashes(strings.TrimSuffix(fileName, "\n"))
+        fileName = ToForwardSlashes(strings.TrimSuffix(fileName, "\n"))
+		relativeFileName := RelativePath(fileName)
 
 		if ExcludedFile(fileName, info, filters) {
 			return nil
@@ -88,7 +89,7 @@ func CommitSnapshot(message string, filters []string, archiveTypes []string, arc
 
 		modTime := props.ModTime().UTC().Format("2006-01-02T15-04-05")
 		modLocalTime := props.ModTime().Format("2006-01-02T15-04-05")
-		file := SnapshotFile{Name: fileName, ModTime: modTime, ModLocalTime: modLocalTime, Size: props.Size(), IsArchive: false}
+		file := SnapshotFile{Name: relativeFileName, ModTime: modTime, ModLocalTime: modLocalTime, Size: props.Size(), IsArchive: false}
 		file.ChunkIds = []string{}
 
 		// TODO: fix this. Currently not reading in filechunks from head

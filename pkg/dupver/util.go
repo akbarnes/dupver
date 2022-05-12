@@ -31,6 +31,10 @@ func ToNativeSeparators(path string) string {
     return strings.ReplaceAll(path, "/", string(os.PathSeparator))
 }
 
+func RelativePath(path string) string {
+    prefix := WorkingDirectory + "/"
+    return strings.TrimPrefix(path, prefix)
+}
 
 func ReadFilters() ([]string, error) {
 	filterPath := filepath.Join(WorkingDirectory, ".dupver_ignore")
