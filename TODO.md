@@ -13,13 +13,12 @@
 - [ ] Don't create new pack until new chunks are found
 
 # Maybe TODO:
-- [ ] Re-add WorkDirPath to work well with Xojo
+- [x] Re-add WorkDirPath to work well with Xojo
 - [ ] Use -m flag for commit message, promit for message if absent
-- [ ] Add username/fullname/email to commits
+- [x] Add username/fullname/email to commits
 - [x] Add quiet mode to just print snapshot ids on log
 - [x] Preserve date stamps on checkout?
 - [x] Add option to generate random polynomial on init
-- [ ] Use a logging package 
 - [ ] Command to print repo stats
 - [ ] Add codecov
-- [ ] Decompress archives before deduplicating
+- [x] Decompress archives before deduplicating

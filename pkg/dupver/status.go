@@ -29,10 +29,10 @@ func (snap Snapshot) Diff(filters []string) {
 
 	// workingDirectory, err := os.Getwd()
 	// Check(err)
-	workingDirectory := "."
 
 	var DiffFile = func(fileName string, info os.FileInfo, err error) error {
 		fileName = ToForwardSlashes(strings.TrimSuffix(fileName, "\n"))
+		relativeFileName := RelativePath(fileName)
 
 		if ExcludedFile(fileName, info, filters) {
 			return nil
@@ -50,25 +50,25 @@ func (snap Snapshot) Diff(filters []string) {
 
 		modTime := props.ModTime().UTC().Format("2006-01-02T15-04-05")
 
-		if snapFile, ok := snapFiles[fileName]; ok {
+		if snapFile, ok := snapFiles[relativeFileName]; ok {
 			if modTime == snapFile.ModTime {
-				status[fileName] = "="
+				status[relativeFileName] = "="
 			} else {
                 if DebugMode {
-                    fmt.Printf("%s -> %s: %s\n", snapFile.ModTime, modTime, fileName)
+                    fmt.Printf("%s -> %s: %s\n", snapFile.ModTime, modTime, relativeFileName)
                 }
 
-				status[fileName] = "M"
+				status[relativeFileName] = "M"
 			}
 		} else {
-			status[fileName] = "+"
+			status[relativeFileName] = "+"
 		}
 
 		return nil
 	}
 
 	// fmt.Fprintf(os.Stderr, "No changes detected in %s for commit %s\n", workDir, snapshot.ID)
-	filepath.Walk(workingDirectory, DiffFile)
+	filepath.Walk(WorkingDirectory, DiffFile)
 
 	for fileName, fileStatus := range status {
 		if fileStatus == "=" && !VerboseMode {

@@ -93,20 +93,20 @@ func CommitSnapshot(message string, filters []string, archiveTypes []string, arc
 		file.ChunkIds = []string{}
 
 		// TODO: fix this. Currently not reading in filechunks from head
-		if headFile, ok := headFiles[fileName]; ok {
+		if headFile, ok := headFiles[relativeFileName]; ok {
             if  modTime == headFile.ModTime {
                 if DebugMode {
                     fmt.Fprintf(os.Stderr, "Skipping %s\n", fileName)
                 }
 
-				status[fileName] = "="
-                files = append(files, headFiles[fileName])
+				status[relativeFileName] = "="
+                files = append(files, headFiles[relativeFileName])
                 return nil
             }
 
-		    status[fileName] = "M"
+		    status[relativeFileName] = "M"
 		} else {
-			status[fileName] = "+"
+			status[relativeFileName] = "+"
         }
 
         archiveFileName := fileName
@@ -141,12 +141,12 @@ func CommitSnapshot(message string, filters []string, archiveTypes []string, arc
 		myChunker := chunker.New(in, chunker.Pol(poly))
 
 		if QuietMode {
-			fmt.Println(fileName)
+			fmt.Println(relativeFileName)
 		} else {
             if file.IsArchive {
-			    fmt.Fprintf(os.Stderr, "Archive %s\n", fileName)
+			    fmt.Fprintf(os.Stderr, "Archive %s\n", relativeFileName)
             } else {
-			    fmt.Fprintf(os.Stderr, "Regular %s\n", fileName)
+			    fmt.Fprintf(os.Stderr, "Regular %s\n", relativeFileName)
             }
 		}
 

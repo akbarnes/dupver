@@ -21,8 +21,8 @@ func (snap Snapshot) DiffTool(diffTool string, archiveTool string) {
     home, err := os.UserHomeDir()
     Check(err)
     tempFolder := filepath.Join(home, ".dupver", "temp", RandHexString(24))
-    snap.Checkout(tempFolder, "*", archiveTool)
-    cmd := exec.Command(diffTool, tempFolder, ".")
+    snap.Checkout(tempFolder, "**", archiveTool)
+    cmd := exec.Command(diffTool, tempFolder, WorkingDirectory) 
     cmd.Run()
 }
 
@@ -37,11 +37,12 @@ func DiffToolSnapshotFile(fileName string, diffTool string, archiveTool string) 
 // DiffToolSnapshotFile runs the specified diff tool for the given file
 // between the given snapshot and the current working directory
 func (snap Snapshot) DiffToolFile(fileName string, diffTool string, archiveTool string) {
+    relativeFileName := RelativeFilePath(fileName)
     home, err := os.UserHomeDir()
     Check(err)
     tempFolder := filepath.Join(home, ".dupver", "temp", RandHexString(24))
-    snap.Checkout(tempFolder, fileName, archiveTool)
-    tempFile := filepath.Join(tempFolder, fileName)
+    snap.Checkout(tempFolder, relativeFileName, archiveTool)
+    tempFile := filepath.Join(tempFolder, relativeFileName)
     cmd := exec.Command(diffTool, tempFile, fileName)
     cmd.Run()
 }

@@ -175,11 +175,11 @@ func main() {
 		}
 	} else if cmd == "checkout" || cmd == "co" {
 		AddOptionFlags(checkoutCmd)
-		dupver.AbortIfIncorrectRepoVersion()
 		checkoutCmd.StringVar(&OutputFolder, "out", "", "output folder")
 		checkoutCmd.StringVar(&OutputFolder, "o", "", "output folder")
 		checkoutCmd.Parse(os.Args[2:])
         PostProcessOptionFlags()
+		dupver.AbortIfIncorrectRepoVersion()
 
         checkoutFilter := "**"
 
@@ -189,6 +189,9 @@ func main() {
 
 		dupver.CheckoutSnapshot(checkoutCmd.Arg(0), OutputFolder, checkoutFilter, prefs.ArchiveTool)
 	} else if cmd == "repack" {
+		AddOptionFlags(repackCmd)
+		repackCmd.Parse(os.Args[2:])
+        PostProcessOptionFlags()
 		cfg, err := dupver.ReadRepoConfig(false)
 
 		if err != nil {
@@ -196,10 +199,6 @@ func main() {
 			os.Exit(1)
 		}
 
-		AddOptionFlags(repackCmd)
-		repackCmd.Parse(os.Args[2:])
-		dupver.AbortIfIncorrectRepoVersion()
-        PostProcessOptionFlags()
         dupver.Repack(cfg.PackSize, cfg.CompressionLevel)
 	} else if cmd == "version" || cmd == "ver" {
 		fmt.Printf("%d.%d.%d\n", dupver.MajorVersion, dupver.MinorVersion, dupver.PatchVersion)

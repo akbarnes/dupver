@@ -36,6 +36,12 @@ func RelativePath(path string) string {
     return strings.TrimPrefix(path, prefix)
 }
 
+func RelativeFilePath(path string) string {
+    prefix := WorkingDirectory + string(os.PathSeparator)
+    return strings.TrimPrefix(path, prefix)
+}
+
+
 func ReadFilters() ([]string, error) {
 	filterPath := filepath.Join(WorkingDirectory, ".dupver_ignore")
 	f, err := os.Open(filterPath)
