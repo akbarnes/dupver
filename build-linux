@@ -1,5 +1,3 @@
 #!/bin/sh
-#cd cmd/gover
-go get github.com/akbarnes/dupver/cmd/dupver
-cp $HOME/go/bin/dupver bin/dupver-linux-x64
+go build -o bin/dupver-linux-x64 cmd/dupver/main.go
 

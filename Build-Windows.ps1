@@ -1,2 +1,4 @@
-go get github.com/akbarnes/dupver/cmd/dupver
-copy Join-Path ($HOME go bin dupver) dupver-win-x64.exe
+$MainPath = Join-Path "cmd" "dupver" "main.go"
+$BinPath = Join-Path "bin" "dupver-win-x64.exe"
+go build -o $BinPath $MainPath
+
