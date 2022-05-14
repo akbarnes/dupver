@@ -1,7 +1,7 @@
 cd ../pkg/dupver
 go test
 cd ../..
-go get github.com/akbarnes/dupver/cmd/dupver
+go build -o $HOME/go/bin/dupver cmd/dupver/main.go
 
 If (!$?) {
     cd test
