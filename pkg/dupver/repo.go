@@ -34,6 +34,10 @@ type RepoConfig struct {
 
 const RepoReadMe = `# Repo Structure
 
+This Readme describes the repository structure used by Dupver.
+
+Github project link: https://github.com/akbarnes/dupver
+
 ## Directory Organization
 
 The repository is structured is as follows:
