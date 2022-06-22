@@ -9,7 +9,7 @@ package dupver
 // PrefsMinorVersion is the major version of the global preferences format that creates breaking changes
 const (
 	MajorVersion      = 4
-	MinorVersion      = 3
+	MinorVersion      = 4
 	PatchVersion      = 0
 	RepoMajorVersion  = 4
 	RepoMinorVersion  = 1
